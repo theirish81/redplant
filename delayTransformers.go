@@ -7,36 +7,32 @@ import (
 
 // DelayTransformer will slow the request down by a certain amount
 type DelayTransformer struct {
-	Min		time.Duration
-	Max		time.Duration
+	_min time.Duration
+	_max time.Duration
+	Min  string `mapstructure:"min"`
+	Max  string `mapstructure:"max"`
 }
 
-// DelayConfig is the configuration for the DelayTransformer
-type DelayConfig struct {
-	Min	string	`mapstructure:"min"`
-	Max	string	`mapstructure:"max"`
+func NewDelayTransformer(params map[string]interface{}) (*DelayTransformer, error) {
+	t := DelayTransformer{}
+	err := DecodeAndTempl(params, &t, nil)
+	if err != nil {
+		return nil, err
+	}
+	t._min, err = time.ParseDuration(t.Min)
+	if err != nil {
+		return nil, err
+	}
+	t._max, err = time.ParseDuration(t.Max)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
 
-func NewDelayTransformer(params map[string]interface{}) (*DelayTransformer,error) {
-	var cfg DelayConfig
-	err := DecodeAndTempl(params,&cfg,nil)
-	if err != nil {
-		return nil,err
-	}
-	minObj,err := time.ParseDuration(cfg.Min)
-	if err != nil {
-		return nil,err
-	}
-	maxObj,err := time.ParseDuration(cfg.Max)
-	if err != nil {
-		return nil,err
-	}
-	return &DelayTransformer{minObj,maxObj},nil
-}
-
-func (t *DelayTransformer) Transform(wrapper *APIWrapper) (*APIWrapper,error) {
-	timeRange := t.Max.Nanoseconds()-t.Min.Nanoseconds()
-	nanos := t.Min.Nanoseconds()+rand.Int63n(timeRange)
+func (t *DelayTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	timeRange := t._max.Nanoseconds() - t._min.Nanoseconds()
+	nanos := t._min.Nanoseconds() + rand.Int63n(timeRange)
 	time.Sleep(time.Duration(nanos))
-	return wrapper,nil
+	return wrapper, nil
 }

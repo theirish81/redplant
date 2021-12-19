@@ -4,48 +4,72 @@ import (
 	"errors"
 	"regexp"
 )
+
 // BarrageRequestTransformer is a transformer that will stop the request if certain preconditions are met
 type BarrageRequestTransformer struct {
 	// HeaderNameRegexp is a regular expression for a forbidden header name
-	HeaderNameRegexp		string
+	HeaderNameRegexp string
 	// HeaderValueRegexp is a regular expression for a forbidden header name
-	HeaderValueRegexp		string
+	HeaderValueRegexp string
 	// HeaderRegexp is a regular expression for a forbidden full header as in name:value
-	HeaderRegexp			string
+	HeaderRegexp string
 	// BodyRegexp is a regular expression for a forbidden body
-	BodyRegexp				string
+	BodyRegexp         string
+	_headerNameRegexp  *regexp.Regexp
+	_headerValueRegexp *regexp.Regexp
+	_headerRegexp      *regexp.Regexp
+	_bodyRegexp        *regexp.Regexp
 }
 
 // NewBarrageRequestTransformer is the constructor for BarrageRequestTransformer
-func NewBarrageRequestTransformer(params map[string]interface{}) (*BarrageRequestTransformer,error) {
+func NewBarrageRequestTransformer(params map[string]interface{}) (*BarrageRequestTransformer, error) {
 	var t BarrageRequestTransformer
-	err := DecodeAndTempl(params, &t,nil)
-	return &t,err
-}
-
-// Transform will block the request if the preconditions are not met
-func (t *BarrageRequestTransformer) Transform(wrapper *APIWrapper) (*APIWrapper,error) {
-	for k,v := range wrapper.Request.Header {
-		if t.HeaderRegexp != "" {
-			if matched,_ := regexp.MatchString(t.HeaderRegexp,k+":"+v[0]); matched {
-				return wrapper,errors.New("barraged")
-			}
+	err := DecodeAndTempl(params, &t, nil)
+	if err != nil {
+		return nil, err
+	}
+	if t.HeaderNameRegexp != "" {
+		t._headerNameRegexp, err = regexp.Compile(t.HeaderRegexp)
+		if err != nil {
+			return nil, err
 		}
-		if t.HeaderNameRegexp != "" {
-			if matched,_ := regexp.MatchString(t.HeaderNameRegexp,k); matched {
-				return wrapper,errors.New("barraged")
-			}
+	}
+	if t.HeaderValueRegexp != "" {
+		t._headerValueRegexp, err = regexp.Compile(t.HeaderValueRegexp)
+		if err != nil {
+			return nil, err
 		}
-		if t.HeaderValueRegexp != "" {
-			if matched,_ := regexp.MatchString(t.HeaderValueRegexp,v[0]); matched {
-				return wrapper,errors.New("barraged")
-			}
+	}
+	if t.HeaderRegexp != "" {
+		t._headerRegexp, err = regexp.Compile(t.HeaderRegexp)
+		if err != nil {
+			return nil, err
 		}
 	}
 	if t.BodyRegexp != "" {
-		if matched,_ := regexp.Match(t.BodyRegexp,wrapper.RequestBody); matched {
-			return wrapper,errors.New("barraged")
+		t._bodyRegexp, err = regexp.Compile(t.BodyRegexp)
+		if err != nil {
+			return nil, err
 		}
 	}
-	return wrapper,nil
+	return &t, err
+}
+
+// Transform will block the request if the preconditions are not met
+func (t *BarrageRequestTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	for k, v := range wrapper.Request.Header {
+		if t._headerRegexp != nil && t._headerRegexp.MatchString(k+":"+v[0]) {
+			return wrapper, errors.New("barraged")
+		}
+		if t._headerNameRegexp != nil && t._headerNameRegexp.MatchString(k) {
+			return wrapper, errors.New("barraged")
+		}
+		if t._headerValueRegexp != nil && t._headerValueRegexp.MatchString(v[0]) {
+			return wrapper, errors.New("barraged")
+		}
+		if t._bodyRegexp != nil && t._bodyRegexp.Match(wrapper.RequestBody) {
+			return wrapper, errors.New("barraged")
+		}
+	}
+	return wrapper, nil
 }
