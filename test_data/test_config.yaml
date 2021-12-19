@@ -1,0 +1,92 @@
+variables:
+  var1: sblarg var 1
+  var2: "{{.ENV1}}"
+  userAgent: APIFRP1
+  captureUri: https://foobar.com
+  pgUrl: postgres://foobar.com
+  msUrl: mysql://foobar.com
+  un: foo
+  pw: bar
+network:
+  upstream:
+    timeout: 30s
+    keepAlive: 30s
+    maxIdleConnections: 100
+    idleConnectionTimeout: 90s
+    expectContinueTimeout: 1s
+  downstream:
+    port: 9001
+
+request:
+  transformers:
+    - id: basicAuth
+      params:
+        username: "{{.Variables.un}}"
+        password: "{{.Variables.pw}}"
+    - id: barrage
+      params:
+        headerValueRegexp: log4j
+  sidecars:
+    - id: accessLog
+      workers: 1
+      block: true
+response:
+  transformers:
+    - id: headers
+      params:
+        set:
+          foo: bar
+  sidecars:
+    - id: accessLog
+      workers: 1
+      block: true
+    - id: metricsLog
+      workers: 1
+      block: true
+rules:
+  localhost:9001:
+    "/db/table1":
+      origin: "{{.Variables.pgUrl}}"
+    "/db/table2":
+      origin: "{{.Variables.msUrl}}"
+    "/fs/.*":
+      origin: file://files
+      request:
+        transformers:
+          - id: url
+            params:
+              oldPrefix: "/fs"
+              newPrefix: ""
+    "/foo/.*":
+      origin: https://foobar.com
+      request:
+        transformers:
+          - id: scriptable
+            params:
+              path:
+                scripts/gino.js
+          - id: url
+            params:
+              oldPrefix: "/catchall"
+              newPrefix: "/catchall/bananas"
+          - id: headers
+            params:
+              set:
+                username: "{{.Username}}"
+                "user-agent": "{{.Variables.userAgent}}"
+              remove:
+                - authorization
+      response:
+        transformers:
+          - id: headers
+            params:
+              set:
+                resfoo: resbar
+        sidecars:
+          - id: capture
+            workers: 2
+            block: true
+            params:
+              uri: "{{.Variables.captureUri}}"
+              responseContentTypeRegex: '.*'
+              requestContentTypeRegex: '.*'
