@@ -87,6 +87,7 @@ type MetricsLogSidecar struct {
 	channel chan *APIWrapper
 	log     *LogHelper
 	block   bool
+	Path    string
 }
 
 func (s *MetricsLogSidecar) GetChannel() chan *APIWrapper {
@@ -107,10 +108,16 @@ func (s *MetricsLogSidecar) ShouldBlock() bool {
 	return s.block
 }
 
-func NewMetricsLogSidecarFromParams(block bool, params map[string]interface{}) *MetricsLogSidecar {
+func NewMetricsLogSidecarFromParams(block bool, params map[string]interface{}) (*MetricsLogSidecar, error) {
 	logger := log
-	if path, ok := params["path"]; ok {
-		logger = NewLogHelper(path.(string), logrus.InfoLevel)
+	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper), block: block}
+	err := DecodeAndTempl(params, &sidecar, nil)
+	if err != nil {
+		return nil, err
 	}
-	return &MetricsLogSidecar{make(chan *APIWrapper), logger, block}
+	if sidecar.Path != "" {
+		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
+	}
+	sidecar.log = logger
+	return &sidecar, nil
 }

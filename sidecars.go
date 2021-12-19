@@ -72,9 +72,14 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "metricsLog":
-			sidecar := NewMetricsLogSidecarFromParams(s.Block, s.Params)
-			sidecar.Consume(s.Workers)
-			res.Push(sidecar)
+			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Params)
+			if err != nil {
+				log.Error("Could not initialize metrics log", err, nil)
+			} else {
+				sidecar.Consume(s.Workers)
+				res.Push(sidecar)
+			}
+
 		case "capture":
 			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Params)
 			if err != nil {
