@@ -88,5 +88,5 @@ rules:
             block: true
             params:
               uri: "{{.Variables.captureUri}}"
-              responseContentTypeRegex: '.*'
-              requestContentTypeRegex: '.*'
+              responseContentTypeRegexp: '.*json.*'
+              requestContentTypeRegexp: '(^$|.*json.*)'
