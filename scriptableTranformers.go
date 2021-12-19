@@ -53,7 +53,7 @@ func NewScriptableTransformer(params map[string]interface{}) (*ScriptableTransfo
 		if err != nil {
 			return nil, err
 		}
-		t.Script = string(data)
+		t._script = string(data)
 		return &t, nil
 	}
 	return nil, errors.New("scriptable_transformer_no_config")
