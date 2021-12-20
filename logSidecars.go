@@ -28,6 +28,13 @@ func (s *RequestAccessLogSidecar) ShouldBlock() bool {
 	return s.block
 }
 
+func (s *RequestAccessLogSidecar) ShouldExpandRequest() bool {
+	return false
+}
+func (s *RequestAccessLogSidecar) ShouldExpandResponse() bool {
+	return false
+}
+
 func NewRequestAccessLogSidecarFromParams(block bool, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
 	logger := log
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper), block: block}
@@ -69,6 +76,13 @@ func (s *UpstreamAccessLogSidecar) ShouldBlock() bool {
 	return s.block
 }
 
+func (s *UpstreamAccessLogSidecar) ShouldExpandRequest() bool {
+	return false
+}
+func (s *UpstreamAccessLogSidecar) ShouldExpandResponse() bool {
+	return false
+}
+
 func NewUpstreamAccessLogSidecarFromParams(block bool, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
 	logger := log
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper), block: block}
@@ -106,6 +120,13 @@ func (s *MetricsLogSidecar) Consume(quantity int) {
 
 func (s *MetricsLogSidecar) ShouldBlock() bool {
 	return s.block
+}
+
+func (s *MetricsLogSidecar) ShouldExpandRequest() bool {
+	return false
+}
+func (s *MetricsLogSidecar) ShouldExpandResponse() bool {
+	return false
 }
 
 func NewMetricsLogSidecarFromParams(block bool, params map[string]interface{}) (*MetricsLogSidecar, error) {

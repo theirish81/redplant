@@ -73,3 +73,7 @@ func (t *BarrageRequestTransformer) Transform(wrapper *APIWrapper) (*APIWrapper,
 	}
 	return wrapper, nil
 }
+
+func (t *BarrageRequestTransformer) ShouldExpandRequest() bool {
+	return t._bodyRegexp != nil
+}

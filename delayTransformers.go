@@ -36,3 +36,11 @@ func (t *DelayTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	time.Sleep(time.Duration(nanos))
 	return wrapper, nil
 }
+
+func (t *DelayTransformer) ShouldExpandRequest() bool {
+	return false
+}
+
+func (t *DelayTransformer) ShouldExpandResponse() bool {
+	return false
+}

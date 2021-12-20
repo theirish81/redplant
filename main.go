@@ -40,7 +40,7 @@ func main() {
 			return
 		}
 		wrapper.Request = req
-		wrapper.ExpandRequest()
+		wrapper.ExpandRequestIfNeeded()
 		wrapper.Rule.Request._sidecars.Run(wrapper.Clone())
 		handleURL(wrapper.Rule, req)
 		wrapper.Metrics.ReqTransStart = time.Now()
@@ -69,7 +69,7 @@ func main() {
 			if wrapper != nil {
 				wrapper := GetWrapper(response.Request)
 				wrapper.Response = response
-				wrapper.ExpandResponse()
+				wrapper.ExpandResponseIfNeeded()
 				wrapper.Metrics.ResTransStart = time.Now()
 				_, err := wrapper.Rule.Response._transformers.Transform(wrapper)
 				if err != nil {

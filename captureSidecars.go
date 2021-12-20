@@ -139,6 +139,14 @@ func (s *CaptureSidecar) ShouldBlock() bool {
 	return s.block
 }
 
+func (s *CaptureSidecar) ShouldExpandRequest() bool {
+	return true
+}
+
+func (s *CaptureSidecar) ShouldExpandResponse() bool {
+	return true
+}
+
 // NewCaptureSidecarFromParams is the constructor
 func NewCaptureSidecarFromParams(block bool, params map[string]interface{}) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper), block: block}

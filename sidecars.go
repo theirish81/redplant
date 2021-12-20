@@ -4,10 +4,22 @@ type ISidecar interface {
 	Consume(consumers int)
 	GetChannel() chan *APIWrapper
 	ShouldBlock() bool
+	ShouldExpandRequest() bool
+	ShouldExpandResponse() bool
 }
 
 type RequestSidecars struct {
 	sidecars []ISidecar
+}
+
+func (s *RequestSidecars) ShouldExpandRequest() bool {
+	expand := false
+	for _, sx := range s.sidecars {
+		if sx.ShouldExpandRequest() {
+			expand = true
+		}
+	}
+	return expand
 }
 
 func (s *RequestSidecars) Push(sidecar ISidecar) {
@@ -47,6 +59,26 @@ func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
 
 type ResponseSidecars struct {
 	sidecars []ISidecar
+}
+
+func (s *ResponseSidecars) ShouldExpandRequest() bool {
+	expand := false
+	for _, sx := range s.sidecars {
+		if sx.ShouldExpandRequest() {
+			expand = true
+		}
+	}
+	return expand
+}
+
+func (s *ResponseSidecars) ShouldExpandResponse() bool {
+	expand := false
+	for _, sx := range s.sidecars {
+		if sx.ShouldExpandResponse() {
+			expand = true
+		}
+	}
+	return expand
 }
 
 func (s *ResponseSidecars) Push(sidecar ISidecar) {

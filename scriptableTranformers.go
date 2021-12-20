@@ -7,9 +7,11 @@ import (
 )
 
 type ScriptableTransformer struct {
-	Script  string
-	Path    string
-	_script string
+	Script         string
+	Path           string
+	_script        string
+	ExpandRequest  bool
+	ExpandResponse bool
 }
 
 func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
@@ -36,6 +38,14 @@ func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, err
 	}
 	// in all other scenarios, the request is rejected
 	return wrapper, errors.New("rejected")
+}
+
+func (t *ScriptableTransformer) ShouldExpandRequest() bool {
+	return t.ExpandRequest
+}
+
+func (t *ScriptableTransformer) ShouldExpandResponse() bool {
+	return t.ExpandResponse
 }
 
 func NewScriptableTransformer(params map[string]interface{}) (*ScriptableTransformer, error) {

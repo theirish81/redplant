@@ -5,23 +5,29 @@ import (
 )
 
 type RequestUrlTransformer struct {
+	OldPrefix string `yaml:"oldPrefix" mapstructure:"oldPrefix"`
 
-	OldPrefix string	`yaml:"oldPrefix" mapstructure:"oldPrefix"`
-
-	NewPrefix string	`yaml:"newPrefix" mapstructure:"newPrefix"`
-
+	NewPrefix string `yaml:"newPrefix" mapstructure:"newPrefix"`
 }
 
-func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper,error) {
+func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	path := wrapper.Request.URL.Path
-	if strings.HasPrefix(path,t.OldPrefix) {
-		wrapper.Request.URL.Path = strings.Replace(path,t.OldPrefix,t.NewPrefix,1)
+	if strings.HasPrefix(path, t.OldPrefix) {
+		wrapper.Request.URL.Path = strings.Replace(path, t.OldPrefix, t.NewPrefix, 1)
 	}
-	return wrapper,nil
+	return wrapper, nil
 }
 
-func NewRequestUrlTransformerFromParams(params map[string]interface{}) (*RequestUrlTransformer,error) {
+func (t *RequestUrlTransformer) ShouldExpandRequest() bool {
+	return false
+}
+
+func (t *RequestUrlTransformer) ShouldExpandResponse() bool {
+	return false
+}
+
+func NewRequestUrlTransformerFromParams(params map[string]interface{}) (*RequestUrlTransformer, error) {
 	var transformer RequestUrlTransformer
-	err := DecodeAndTempl(params,&transformer,nil)
-	return &transformer,err
+	err := DecodeAndTempl(params, &transformer, nil)
+	return &transformer, err
 }

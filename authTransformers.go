@@ -26,6 +26,14 @@ func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, erro
 	}
 }
 
+func (t *BasicAuthTransformer) ShouldExpandRequest() bool {
+	return false
+}
+
+func (t *BasicAuthTransformer) ShouldExpandResponse() bool {
+	return false
+}
+
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
 func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransformer, error) {
 	var t BasicAuthTransformer
@@ -41,6 +49,14 @@ type JWTAuthTransformer struct {
 	_key       []byte
 	Pem        string `mapstructure:"pem"`
 	Key        string `mapstructure:"key"`
+}
+
+func (t *JWTAuthTransformer) ShouldExpandRequest() bool {
+	return false
+}
+
+func (t *JWTAuthTransformer) ShouldExpandResponse() bool {
+	return false
 }
 
 // Transform will block any request without a Bearer token or a token whose signature cannot be verified.

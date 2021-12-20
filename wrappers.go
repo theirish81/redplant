@@ -12,27 +12,42 @@ import (
 
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
-	Request  *http.Request
-	Response *http.Response
-	RequestBody		[]byte
-	ResponseBody	[]byte
-	Claims			*jwt.MapClaims
-	Rule			*Rule
-	Metrics			*APIMetrics
-	Err				error
-	Username		string
-	Variables		*map[string]string
+	Request      *http.Request
+	Response     *http.Response
+	RequestBody  []byte
+	ResponseBody []byte
+	Claims       *jwt.MapClaims
+	Rule         *Rule
+	Metrics      *APIMetrics
+	Err          error
+	Username     string
+	Variables    *map[string]string
 }
 
 func (w *APIWrapper) Clone() *APIWrapper {
 	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
-		ResponseBody: w.ResponseBody, Claims:w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err}
+		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err}
+}
+
+func (w *APIWrapper) ExpandRequestIfNeeded() {
+	if w.Rule.Request._transformers.ShouldExpandRequest(); w.Rule.Response._transformers.ShouldExpandRequest() ||
+		w.Rule.Request._sidecars.ShouldExpandRequest() ||
+		w.Rule.Response._sidecars.ShouldExpandRequest() {
+		w.ExpandRequest()
+	}
+}
+
+func (w *APIWrapper) ExpandResponseIfNeeded() {
+	if w.Rule.Response._transformers.ShouldExpandResponse() ||
+		w.Rule.Response._sidecars.ShouldExpandResponse() {
+		w.ExpandResponse()
+	}
 }
 
 // ExpandRequest will turn the Request body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandRequest() {
 	if len(w.RequestBody) == 0 && w.Request.Body != nil {
-		w.RequestBody,_ = io.ReadAll(w.Request.Body)
+		w.RequestBody, _ = io.ReadAll(w.Request.Body)
 		w.Request.Body = ioutil.NopCloser(bytes.NewReader(w.RequestBody))
 	}
 }
@@ -43,19 +58,19 @@ func (w *APIWrapper) ExpandResponse() {
 	}
 }
 
-func (w *APIWrapper) Templ(data string) (string,error) {
-	return Templ(data,w)
+func (w *APIWrapper) Templ(data string) (string, error) {
+	return Templ(data, w)
 }
 
 type APIMetrics struct {
-	TransactionStart	time.Time
-	TransactionEnd		time.Time
-	ReqTransStart		time.Time
-	ReqTransEnd			time.Time
-	ResTransStart		time.Time
-	ResTransEnd			time.Time
-
+	TransactionStart time.Time
+	TransactionEnd   time.Time
+	ReqTransStart    time.Time
+	ReqTransEnd      time.Time
+	ResTransStart    time.Time
+	ResTransEnd      time.Time
 }
+
 func (m *APIMetrics) Transaction() int64 {
 	return m.TransactionEnd.Sub(m.TransactionStart).Milliseconds()
 }
@@ -68,13 +83,13 @@ func (m *APIMetrics) ResTransformation() int64 {
 
 func ReqWithContext(req *http.Request, rule *Rule) *http.Request {
 	ctx := req.Context()
-	wrapper := &APIWrapper{Rule: rule,Metrics: &APIMetrics{TransactionStart: time.Now()}, Variables: &config.Variables}
-	un,_,ok := req.BasicAuth()
+	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()}, Variables: &config.Variables}
+	un, _, ok := req.BasicAuth()
 	if ok {
 		wrapper.Username = un
 	}
 
-	ctx = context.WithValue(ctx,"wrapper", wrapper)
+	ctx = context.WithValue(ctx, "wrapper", wrapper)
 	req = req.WithContext(ctx)
 	return req
 }
