@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/tg123/go-htpasswd"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -12,14 +13,19 @@ import (
 // BasicAuthTransformer is a transformer that will block the request in case the credentials do not match the
 // expectations
 type BasicAuthTransformer struct {
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
+	Username  string `mapstructure:"username"`
+	Password  string `mapstructure:"password"`
+	Htpasswd  string `mapstructure:"htpasswd"`
+	_htpasswd *htpasswd.File
 }
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
 func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	username, password, ok := wrapper.Request.BasicAuth()
-	if ok && t.Username == username && t.Password == password {
+	if ok && t._htpasswd != nil && t._htpasswd.Match(username, password) {
+		wrapper.Username = t.Username
+		return wrapper, nil
+	} else if ok && t.Username == username && t.Password == password {
 		wrapper.Username = t.Username
 		return wrapper, nil
 	} else {
@@ -48,6 +54,12 @@ func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransform
 	var t BasicAuthTransformer
 	//err := mapstructure.Decode(params,&t)
 	err := DecodeAndTempl(params, &t, nil)
+	if t.Htpasswd != "" {
+		t._htpasswd, err = htpasswd.New(t.Htpasswd, htpasswd.DefaultSystems, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &t, err
 }
 
