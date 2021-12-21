@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -36,6 +37,12 @@ func (t *DelayTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	time.Sleep(time.Duration(nanos))
 	return wrapper, nil
 }
+
+func (t *DelayTransformer) ErrorMatches(_ error) bool {
+	return false
+}
+
+func (t *DelayTransformer) HandleError(_ *http.ResponseWriter) {}
 
 func (t *DelayTransformer) ShouldExpandRequest() bool {
 	return false

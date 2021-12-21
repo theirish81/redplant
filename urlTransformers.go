@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"strings"
 )
 
@@ -16,6 +17,13 @@ func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, err
 		wrapper.Request.URL.Path = strings.Replace(path, t.OldPrefix, t.NewPrefix, 1)
 	}
 	return wrapper, nil
+}
+
+func (t *RequestUrlTransformer) ErrorMatches(_ error) bool {
+	return false
+}
+
+func (t *RequestUrlTransformer) HandleError(_ *http.ResponseWriter) {
 }
 
 func (t *RequestUrlTransformer) ShouldExpandRequest() bool {

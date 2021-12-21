@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/dop251/goja"
 	"io/ioutil"
+	"net/http"
 )
 
 type ScriptableTransformer struct {
@@ -37,7 +38,15 @@ func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, err
 		return wrapper, nil
 	}
 	// in all other scenarios, the request is rejected
-	return wrapper, errors.New("rejected")
+	return wrapper, errors.New("script_rejected")
+}
+
+func (t *ScriptableTransformer) ErrorMatches(err error) bool {
+	return err.Error() == "script_rejected"
+}
+
+func (t *ScriptableTransformer) HandleError(writer *http.ResponseWriter) {
+	(*writer).WriteHeader(403)
 }
 
 func (t *ScriptableTransformer) ShouldExpandRequest() bool {

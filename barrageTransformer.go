@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"net/http"
 	"regexp"
 )
 
@@ -72,6 +73,14 @@ func (t *BarrageRequestTransformer) Transform(wrapper *APIWrapper) (*APIWrapper,
 		}
 	}
 	return wrapper, nil
+}
+
+func (t *BarrageRequestTransformer) ErrorMatches(err error) bool {
+	return err.Error() == "barraged"
+}
+
+func (t *BarrageRequestTransformer) HandleError(writer *http.ResponseWriter) {
+	(*writer).WriteHeader(403)
 }
 
 func (t *BarrageRequestTransformer) ShouldExpandRequest() bool {

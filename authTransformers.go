@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
+	"net/http"
 	"strings"
 )
 
@@ -32,6 +33,14 @@ func (t *BasicAuthTransformer) ShouldExpandRequest() bool {
 
 func (t *BasicAuthTransformer) ShouldExpandResponse() bool {
 	return false
+}
+
+func (t *BasicAuthTransformer) ErrorMatches(err error) bool {
+	return err.Error() == "no_auth"
+}
+
+func (t *BasicAuthTransformer) HandleError(writer *http.ResponseWriter) {
+	(*writer).WriteHeader(401)
 }
 
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
@@ -84,6 +93,14 @@ func (t *JWTAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// Storing claims in the wrapper
 	wrapper.Claims = &claims
 	return wrapper, err
+}
+
+func (t *JWTAuthTransformer) ErrorMatches(err error) bool {
+	return err.Error() == "signature is invalid"
+}
+
+func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
+	(*writer).WriteHeader(401)
 }
 
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params

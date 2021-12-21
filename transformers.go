@@ -1,10 +1,14 @@
 package main
 
+import "net/http"
+
 // *** REQUEST TRANSFORMERS ***
 
 type IRequestTransformer interface {
 	Transform(req *APIWrapper) (*APIWrapper, error)
 	ShouldExpandRequest() bool
+	ErrorMatches(err error) bool
+	HandleError(writer *http.ResponseWriter)
 }
 
 type RequestTransformers struct {
@@ -35,6 +39,25 @@ func (t *RequestTransformers) Transform(wrapper *APIWrapper) (*APIWrapper, error
 
 func (t *RequestTransformers) Push(transformer IRequestTransformer) {
 	t.transformers = append(t.transformers, transformer)
+}
+
+func (t *RequestTransformers) FindErrorHandler(err error) IRequestTransformer {
+	for _, tx := range t.transformers {
+		if tx.ErrorMatches(err) {
+			return tx
+		}
+	}
+	return nil
+}
+
+func (t *RequestTransformers) HandleError(err error, writer *http.ResponseWriter) bool {
+	handler := t.FindErrorHandler(err)
+	if handler == nil {
+		return false
+	} else {
+		handler.HandleError(writer)
+		return true
+	}
 }
 
 func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransformers, error) {
@@ -88,6 +111,8 @@ type IResponseTransformer interface {
 	Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	ShouldExpandRequest() bool
 	ShouldExpandResponse() bool
+	ErrorMatches(err error) bool
+	HandleError(writer *http.ResponseWriter)
 }
 
 type ResponseTransformers struct {
@@ -125,6 +150,25 @@ func (t *ResponseTransformers) Transform(wrapper *APIWrapper) (*APIWrapper, erro
 
 func (t *ResponseTransformers) Push(transformer IResponseTransformer) {
 	t.transformers = append(t.transformers, transformer)
+}
+
+func (t *ResponseTransformers) FindErrorHandler(err error) IRequestTransformer {
+	for _, tx := range t.transformers {
+		if tx.ErrorMatches(err) {
+			return tx
+		}
+	}
+	return nil
+}
+
+func (t *ResponseTransformers) HandleError(err error, writer *http.ResponseWriter) bool {
+	handler := t.FindErrorHandler(err)
+	if handler == nil {
+		return false
+	} else {
+		handler.HandleError(writer)
+		return true
+	}
 }
 
 func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransformers, error) {

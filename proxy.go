@@ -26,15 +26,18 @@ func SetupRouter() *mux.Router {
 		wrapper.Err = err
 	},
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
+			wrapper := GetWrapper(request)
+			if wrapper != nil {
+				if wrapper.Rule.Request._transformers.HandleError(err, &writer) {
+					return
+				}
+				if wrapper.Rule.Response._transformers.HandleError(err, &writer) {
+					return
+				}
+			}
 			switch err.Error() {
 			case "no_mapping":
 				writer.WriteHeader(404)
-			case "no_auth":
-				writer.WriteHeader(401)
-			case "signature is invalid":
-				writer.WriteHeader(401)
-			case "barraged":
-				writer.WriteHeader(403)
 			default:
 				log.Error("Error while serving resource", err, map[string]interface{}{"url": request.URL.String()})
 				writer.WriteHeader(500)
