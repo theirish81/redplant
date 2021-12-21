@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var addresser = newIPAddresser()
+
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
 	Request      *http.Request
@@ -22,11 +24,12 @@ type APIWrapper struct {
 	Err          error
 	Username     string
 	Variables    *map[string]string
+	RealIP       string
 }
 
 func (w *APIWrapper) Clone() *APIWrapper {
 	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
-		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err}
+		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP}
 }
 
 func (w *APIWrapper) ExpandRequestIfNeeded() {
@@ -83,7 +86,9 @@ func (m *APIMetrics) ResTransformation() int64 {
 
 func ReqWithContext(req *http.Request, rule *Rule) *http.Request {
 	ctx := req.Context()
-	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()}, Variables: &config.Variables}
+	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
+		Variables: &config.Variables,
+		RealIP:    addresser.RealIP(req)}
 	un, _, ok := req.BasicAuth()
 	if ok {
 		wrapper.Username = un
