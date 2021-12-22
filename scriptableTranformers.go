@@ -59,7 +59,7 @@ func (t *ScriptableTransformer) ShouldExpandResponse() bool {
 
 func NewScriptableTransformer(params map[string]interface{}) (*ScriptableTransformer, error) {
 	t := ScriptableTransformer{}
-	err := DecodeAndTempl(params, &t, nil)
+	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

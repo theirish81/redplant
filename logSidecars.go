@@ -38,7 +38,7 @@ func (s *RequestAccessLogSidecar) ShouldExpandResponse() bool {
 func NewRequestAccessLogSidecarFromParams(block bool, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
 	logger := log
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper), block: block}
-	err := DecodeAndTempl(params, &sidecar, nil)
+	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (s *UpstreamAccessLogSidecar) ShouldExpandResponse() bool {
 func NewUpstreamAccessLogSidecarFromParams(block bool, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
 	logger := log
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper), block: block}
-	err := DecodeAndTempl(params, &sidecar, nil)
+	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (s *MetricsLogSidecar) ShouldExpandResponse() bool {
 func NewMetricsLogSidecarFromParams(block bool, params map[string]interface{}) (*MetricsLogSidecar, error) {
 	logger := log
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper), block: block}
-	err := DecodeAndTempl(params, &sidecar, nil)
+	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

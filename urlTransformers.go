@@ -36,6 +36,6 @@ func (t *RequestUrlTransformer) ShouldExpandResponse() bool {
 
 func NewRequestUrlTransformerFromParams(params map[string]interface{}) (*RequestUrlTransformer, error) {
 	var transformer RequestUrlTransformer
-	err := DecodeAndTempl(params, &transformer, nil)
+	err := DecodeAndTempl(params, &transformer, nil, []string{})
 	return &transformer, err
 }

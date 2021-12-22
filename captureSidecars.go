@@ -67,6 +67,7 @@ type CaptureSidecar struct {
 	_responseContentTypeRegexp *regexp.Regexp
 	block                      bool
 	httpClient                 *http.Client
+	Headers                    map[string]string
 	logger                     *LogHelper
 }
 
@@ -115,7 +116,16 @@ func (s *CaptureSidecar) Consume(quantity int) {
 // CaptureHttp is the implementation of the HTTP capture
 func (s *CaptureSidecar) CaptureHttp(data []byte) {
 	reader := bytes.NewReader(data)
-	resp, err := s.httpClient.Post(s.Uri, "application/json", reader)
+	outboundRequest, err := http.NewRequest("POST", s.Uri, reader)
+	if err != nil {
+		log.Error("Error creating the request during capture", err, map[string]interface{}{"uri": s.Uri})
+		return
+	}
+	outboundRequest.Header.Set("content-type", "application/json")
+	for k, v := range s.Headers {
+		outboundRequest.Header.Set(k, v)
+	}
+	resp, err := s.httpClient.Do(outboundRequest)
 	defer func() {
 		if resp != nil && resp.Body != nil {
 			_ = resp.Body.Close()
@@ -150,7 +160,7 @@ func (s *CaptureSidecar) ShouldExpandResponse() bool {
 // NewCaptureSidecarFromParams is the constructor
 func NewCaptureSidecarFromParams(block bool, params map[string]interface{}) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper), block: block}
-	err := DecodeAndTempl(params, &sidecar, nil)
+	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

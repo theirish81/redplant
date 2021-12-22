@@ -21,14 +21,18 @@ type BasicAuthTransformer struct {
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
 func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	// We first detect whether basic credentials are passed over and we collect them
 	username, password, ok := wrapper.Request.BasicAuth()
+	// If we have a htpasswd file loaded, then we use that
 	if ok && t._htpasswd != nil && t._htpasswd.Match(username, password) {
-		wrapper.Username = t.Username
+		wrapper.Username = username
 		return wrapper, nil
+		// If we don't have the file, then we rely on provided username and password
 	} else if ok && t.Username == username && t.Password == password {
-		wrapper.Username = t.Username
+		wrapper.Username = username
 		return wrapper, nil
 	} else {
+		// If nothing works, then no_auth
 		return nil, errors.New("no_auth")
 	}
 }
@@ -53,7 +57,8 @@ func (t *BasicAuthTransformer) HandleError(writer *http.ResponseWriter) {
 func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransformer, error) {
 	var t BasicAuthTransformer
 	//err := mapstructure.Decode(params,&t)
-	err := DecodeAndTempl(params, &t, nil)
+	err := DecodeAndTempl(params, &t, nil, []string{})
+	// if the path to a Htpasswd file is provided, then we parse it
 	if t.Htpasswd != "" {
 		t._htpasswd, err = htpasswd.New(t.Htpasswd, htpasswd.DefaultSystems, nil)
 		if err != nil {
@@ -118,7 +123,7 @@ func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params
 func NewJWTAuthTransformer(params map[string]interface{}) (*JWTAuthTransformer, error) {
 	t := JWTAuthTransformer{}
-	err := DecodeAndTempl(params, &t, nil)
+	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

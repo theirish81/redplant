@@ -4,8 +4,23 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"reflect"
 	"strings"
 )
+
+func stringInArray(search string, array []string) bool {
+	for _, sx := range array {
+		if search == sx {
+			return true
+		}
+	}
+	return false
+}
+
+func getFieldName(val reflect.Value, index int) string {
+	structField := reflect.Indirect(val).Type().Field(index)
+	return structField.Name
+}
 
 type IPAddresser struct {
 	cidrs []*net.IPNet

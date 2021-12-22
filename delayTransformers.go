@@ -16,7 +16,7 @@ type DelayTransformer struct {
 
 func NewDelayTransformer(params map[string]interface{}) (*DelayTransformer, error) {
 	t := DelayTransformer{}
-	err := DecodeAndTempl(params, &t, nil)
+	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
