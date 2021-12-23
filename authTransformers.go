@@ -7,6 +7,7 @@ import (
 	"github.com/tg123/go-htpasswd"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -143,6 +144,93 @@ func NewJWTAuthTransformer(params map[string]interface{}) (*JWTAuthTransformer, 
 		t._key = byteKey
 		return &t, nil
 	}
-	// If none of the above is verified, then the configuration is missing and we can error out
+	// If none of the above is verified, then the configuration is missing, and we can error out
 	return nil, errors.New("jwt_auth_transformer_no_config")
+}
+
+type JWTSignTransformer struct {
+	_privateKey    *rsa.PrivateKey
+	_key           []byte
+	Pem            string `mapstructure:"pem"`
+	Key            string `mapstructure:"key"`
+	ExistingClaims bool
+	Claims         map[string]interface{}
+}
+
+func (t *JWTSignTransformer) ShouldExpandRequest() bool {
+	return false
+}
+
+func (t *JWTSignTransformer) ShouldExpandResponse() bool {
+	return false
+}
+
+func (t *JWTSignTransformer) ErrorMatches(_ error) bool {
+	return false
+}
+
+func (t *JWTSignTransformer) HandleError(_ *http.ResponseWriter) {}
+
+func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	var token *jwt.Token = nil
+	var signedString = ""
+	var err error
+	if t.ExistingClaims {
+		token = jwt.NewWithClaims(jwt.SigningMethodRS256, wrapper.Claims)
+	} else {
+		claims := jwt.MapClaims{}
+		for k, v := range t.Claims {
+			if reflect.ValueOf(v).Type().String() == "string" {
+				parsedClaim, err := Templ(v.(string), wrapper)
+				if err != nil {
+					return nil, err
+				}
+				claims[k] = parsedClaim
+			} else {
+				claims[k] = v
+			}
+		}
+		token = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	}
+	if t._privateKey != nil {
+		signedString, err = token.SignedString(t._privateKey)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		signedString, err = token.SignedString(t._key)
+		if err != nil {
+			return nil, err
+		}
+	}
+	wrapper.Request.Header.Set("authorization", "Bearer "+signedString)
+	return wrapper, nil
+}
+
+func NewJWTSignTransformer(params map[string]interface{}) (*JWTSignTransformer, error) {
+	t := JWTSignTransformer{}
+
+	err := DecodeAndTempl(params, &t, nil, []string{"claims"})
+	if err != nil {
+		return nil, err
+	}
+	// If there's a "pem" parameter, then we treat that as a path to the certificate
+	if t.Pem != "" {
+		cert, err := ioutil.ReadFile(t.Pem)
+		if err != nil {
+			return nil, err
+		}
+		key, err := jwt.ParseRSAPrivateKeyFromPEM(cert)
+		t._privateKey = key
+		return &t, err
+	}
+	// If there's a "_key" parameter, we expect the string to be the _key itself
+	if t.Key != "" {
+		byteKey := []byte(t.Key)
+		t._key = byteKey
+		return &t, nil
+	}
+	// If none of the above is verified, then the configuration is missing, and we can error out
+	return nil, errors.New("jwt_sign_transformer_no_config")
+
 }

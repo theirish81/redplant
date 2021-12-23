@@ -88,6 +88,12 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 				return nil, err
 			}
 			res.Push(transformer)
+		case "jwtSign":
+			transformer, err := NewJWTSignTransformer(t.Params)
+			if err != nil {
+				return nil, err
+			}
+			res.Push(transformer)
 		case "scriptable":
 			transformer, err := NewScriptableTransformer(t.Params)
 			if err != nil {
