@@ -196,6 +196,12 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 		case "delay":
 			transformer, _ := NewDelayTransformer(t.Params)
 			res.Push(transformer)
+		case "barrage":
+			transformer, err := NewBarrageResponseTransformer(t.Params)
+			if err != nil {
+				return nil, err
+			}
+			res.Push(transformer)
 		}
 	}
 	return &res, nil
