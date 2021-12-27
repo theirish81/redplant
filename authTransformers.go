@@ -148,6 +148,7 @@ func NewJWTAuthTransformer(params map[string]interface{}) (*JWTAuthTransformer, 
 	return nil, errors.New("jwt_auth_transformer_no_config")
 }
 
+// JWTSignTransformer adds JWT tokens to the request
 type JWTSignTransformer struct {
 	_privateKey    *rsa.PrivateKey
 	_key           []byte
@@ -171,6 +172,7 @@ func (t *JWTSignTransformer) ErrorMatches(_ error) bool {
 
 func (t *JWTSignTransformer) HandleError(_ *http.ResponseWriter) {}
 
+// Transform adds the JWT token to the request
 func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	var token *jwt.Token = nil
 	var signedString = ""
