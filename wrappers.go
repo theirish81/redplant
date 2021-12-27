@@ -25,6 +25,7 @@ type APIWrapper struct {
 	Username     string
 	Variables    *map[string]string
 	RealIP       string
+	Tags         []string
 }
 
 func (w *APIWrapper) Clone() *APIWrapper {

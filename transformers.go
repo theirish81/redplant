@@ -106,6 +106,9 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 		case "barrage":
 			transformer, _ := NewBarrageRequestTransformer(t.Params)
 			res.Push(transformer)
+		case "tag":
+			transformer, _ := NewTagTransformer(t.Params)
+			res.Push(transformer)
 		}
 	}
 	return &res, nil
