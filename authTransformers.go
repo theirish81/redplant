@@ -22,7 +22,7 @@ type BasicAuthTransformer struct {
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
 func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
-	// We first detect whether basic credentials are passed over and we collect them
+	// We first detect whether basic credentials are passed over, and we collect them
 	username, password, ok := wrapper.Request.BasicAuth()
 	// If we have a htpasswd file loaded, then we use that
 	if ok && t._htpasswd != nil && t._htpasswd.Match(username, password) {
@@ -56,7 +56,7 @@ func (t *BasicAuthTransformer) HandleError(writer *http.ResponseWriter) {
 
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
 func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransformer, error) {
-	var t BasicAuthTransformer
+	t := BasicAuthTransformer{}
 	//err := mapstructure.Decode(params,&t)
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it

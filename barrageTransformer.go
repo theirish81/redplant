@@ -25,7 +25,7 @@ type BarrageTransformer struct {
 
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
 func NewBarrageRequestTransformer(params map[string]interface{}) (*BarrageTransformer, error) {
-	var t BarrageTransformer
+	t := BarrageTransformer{}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err

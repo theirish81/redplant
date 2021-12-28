@@ -33,7 +33,7 @@ func (t *RequestHeaderTransformer) ShouldExpandRequest() bool {
 }
 
 func NewRequestHeadersTransformerFromParams(params map[string]interface{}) (*RequestHeaderTransformer, error) {
-	var t RequestHeaderTransformer
+	t := RequestHeaderTransformer{}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
@@ -44,7 +44,7 @@ type ResponseHeaderTransformer struct {
 }
 
 func NewResponseHeadersTransformerFromParams(params map[string]interface{}) (*ResponseHeaderTransformer, error) {
-	var t ResponseHeaderTransformer
+	t := ResponseHeaderTransformer{}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
