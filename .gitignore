@@ -1,4 +1,4 @@
 apifrp
-config.yaml
+config/
 cover.out
 go.sum

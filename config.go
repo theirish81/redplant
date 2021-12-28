@@ -4,9 +4,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -89,7 +89,8 @@ func LoadConfig(file string) Config {
 	config.Request.Sidecars = make([]SidecarConfig, 0)
 	config.Response.Transformers = make([]TransformerConfig, 0)
 	config.Response.Sidecars = make([]SidecarConfig, 0)
-	data, err := ioutil.ReadFile(file)
+
+	data, err := yamlRef.MergeAndMarshall(file)
 	if err != nil {
 		log.Fatal("Could not load the configuration file", err, nil)
 	}
