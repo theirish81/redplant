@@ -21,11 +21,12 @@ type BarrageTransformer struct {
 	_headerRegexp      *regexp.Regexp
 	_bodyRegexp        *regexp.Regexp
 	response           bool
+	ActivateOnTags     []string
 }
 
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
-func NewBarrageRequestTransformer(params map[string]interface{}) (*BarrageTransformer, error) {
-	t := BarrageTransformer{}
+func NewBarrageRequestTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
+	t := BarrageTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -58,8 +59,8 @@ func NewBarrageRequestTransformer(params map[string]interface{}) (*BarrageTransf
 	return &t, err
 }
 
-func NewBarrageResponseTransformer(params map[string]interface{}) (*BarrageTransformer, error) {
-	transformer, err := NewBarrageRequestTransformer(params)
+func NewBarrageResponseTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
+	transformer, err := NewBarrageRequestTransformer(activateOnTags, params)
 	transformer.response = true
 	return transformer, err
 }
@@ -106,4 +107,8 @@ func (t *BarrageTransformer) ShouldExpandRequest() bool {
 
 func (t *BarrageTransformer) ShouldExpandResponse() bool {
 	return t._bodyRegexp != nil
+}
+
+func (t *BarrageTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
 }

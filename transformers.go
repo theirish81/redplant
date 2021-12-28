@@ -4,10 +4,11 @@ import "net/http"
 
 // IRequestTransformer is the interface for all request transformers
 type IRequestTransformer interface {
-	Transform(req *APIWrapper) (*APIWrapper, error)
+	Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	ShouldExpandRequest() bool
 	ErrorMatches(err error) bool
 	HandleError(writer *http.ResponseWriter)
+	IsActive(wrapper *APIWrapper) bool
 }
 
 // RequestTransformers is the store for all request transformers, associated to a given route
@@ -28,8 +29,10 @@ func (t *RequestTransformers) ShouldExpandRequest() bool {
 // Transform will process all request transformers for the given wrapper
 func (t *RequestTransformers) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	for _, transformer := range t.transformers {
-		if _, err := transformer.Transform(wrapper); err != nil {
-			return wrapper, err
+		if transformer.IsActive(wrapper) {
+			if _, err := transformer.Transform(wrapper); err != nil {
+				return wrapper, err
+			}
 		}
 	}
 	return wrapper, nil
@@ -69,46 +72,46 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 	for _, t := range *transformers {
 		switch t.Id {
 		case "url":
-			transformer, err := NewRequestUrlTransformerFromParams(t.Params)
+			transformer, err := NewRequestUrlTransformerFromParams(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "headers":
-			transformer, err := NewRequestHeadersTransformerFromParams(t.Params)
+			transformer, err := NewRequestHeadersTransformerFromParams(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "basicAuth":
-			transformer, err := NewBasicAuthTransformer(t.Params)
+			transformer, err := NewBasicAuthTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "jwtAuth":
-			transformer, err := NewJWTAuthTransformer(t.Params)
+			transformer, err := NewJWTAuthTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "jwtSign":
-			transformer, err := NewJWTSignTransformer(t.Params)
+			transformer, err := NewJWTSignTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "scriptable":
-			transformer, err := NewScriptableTransformer(t.Params)
+			transformer, err := NewScriptableTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "delay":
-			transformer, _ := NewDelayTransformer(t.Params)
+			transformer, _ := NewDelayTransformer(t.ActivateOnTags, t.Params)
 			res.Push(transformer)
 		case "barrage":
-			transformer, _ := NewBarrageRequestTransformer(t.Params)
+			transformer, _ := NewBarrageRequestTransformer(t.ActivateOnTags, t.Params)
 			res.Push(transformer)
 		case "tag":
 			transformer, _ := NewTagTransformer(t.Params)
@@ -125,6 +128,7 @@ type IResponseTransformer interface {
 	ShouldExpandResponse() bool
 	ErrorMatches(err error) bool
 	HandleError(writer *http.ResponseWriter)
+	IsActive(wrapper *APIWrapper) bool
 }
 
 // ResponseTransformers is the store for the response transformers for a given route
@@ -155,9 +159,12 @@ func (t *ResponseTransformers) ShouldExpandResponse() bool {
 // Transform will process the whole response transformation pipeline
 func (t *ResponseTransformers) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	for _, transformer := range t.transformers {
-		if wrapper, err := transformer.Transform(wrapper); err != nil {
-			return wrapper, err
+		if transformer.IsActive(wrapper) {
+			if wrapper, err := transformer.Transform(wrapper); err != nil {
+				return wrapper, err
+			}
 		}
+
 	}
 	return wrapper, nil
 }
@@ -169,7 +176,7 @@ func (t *ResponseTransformers) Push(transformer IResponseTransformer) {
 
 // FindErrorHandler will find a transformer that has the capability of handling a certain error.
 // if the transformer is not found, then nil is returned
-func (t *ResponseTransformers) FindErrorHandler(err error) IRequestTransformer {
+func (t *ResponseTransformers) FindErrorHandler(err error) IResponseTransformer {
 	for _, tx := range t.transformers {
 		if tx.ErrorMatches(err) {
 			return tx
@@ -196,22 +203,22 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 	for _, t := range *transformers {
 		switch t.Id {
 		case "headers":
-			transformer, err := NewResponseHeadersTransformerFromParams(t.Params)
+			transformer, err := NewResponseHeadersTransformerFromParams(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "scriptable":
-			transformer, err := NewScriptableTransformer(t.Params)
+			transformer, err := NewScriptableTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "delay":
-			transformer, _ := NewDelayTransformer(t.Params)
+			transformer, _ := NewDelayTransformer(t.ActivateOnTags, t.Params)
 			res.Push(transformer)
 		case "barrage":
-			transformer, err := NewBarrageResponseTransformer(t.Params)
+			transformer, err := NewBarrageResponseTransformer(t.ActivateOnTags, t.Params)
 			if err != nil {
 				return nil, err
 			}

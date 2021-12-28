@@ -13,6 +13,7 @@ type ScriptableTransformer struct {
 	_script        string
 	ExpandRequest  bool
 	ExpandResponse bool
+	ActivateOnTags []string
 }
 
 func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
@@ -57,8 +58,12 @@ func (t *ScriptableTransformer) ShouldExpandResponse() bool {
 	return t.ExpandResponse
 }
 
-func NewScriptableTransformer(params map[string]interface{}) (*ScriptableTransformer, error) {
-	t := ScriptableTransformer{}
+func (t *ScriptableTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
+}
+
+func NewScriptableTransformer(activateOnTags []string, params map[string]interface{}) (*ScriptableTransformer, error) {
+	t := ScriptableTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err

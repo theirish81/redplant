@@ -17,32 +17,33 @@ network:
   downstream:
     port: 9001
 
-request:
-  transformers:
-    - id: basicAuth
-      params:
-        username: "{{.Variables.un}}"
-        password: "{{.Variables.pw}}"
-    - id: barrage
-      params:
-        headerValueRegexp: log4j
-  sidecars:
-    - id: accessLog
-      workers: 1
-      block: true
-response:
-  transformers:
-    - id: headers
-      params:
-        set:
-          foo: bar
-  sidecars:
-    - id: accessLog
-      workers: 1
-      block: true
-    - id: metricsLog
-      workers: 1
-      block: true
+before:
+  request:
+    transformers:
+      - id: basicAuth
+        params:
+          username: "{{.Variables.un}}"
+          password: "{{.Variables.pw}}"
+      - id: barrage
+        params:
+          headerValueRegexp: log4j
+    sidecars:
+      - id: accessLog
+        workers: 1
+        block: true
+  response:
+    transformers:
+      - id: headers
+        params:
+          set:
+            foo: bar
+    sidecars:
+      - id: accessLog
+        workers: 1
+        block: true
+      - id: metricsLog
+        workers: 1
+        block: true
 rules:
   localhost:9001:
     "/db/table1":

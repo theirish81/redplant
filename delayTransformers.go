@@ -8,14 +8,15 @@ import (
 
 // DelayTransformer will slow the request down by a certain amount
 type DelayTransformer struct {
-	_min time.Duration
-	_max time.Duration
-	Min  string `mapstructure:"min"`
-	Max  string `mapstructure:"max"`
+	_min           time.Duration
+	_max           time.Duration
+	Min            string `mapstructure:"min"`
+	Max            string `mapstructure:"max"`
+	ActivateOnTags []string
 }
 
-func NewDelayTransformer(params map[string]interface{}) (*DelayTransformer, error) {
-	t := DelayTransformer{}
+func NewDelayTransformer(activateOnTags []string, params map[string]interface{}) (*DelayTransformer, error) {
+	t := DelayTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -50,4 +51,8 @@ func (t *DelayTransformer) ShouldExpandRequest() bool {
 
 func (t *DelayTransformer) ShouldExpandResponse() bool {
 	return false
+}
+
+func (t *DelayTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
 }

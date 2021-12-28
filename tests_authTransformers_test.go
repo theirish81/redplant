@@ -8,13 +8,13 @@ import (
 )
 
 func TestBasicAuthTransformer_Transform(t *testing.T) {
-	transformer,_ := NewBasicAuthTransformer(map[string]interface{}{"username":"foo","password":"bar"})
-	if transformer.Username != "foo" || transformer.Password != "bar"{
+	transformer, _ := NewBasicAuthTransformer([]string{}, map[string]interface{}{"username": "foo", "password": "bar"})
+	if transformer.Username != "foo" || transformer.Password != "bar" {
 		t.Error("Wrong param assignment")
 	}
 	req := http.Request{Header: http.Header{}}
 	wrapper := APIWrapper{Request: &req}
-	req.Header.Set("Authorization","Basic Zm9vOmJhcg==")
+	req.Header.Set("Authorization", "Basic Zm9vOmJhcg==")
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
 		t.Error("Basic auth did not authorise")
@@ -34,16 +34,16 @@ func TestBasicAuthTransformer_Transform(t *testing.T) {
 	}
 }
 func TestJWTAuthTransformerPem_Transform(t *testing.T) {
-	transformer,_ := NewJWTAuthTransformer(map[string]interface{}{"pem":"test_data/publicKey"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"pem": "test_data/publicKey"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 
-	privateKey,_ := ioutil.ReadFile("test_data/privateKey")
+	privateKey, _ := ioutil.ReadFile("test_data/privateKey")
 	signKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
-	at := jwt.NewWithClaims(jwt.SigningMethodRS256,claims)
+	at := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token, _ := at.SignedString(signKey)
 	req := http.Request{Header: http.Header{}}
-	req.Header.Set("Authorization","Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+token)
 	wrapper := APIWrapper{Request: &req}
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
@@ -55,7 +55,7 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 		t.Error("Claims not matching")
 	}
 
-	req.Header.Set("Authorization","Bearer abc")
+	req.Header.Set("Authorization", "Bearer abc")
 	_, err = transformer.Transform(&wrapper)
 	if err == nil {
 		t.Error("Auth should have failed with wrong token")
@@ -69,13 +69,13 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 }
 
 func TestJWTAuthTransformerKey_Transform(t *testing.T) {
-	transformer,_ := NewJWTAuthTransformer(map[string]interface{}{"key":"foobar"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"key": "foobar"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, _ := at.SignedString([]byte("foobar"))
 	req := http.Request{Header: http.Header{}}
-	req.Header.Set("Authorization","Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+token)
 	wrapper := APIWrapper{Request: &req}
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
@@ -88,7 +88,7 @@ func TestJWTAuthTransformerKey_Transform(t *testing.T) {
 		t.Error("Claims not matching")
 	}
 
-	req.Header.Set("Authorization","Bearer abc")
+	req.Header.Set("Authorization", "Bearer abc")
 	_, err = transformer.Transform(&wrapper)
 	if err == nil {
 		t.Error("Auth should have failed with wrong token")

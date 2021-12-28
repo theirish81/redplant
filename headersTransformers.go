@@ -4,8 +4,9 @@ import "net/http"
 
 // RequestHeaderTransformer transforms the request header by setting or removing headers
 type RequestHeaderTransformer struct {
-	Set    map[string]string `mapstructure:"set"`
-	Remove []string          `mapstructure:"remove"`
+	Set            map[string]string `mapstructure:"set"`
+	Remove         []string          `mapstructure:"remove"`
+	ActivateOnTags []string
 }
 
 func (t *RequestHeaderTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
@@ -32,19 +33,24 @@ func (t *RequestHeaderTransformer) ShouldExpandRequest() bool {
 	return false
 }
 
-func NewRequestHeadersTransformerFromParams(params map[string]interface{}) (*RequestHeaderTransformer, error) {
-	t := RequestHeaderTransformer{}
+func (t *RequestHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
+}
+
+func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestHeaderTransformer, error) {
+	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
 
 type ResponseHeaderTransformer struct {
-	Set    map[string]string `mapstructure:"set"`
-	Remove []string          `mapstructure:"remove"`
+	Set            map[string]string `mapstructure:"set"`
+	Remove         []string          `mapstructure:"remove"`
+	ActivateOnTags []string
 }
 
-func NewResponseHeadersTransformerFromParams(params map[string]interface{}) (*ResponseHeaderTransformer, error) {
-	t := ResponseHeaderTransformer{}
+func NewResponseHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*ResponseHeaderTransformer, error) {
+	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
@@ -73,4 +79,8 @@ func (t *ResponseHeaderTransformer) ShouldExpandRequest() bool {
 
 func (t *ResponseHeaderTransformer) ShouldExpandResponse() bool {
 	return false
+}
+
+func (t *ResponseHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
 }

@@ -14,10 +14,11 @@ import (
 // BasicAuthTransformer is a transformer that will block the request in case the credentials do not match the
 // expectations
 type BasicAuthTransformer struct {
-	Username  string `mapstructure:"username"`
-	Password  string `mapstructure:"password"`
-	Htpasswd  string `mapstructure:"htpasswd"`
-	_htpasswd *htpasswd.File
+	Username       string `mapstructure:"username"`
+	Password       string `mapstructure:"password"`
+	Htpasswd       string `mapstructure:"htpasswd"`
+	_htpasswd      *htpasswd.File
+	ActivateOnTags []string
 }
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
@@ -54,9 +55,13 @@ func (t *BasicAuthTransformer) HandleError(writer *http.ResponseWriter) {
 	(*writer).WriteHeader(401)
 }
 
+func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
+}
+
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
-func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransformer, error) {
-	t := BasicAuthTransformer{}
+func NewBasicAuthTransformer(activateOnTags []string, params map[string]interface{}) (*BasicAuthTransformer, error) {
+	t := BasicAuthTransformer{ActivateOnTags: activateOnTags}
 	//err := mapstructure.Decode(params,&t)
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it
@@ -72,10 +77,11 @@ func NewBasicAuthTransformer(params map[string]interface{}) (*BasicAuthTransform
 // JWTAuthTransformer will block any request without a Bearer token or a token whose signature cannot be verified.
 // In addition, it will store claims in the wrapper.
 type JWTAuthTransformer struct {
-	_publicKey *rsa.PublicKey
-	_key       []byte
-	Pem        string `mapstructure:"pem"`
-	Key        string `mapstructure:"key"`
+	_publicKey     *rsa.PublicKey
+	_key           []byte
+	Pem            string `mapstructure:"pem"`
+	Key            string `mapstructure:"key"`
+	ActivateOnTags []string
 }
 
 func (t *JWTAuthTransformer) ShouldExpandRequest() bool {
@@ -84,6 +90,10 @@ func (t *JWTAuthTransformer) ShouldExpandRequest() bool {
 
 func (t *JWTAuthTransformer) ShouldExpandResponse() bool {
 	return false
+}
+
+func (t *JWTAuthTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
 }
 
 // Transform will block any request without a Bearer token or a token whose signature cannot be verified.
@@ -122,8 +132,8 @@ func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
 }
 
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params
-func NewJWTAuthTransformer(params map[string]interface{}) (*JWTAuthTransformer, error) {
-	t := JWTAuthTransformer{}
+func NewJWTAuthTransformer(activateOnTags []string, params map[string]interface{}) (*JWTAuthTransformer, error) {
+	t := JWTAuthTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -156,6 +166,7 @@ type JWTSignTransformer struct {
 	Key            string `mapstructure:"key"`
 	ExistingClaims bool
 	Claims         map[string]interface{}
+	ActivateOnTags []string
 }
 
 func (t *JWTSignTransformer) ShouldExpandRequest() bool {
@@ -171,6 +182,10 @@ func (t *JWTSignTransformer) ErrorMatches(_ error) bool {
 }
 
 func (t *JWTSignTransformer) HandleError(_ *http.ResponseWriter) {}
+
+func (t *JWTSignTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
+}
 
 // Transform adds the JWT token to the request
 func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
@@ -209,8 +224,8 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	return wrapper, nil
 }
 
-func NewJWTSignTransformer(params map[string]interface{}) (*JWTSignTransformer, error) {
-	t := JWTSignTransformer{}
+func NewJWTSignTransformer(activateOnTags []string, params map[string]interface{}) (*JWTSignTransformer, error) {
+	t := JWTSignTransformer{ActivateOnTags: activateOnTags}
 
 	err := DecodeAndTempl(params, &t, nil, []string{"claims"})
 	if err != nil {

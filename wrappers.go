@@ -62,6 +62,20 @@ func (w *APIWrapper) ExpandResponse() {
 	}
 }
 
+func (w *APIWrapper) HasTag(tags []string) bool {
+	if len(tags) == 0 {
+		return true
+	}
+	for _, a1 := range w.Tags {
+		for _, a2 := range tags {
+			if a1 == a2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (w *APIWrapper) Templ(data string) (string, error) {
 	return Templ(data, w)
 }

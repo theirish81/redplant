@@ -16,8 +16,8 @@ import (
 type Config struct {
 	Variables map[string]string           `yaml:"variables"`
 	Network   Network                     `yaml:"network"`
-	Request   RequestConfig               `yaml:"request"`
-	Response  ResponseConfig              `yaml:"response"`
+	Before    BeforeAfterConfig           `yaml:"before"`
+	After     BeforeAfterConfig           `yaml:"after"`
 	Rules     map[string]map[string]*Rule `yaml:"rules"`
 }
 
@@ -50,16 +50,23 @@ type ResponseConfig struct {
 
 // TransformerConfig is the base transformer configuration
 type TransformerConfig struct {
-	Id     string                 `yaml:"id"`
-	Params map[string]interface{} `yaml:"params"`
+	Id             string                 `yaml:"id"`
+	ActivateOnTags []string               `yaml:"activateOnTags"`
+	Params         map[string]interface{} `yaml:"params"`
 }
 
 // SidecarConfig is the configuration of a sidecar
 type SidecarConfig struct {
-	Id      string                 `yaml:"id"`
-	Workers int                    `yaml:"workers"`
-	Block   bool                   `yaml:"block"`
-	Params  map[string]interface{} `yaml:"params"`
+	Id             string                 `yaml:"id"`
+	ActivateOnTags []string               `yaml:"activateOnTags"`
+	Workers        int                    `yaml:"workers"`
+	Block          bool                   `yaml:"block"`
+	Params         map[string]interface{} `yaml:"params"`
+}
+
+type BeforeAfterConfig struct {
+	Request  RequestConfig  `yaml:"request"`
+	Response ResponseConfig `yaml:"response"`
 }
 
 // Network is the network configuration
@@ -85,10 +92,14 @@ type Upstream struct {
 // LoadConfig loads the configuration
 func LoadConfig(file string) Config {
 	config := Config{}
-	config.Request.Transformers = make([]TransformerConfig, 0)
-	config.Request.Sidecars = make([]SidecarConfig, 0)
-	config.Response.Transformers = make([]TransformerConfig, 0)
-	config.Response.Sidecars = make([]SidecarConfig, 0)
+	config.Before.Request.Transformers = make([]TransformerConfig, 0)
+	config.Before.Request.Sidecars = make([]SidecarConfig, 0)
+	config.Before.Response.Transformers = make([]TransformerConfig, 0)
+	config.Before.Response.Sidecars = make([]SidecarConfig, 0)
+	config.After.Request.Transformers = make([]TransformerConfig, 0)
+	config.After.Request.Sidecars = make([]SidecarConfig, 0)
+	config.After.Response.Transformers = make([]TransformerConfig, 0)
+	config.After.Response.Sidecars = make([]SidecarConfig, 0)
 
 	data, err := yamlRef.MergeAndMarshall(file)
 	if err != nil {
@@ -120,24 +131,24 @@ func (c *Config) Init() {
 			if err != nil {
 				log.Fatal("Could not parse origin", err, map[string]interface{}{"origin": rule.Origin})
 			}
-			mergedReqTransformers := append(c.Request.Transformers, rule.Request.Transformers...)
+			mergedReqTransformers := append(append(c.Before.Request.Transformers, rule.Request.Transformers...), c.After.Request.Transformers...)
 			reqTrans, err := NewRequestTransformers(&mergedReqTransformers)
 			if err != nil {
 				log.Fatal("Error initializing request transformers ", err, nil)
 			}
 			rule.Request._transformers = reqTrans
 
-			mergedResTransformers := append(c.Response.Transformers, rule.Response.Transformers...)
+			mergedResTransformers := append(append(c.Before.Response.Transformers, rule.Response.Transformers...), c.After.Response.Transformers...)
 			resTrans, err := NewResponseTransformers(&mergedResTransformers)
 			if err != nil {
 				log.Fatal("Error initializing response transformers ", err, nil)
 			}
 			rule.Response._transformers = resTrans
 
-			mergedReqSidecars := append(c.Request.Sidecars, rule.Request.Sidecars...)
+			mergedReqSidecars := append(append(c.Before.Request.Sidecars, rule.Request.Sidecars...), c.After.Request.Sidecars...)
 			rule.Request._sidecars = NewRequestSidecars(&mergedReqSidecars)
 
-			mergedResSidecars := append(c.Response.Sidecars, rule.Response.Sidecars...)
+			mergedResSidecars := append(append(c.Before.Response.Sidecars, rule.Response.Sidecars...), c.After.Response.Sidecars...)
 			rule.Response._sidecars = NewResponseSidecars(&mergedResSidecars)
 
 			if strings.HasPrefix(rule.Origin, "postgres://") ||

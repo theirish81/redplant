@@ -6,9 +6,9 @@ import (
 )
 
 type RequestUrlTransformer struct {
-	OldPrefix string `yaml:"oldPrefix" mapstructure:"oldPrefix"`
-
-	NewPrefix string `yaml:"newPrefix" mapstructure:"newPrefix"`
+	OldPrefix      string `yaml:"oldPrefix" mapstructure:"oldPrefix"`
+	NewPrefix      string `yaml:"newPrefix" mapstructure:"newPrefix"`
+	ActivateOnTags []string
 }
 
 func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
@@ -34,8 +34,12 @@ func (t *RequestUrlTransformer) ShouldExpandResponse() bool {
 	return false
 }
 
-func NewRequestUrlTransformerFromParams(params map[string]interface{}) (*RequestUrlTransformer, error) {
-	var transformer RequestUrlTransformer
+func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(t.ActivateOnTags)
+}
+
+func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestUrlTransformer, error) {
+	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &transformer, nil, []string{})
 	return &transformer, err
 }

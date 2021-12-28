@@ -20,6 +20,10 @@ func (t *TagTransformer) ErrorMatches(_ error) bool {
 
 func (t *TagTransformer) HandleError(_ *http.ResponseWriter) {}
 
+func (t *TagTransformer) IsActive(_ *APIWrapper) bool {
+	return true
+}
+
 // Transform adds the JWT token to the request
 func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	for _, tag := range t.Tags {
