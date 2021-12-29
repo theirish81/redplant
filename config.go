@@ -77,7 +77,8 @@ type Network struct {
 
 // Downstream is the downstream configuration
 type Downstream struct {
-	Port int `yaml:"port"`
+	Port int  `yaml:"port"`
+	Tls  *Tls `yaml:"tls"`
 }
 
 // Upstream is the upstream configuration
@@ -87,6 +88,11 @@ type Upstream struct {
 	MaxIdleConnections    int    `yaml:"maxIdleConnections"`
 	IdleConnectionTimeout string `yaml:"idleConnectionTimeout"`
 	ExpectContinueTimeout string `yaml:"expectContinueTimeout"`
+}
+
+type Tls struct {
+	Cert string `yaml:"cert"`
+	Key  string `yaml:"key"`
 }
 
 // LoadConfig loads the configuration

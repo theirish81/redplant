@@ -29,5 +29,10 @@ func main() {
 	router := SetupRouter()
 
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
-	log.Fatal("Stopping service", http.ListenAndServe(":"+strconv.Itoa(config.Network.Downstream.Port), router), nil)
+	if config.Network.Downstream.Tls != nil {
+		log.Fatal("Stopping service", http.ListenAndServeTLS(":"+strconv.Itoa(config.Network.Downstream.Port), config.Network.Downstream.Tls.Cert, config.Network.Downstream.Tls.Key, router), nil)
+	} else {
+		log.Fatal("Stopping service", http.ListenAndServe(":"+strconv.Itoa(config.Network.Downstream.Port), router), nil)
+	}
+
 }
