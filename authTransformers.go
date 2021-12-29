@@ -17,6 +17,8 @@ type BasicAuthTransformer struct {
 	Username       string `mapstructure:"username"`
 	Password       string `mapstructure:"password"`
 	Htpasswd       string `mapstructure:"htpasswd"`
+	Proxy          bool
+	Retain         bool
 	_htpasswd      *htpasswd.File
 	ActivateOnTags []string
 }
@@ -28,14 +30,34 @@ func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, erro
 	// If we have a htpasswd file loaded, then we use that
 	if ok && t._htpasswd != nil && t._htpasswd.Match(username, password) {
 		wrapper.Username = username
+		t.postAuthOperations(wrapper)
 		return wrapper, nil
 		// If we don't have the file, then we rely on provided username and password
 	} else if ok && t.Username == username && t.Password == password {
 		wrapper.Username = username
+		t.postAuthOperations(wrapper)
 		return wrapper, nil
 	} else {
 		// If nothing works, then no_auth
 		return nil, errors.New("no_auth")
+	}
+}
+
+func (t *BasicAuthTransformer) obtainUsernameAndPassword(wrapper *APIWrapper) (string, string, bool) {
+	if t.Proxy {
+		return parseBasicAuth(wrapper.Request.Header.Get("proxy-authorization"))
+	} else {
+		return wrapper.Request.BasicAuth()
+	}
+}
+
+func (t *BasicAuthTransformer) postAuthOperations(wrapper *APIWrapper) {
+	if !t.Retain {
+		if t.Proxy {
+			wrapper.Request.Header.Del("proxy-authorization")
+		} else {
+			wrapper.Request.Header.Del("authorization")
+		}
 	}
 }
 
@@ -61,7 +83,7 @@ func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
 func NewBasicAuthTransformer(activateOnTags []string, params map[string]interface{}) (*BasicAuthTransformer, error) {
-	t := BasicAuthTransformer{ActivateOnTags: activateOnTags}
+	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true}
 	//err := mapstructure.Decode(params,&t)
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it

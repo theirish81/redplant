@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"errors"
 	"net"
 	"net/http"
@@ -20,6 +21,23 @@ func stringInArray(search string, array []string) bool {
 func getFieldName(val reflect.Value, index int) string {
 	structField := reflect.Indirect(val).Type().Field(index)
 	return structField.Name
+}
+
+func parseBasicAuth(auth string) (username, password string, ok bool) {
+	const prefix = "Basic "
+	if len(auth) < len(prefix) || !strings.EqualFold(auth[:len(prefix)], prefix) {
+		return
+	}
+	c, err := base64.StdEncoding.DecodeString(auth[len(prefix):])
+	if err != nil {
+		return
+	}
+	cs := string(c)
+	s := strings.IndexByte(cs, ':')
+	if s < 0 {
+		return
+	}
+	return cs[:s], cs[s+1:], true
 }
 
 type IPAddresser struct {
