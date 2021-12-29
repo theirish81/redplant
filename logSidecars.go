@@ -18,7 +18,7 @@ func (s *RequestAccessLogSidecar) Consume(quantity int) {
 		go func() {
 			for msg := range s.GetChannel() {
 				req := msg.Request
-				s.log.Info("request access", map[string]interface{}{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.Host + req.URL.String()})
+				s.log.Info("request access", map[string]interface{}{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.Host + req.URL.String(), "tags": msg.Tags})
 			}
 		}()
 	}
@@ -66,7 +66,7 @@ func (s *UpstreamAccessLogSidecar) Consume(quantity int) {
 			for msg := range s.GetChannel() {
 				res := msg.Response
 				req := res.Request
-				log.Info("upstream access", map[string]interface{}{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.URL.String(), "status": res.StatusCode})
+				log.Info("upstream access", map[string]interface{}{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.URL.String(), "status": res.StatusCode, "tags": msg.Tags})
 			}
 		}()
 	}
@@ -112,7 +112,7 @@ func (s *MetricsLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				log.Info("metrics", map[string]interface{}{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation()})
+				log.Info("metrics", map[string]interface{}{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
 			}
 		}()
 	}
