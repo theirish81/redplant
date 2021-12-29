@@ -30,7 +30,8 @@ type APIWrapper struct {
 
 func (w *APIWrapper) Clone() *APIWrapper {
 	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
-		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP}
+		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
+		Tags: w.Tags}
 }
 
 func (w *APIWrapper) ExpandRequestIfNeeded() {
@@ -102,6 +103,7 @@ func (m *APIMetrics) ResTransformation() int64 {
 func ReqWithContext(req *http.Request, rule *Rule) *http.Request {
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
+		Tags:      []string{},
 		Variables: &config.Variables,
 		RealIP:    addresser.RealIP(req)}
 	un, _, ok := req.BasicAuth()
