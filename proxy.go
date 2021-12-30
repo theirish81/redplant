@@ -8,11 +8,14 @@ import (
 	"time"
 )
 
+// SetupRouter will set up the router and return it
 func SetupRouter() *mux.Router {
 	router := mux.NewRouter()
 
+	// Creating a custom reverse proxy
 	reverseProxy := &httputil.ReverseProxy{Director: func(req *http.Request) {
 		wrapper := GetWrapper(req)
+		// if wrapper is nil, then we don't have any match, and we shouldn't be here
 		if wrapper == nil {
 			return
 		}
@@ -62,18 +65,19 @@ func SetupRouter() *mux.Router {
 			return nil
 		},
 	}
-
-	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if rules, ok := config.Rules[req.Host]; ok {
-			for _, rule := range rules {
-				if success := rule._pattern.MatchString(req.URL.Path); success {
-					req = ReqWithContext(req, rule)
-					break
+	for k, rules := range config.Rules {
+		func(rules map[string]*Rule) {
+			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				for _, rule := range rules {
+					if success := rule._pattern.MatchString(req.URL.Path); success {
+						req = ReqWithContext(req, rule)
+						break
+					}
 				}
-			}
-			reverseProxy.ServeHTTP(w, req)
-		}
-	})
+				reverseProxy.ServeHTTP(w, req)
+			})
+		}(rules)
+	}
 	return router
 }
 
