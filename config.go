@@ -110,7 +110,7 @@ type Downstream struct {
 	// Port is the port number we should listen on
 	Port int `yaml:"port"`
 	// Tls is the secure connection configuration
-	Tls *Tls `yaml:"tls"`
+	Tls []Tls `yaml:"tls"`
 }
 
 // Upstream is the upstream configuration
@@ -129,6 +129,7 @@ type Upstream struct {
 
 // Tls is the configuration for the secure connection
 type Tls struct {
+	Host string `yaml:"host"`
 	// Cert is the path to a certificate
 	Cert string `yaml:"cert"`
 	// Key is the path to a key

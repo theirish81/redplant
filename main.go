@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -30,9 +31,23 @@ func main() {
 
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
 	if config.Network.Downstream.Tls != nil {
-		log.Fatal("Stopping service", http.ListenAndServeTLS(":"+strconv.Itoa(config.Network.Downstream.Port), config.Network.Downstream.Tls.Cert, config.Network.Downstream.Tls.Key, router), nil)
+		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
+		log.Fatal("Stopping service", server.ListenAndServeTLS("", ""), nil)
 	} else {
 		log.Fatal("Stopping service", http.ListenAndServe(":"+strconv.Itoa(config.Network.Downstream.Port), router), nil)
 	}
+}
 
+func setupTLSConfig() *tls.Config {
+	cfg := &tls.Config{}
+	if config.Network.Downstream.Tls != nil {
+		for _, certConfig := range config.Network.Downstream.Tls {
+			cert, err := tls.LoadX509KeyPair(certConfig.Cert, certConfig.Key)
+			if err != nil {
+				log.Fatal("Could not load TLS cert", err, nil)
+			}
+			cfg.Certificates = append(cfg.Certificates, cert)
+		}
+	}
+	return cfg
 }
