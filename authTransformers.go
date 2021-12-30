@@ -7,19 +7,26 @@ import (
 	"github.com/tg123/go-htpasswd"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
 // BasicAuthTransformer is a transformer that will block the request in case the credentials do not match the
 // expectations
 type BasicAuthTransformer struct {
-	Username       string `mapstructure:"username"`
-	Password       string `mapstructure:"password"`
-	Htpasswd       string `mapstructure:"htpasswd"`
-	Proxy          bool
-	Retain         bool
-	_htpasswd      *htpasswd.File
+
+	// Username directly provided in the conf
+	Username string `mapstructure:"username"`
+	// Password directly provided in the conf
+	Password string `mapstructure:"password"`
+	// Path to the Htpasswd file
+	Htpasswd string `mapstructure:"htpasswd"`
+	// If Proxy is set to true, the "proxy-authorization" will be used instead
+	Proxy bool
+	// If Retain is set to false, the credentials will be removed from the request
+	Retain bool
+	// _htpasswd is the parsed password file
+	_htpasswd *htpasswd.File
+	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 	ActivateOnTags []string
 }
 
@@ -43,6 +50,8 @@ func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, erro
 	}
 }
 
+// obtainUsernameAndPassword will extract username and password from the request. If Proxy is set to false, then
+// the "authorization" header will be used. If it's set to true, then "proxy-authorization" header will be used
 func (t *BasicAuthTransformer) obtainUsernameAndPassword(wrapper *APIWrapper) (string, string, bool) {
 	if t.Proxy {
 		return parseBasicAuth(wrapper.Request.Header.Get("proxy-authorization"))
@@ -51,11 +60,15 @@ func (t *BasicAuthTransformer) obtainUsernameAndPassword(wrapper *APIWrapper) (s
 	}
 }
 
+// postAuthOperations will delete the credentials from the request if Retain is set to false
 func (t *BasicAuthTransformer) postAuthOperations(wrapper *APIWrapper) {
+	// If we must not retain the credentials
 	if !t.Retain {
+		// If it's a proxy auth, we remove "proxy-authorization" header
 		if t.Proxy {
 			wrapper.Request.Header.Del("proxy-authorization")
 		} else {
+			// If it's a reverse-proxy auth, then we remove the "authorization" header
 			wrapper.Request.Header.Del("authorization")
 		}
 	}
@@ -84,7 +97,6 @@ func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
 func NewBasicAuthTransformer(activateOnTags []string, params map[string]interface{}) (*BasicAuthTransformer, error) {
 	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true}
-	//err := mapstructure.Decode(params,&t)
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it
 	if t.Htpasswd != "" {
@@ -99,10 +111,15 @@ func NewBasicAuthTransformer(activateOnTags []string, params map[string]interfac
 // JWTAuthTransformer will block any request without a Bearer token or a token whose signature cannot be verified.
 // In addition, it will store claims in the wrapper.
 type JWTAuthTransformer struct {
-	_publicKey     *rsa.PublicKey
-	_key           []byte
-	Pem            string `mapstructure:"pem"`
-	Key            string `mapstructure:"key"`
+	// _publicKey is the loaded and parsed public key
+	_publicKey *rsa.PublicKey
+	// _key is the key provided in the conf, in the form of bytes
+	_key []byte
+	// Pem is the path to a PEM certificate
+	Pem string `mapstructure:"pem"`
+	// Key is the key provided in the conf, in the form of a string
+	Key string `mapstructure:"key"`
+	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 	ActivateOnTags []string
 }
 
@@ -182,12 +199,19 @@ func NewJWTAuthTransformer(activateOnTags []string, params map[string]interface{
 
 // JWTSignTransformer adds JWT tokens to the request
 type JWTSignTransformer struct {
-	_privateKey    *rsa.PrivateKey
-	_key           []byte
-	Pem            string `mapstructure:"pem"`
-	Key            string `mapstructure:"key"`
+	// _privateKey is the loaded and parsed private key
+	_privateKey *rsa.PrivateKey
+	// _key is the byte representation of a key
+	_key []byte
+	// Pem is the path to a PEM certificate
+	Pem string `mapstructure:"pem"`
+	// Key is the key for that certificate
+	Key string `mapstructure:"key"`
+	// ExistingClaims if set to true, will take existing claims from the wrapper and resign them
 	ExistingClaims bool
-	Claims         map[string]interface{}
+	// Claims custom crafted claims
+	Claims map[string]interface{}
+	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 	ActivateOnTags []string
 }
 
@@ -214,12 +238,14 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	var token *jwt.Token = nil
 	var signedString = ""
 	var err error
+	// If ExistingClaims is true, then we'll take the claims from the wrapper
 	if t.ExistingClaims {
 		token = jwt.NewWithClaims(jwt.SigningMethodRS256, wrapper.Claims)
 	} else {
+		// If it's not true, then we build some hand crafter claims
 		claims := jwt.MapClaims{}
 		for k, v := range t.Claims {
-			if reflect.ValueOf(v).Type().String() == "string" {
+			if isString(v) {
 				parsedClaim, err := Templ(v.(string), wrapper)
 				if err != nil {
 					return nil, err
@@ -229,14 +255,17 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 				claims[k] = v
 			}
 		}
+		// Let's create then token
 		token = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	}
+	// If we have a loaded private key, we use it to sign
 	if t._privateKey != nil {
 		signedString, err = token.SignedString(t._privateKey)
 		if err != nil {
 			return nil, err
 		}
 	} else {
+		// If we've been provided a key in the conf, then we use it to sign
 		signedString, err = token.SignedString(t._key)
 		if err != nil {
 			return nil, err

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -21,6 +22,29 @@ func stringInArray(search string, array []string) bool {
 func getFieldName(val reflect.Value, index int) string {
 	structField := reflect.Indirect(val).Type().Field(index)
 	return structField.Name
+}
+
+// getEnvs converts environment variables to a map
+func getEnvs() *map[string]string {
+	envs := make(map[string]string)
+	for _, e := range os.Environ() {
+		pair := strings.SplitN(e, "=", 2)
+		envs[pair[0]] = pair[1]
+	}
+	return &envs
+}
+
+func hasPrefixes(data string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(data, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func isString(data interface{}) bool {
+	return reflect.ValueOf(data).Type().String() == "string"
 }
 
 func parseBasicAuth(auth string) (username, password string, ok bool) {
