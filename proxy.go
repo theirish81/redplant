@@ -75,7 +75,7 @@ func SetupRouter() *mux.Router {
 					}
 				}
 				reverseProxy.ServeHTTP(w, req)
-			})
+			}).Name(k)
 		}(rules)
 	}
 	return router
