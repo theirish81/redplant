@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -70,6 +69,7 @@ type CaptureSidecar struct {
 	httpClient                 *http.Client
 	Headers                    map[string]string
 	logger                     *LogHelper
+	Format                     string
 }
 
 // GetChannel returns the channel for the sidecar
@@ -92,7 +92,7 @@ func (s *CaptureSidecar) Consume(quantity int) {
 			}
 			s.Uri = localUrl.Host + localUrl.Path
 		}
-		s.logger = NewLogHelper(s.Uri, logrus.InfoLevel)
+		s.logger = NewLogHelperFromConfig(LoggerConfig{Path: s.Uri, Format: s.Format, Level: "info"})
 		captureFunc = s.CaptureLogger
 	}
 

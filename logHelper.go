@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"os"
+	"strings"
 )
 
 type LogHelper struct {
@@ -47,5 +48,31 @@ func NewLogHelper(path string, level logrus.Level) *LogHelper {
 		lx.SetOutput(file)
 	}
 	lx.SetLevel(level)
+	return &LogHelper{lx}
+}
+
+func NewLogHelperFromConfig(cfg LoggerConfig) *LogHelper {
+	lx := logrus.New()
+	if cfg.Format == "JSON" {
+		lx.SetFormatter(&logrus.JSONFormatter{})
+	}
+	if cfg.Path == "" {
+		lx.SetOutput(os.Stdout)
+	} else {
+		file, _ := os.OpenFile(cfg.Path, os.O_RDWR|os.O_CREATE, 0755)
+		lx.SetOutput(file)
+	}
+	switch strings.ToLower(cfg.Level) {
+	case "debug":
+		lx.SetLevel(logrus.DebugLevel)
+	default:
+		lx.SetLevel(logrus.InfoLevel)
+	case "warn":
+		lx.SetLevel(logrus.WarnLevel)
+	case "error":
+		lx.SetLevel(logrus.ErrorLevel)
+	case "fatal":
+		lx.SetLevel(logrus.FatalLevel)
+	}
 	return &LogHelper{lx}
 }

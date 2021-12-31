@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -14,7 +14,8 @@ var config Config
 
 func main() {
 
-	configFilePath := flag.String("c", "", "Config file path")
+	configFilePath := flag.String("c", "", "Path of the main configuration file")
+	logFilePath := flag.String("l", "", "Path to the logging configuration file")
 	flag.Parse()
 	if *configFilePath == "" {
 		fmt.Println("apifrp -c [config_file_path]")
@@ -22,7 +23,13 @@ func main() {
 		return
 	}
 
-	log = NewLogHelper("", logrus.InfoLevel)
+	loggingConfig, err := LoadLoggerConfig(logFilePath)
+	if err != nil {
+		fmt.Println("Could not load logging configuration")
+		os.Exit(1)
+		return
+	}
+	log = NewLogHelperFromConfig(loggingConfig)
 
 	config = LoadConfig(*configFilePath)
 	config.Init()

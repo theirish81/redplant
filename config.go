@@ -7,6 +7,7 @@ import (
 	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"regexp"
 )
 
@@ -230,4 +231,26 @@ func (c *Config) Init() {
 			}
 		}
 	}
+}
+
+type LoggerConfig struct {
+	Level  string `yaml:"level"`
+	Format string `yaml:"format"`
+	Path   string `yaml:"path"`
+}
+
+func LoadLoggerConfig(path *string) (LoggerConfig, error) {
+	cfg := LoggerConfig{}
+	if path == nil || *path == "" {
+		cfg.Level = "INFO"
+		cfg.Format = "simple"
+		cfg.Path = ""
+		return cfg, nil
+	}
+	fileContent, err := ioutil.ReadFile(*path)
+	if err != nil {
+		return cfg, err
+	}
+	err = yaml.Unmarshal(fileContent, &cfg)
+	return cfg, err
 }

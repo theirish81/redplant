@@ -93,3 +93,4 @@ rules:
               uri: "{{.Variables.CAPTURE_URI}}"
               responseContentTypeRegexp: '.*json.*'
               requestContentTypeRegexp: '(^$|.*json.*)'
+              format: JSON
