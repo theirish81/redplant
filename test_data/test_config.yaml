@@ -1,65 +1,67 @@
-variables:
-  var1: sblarg var 1
-  var2: "{{.ENV1}}"
-  userAgent: APIFRP1
-  captureUri: https://foobar.com
-  pgUrl: postgres://foobar.com
-  msUrl: mysql://foobar.com
-  un: foo
-  pw: bar
-network:
-  upstream:
-    timeout: 30s
-    keepAlive: 30s
-    maxIdleConnections: 100
-    idleConnectionTimeout: 90s
-    expectContinueTimeout: 1s
-  downstream:
-    port: 9001
+# Loading global variables from external file
+variables: "$ref:file://variables.yaml"
 
+# Loading network configuration from external file
+network: "$ref:file://network.yaml"
+
+# Transformers and sidecars to be executed BEFORE transformers and sidecars defined for the specific route
 before:
   request:
     transformers:
+      # Very basic auth, using global variable for credentials
       - id: basicAuth
         params:
-          username: "{{.Variables.un}}"
-          password: "{{.Variables.pw}}"
+          username: "{{.Variables.UN}}"
+          password: "{{.Variables.PW}}"
+      # Dumb barrage, will block any request with a header value containing "log4j"
       - id: barrage
         params:
-          headerValueRegexp: log4j
+          headerValueRegexp: ".*log4j.*"
+      # Will send an X-Server header with the value provided by the global variables
+      - id: headers
+        params:
+          set:
+            X-Server: "{{.Variables.SERVER_NAME}}"
     sidecars:
+      # Access logs the request
       - id: accessLog
         workers: 1
         block: true
   response:
     transformers:
       - id: headers
+        workers: 1
         params:
           set:
-            foo: bar
+            X-Proxied: "true"
     sidecars:
+      # Access logs the response
       - id: accessLog
         workers: 1
         block: true
       - id: metricsLog
         workers: 1
         block: true
+
+# THE RULES. They represent how an inbound request should be matched, and defines the transformation rules
 rules:
+  # The inbound host. This is a regexp. Also, the path matchers are regexp
   localhost:9001:
-    "/db/table1":
-      origin: "{{.Variables.pgUrl}}"
-    "/db/table2":
-      origin: "{{.Variables.msUrl}}"
+    # File server route. Will load and return data loaded from FS
     "/fs/.*":
+      # Path to the files
       origin: file://test_data/files
       request:
+        # The request transformers
         transformers:
+          # As the inbound path gets appended to the origin, we need to rewrite the URL
           - id: url
             params:
               oldPrefix: "/files/fs"
               newPrefix: "/files"
-    "/foo/.*":
-      origin: https://foobar.com
+    # A web route
+    "/todo/.*":
+      origin: https://jsonplaceholder.typicode.com/todos
       request:
         transformers:
           - id: scriptable
@@ -68,8 +70,8 @@ rules:
                 test_data/scripts/gino.js
           - id: url
             params:
-              oldPrefix: "/catchall"
-              newPrefix: "/catchall/bananas"
+              oldPrefix: "/todos/todo"
+              newPrefix: "/todos"
           - id: headers
             params:
               set:
@@ -88,6 +90,6 @@ rules:
             workers: 2
             block: true
             params:
-              uri: "{{.Variables.captureUri}}"
+              uri: "{{.Variables.CAPTURE_URI}}"
               responseContentTypeRegexp: '.*json.*'
               requestContentTypeRegexp: '(^$|.*json.*)'

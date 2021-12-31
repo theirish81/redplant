@@ -1,0 +1,12 @@
+upstream:
+  timeout: 30s
+  keepAlive: 30s
+  maxIdleConnections: 100
+  idleConnectionTimeout: 90s
+  expectContinueTimeout: 1s
+downstream:
+  port: 9001
+  tls:
+    - host: localhost
+      key: test_data/server.key
+      cert: test_data/server.crt

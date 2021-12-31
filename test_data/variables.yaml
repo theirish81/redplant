@@ -1,0 +1,4 @@
+UN: foo
+PW: bar
+SERVER_NAME: "{{.SERVER_NAME}}"
+CAPTURE_URI: file://test_data/capture.log
