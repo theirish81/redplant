@@ -9,10 +9,10 @@ import (
 
 func TestFileTrip(t *testing.T) {
 	req := http.Request{}
-	req.URL, _ = url.Parse("file://test_data/some_data.json")
+	req.URL, _ = url.Parse("file://test_data/files/data.json")
 	res, _ := FileTrip(&req)
 	data1, _ := ioutil.ReadAll(res.Body)
-	data2, _ := ioutil.ReadFile("test_data/some_data.json")
+	data2, _ := ioutil.ReadFile("test_data/files/data.json")
 	if string(data1) != string(data2) {
 		t.Error("File tripper does not work according to plan")
 	}
