@@ -51,13 +51,13 @@ rules:
     "/db/table2":
       origin: "{{.Variables.msUrl}}"
     "/fs/.*":
-      origin: file://files
+      origin: file://test_data/files
       request:
         transformers:
           - id: url
             params:
-              oldPrefix: "/fs"
-              newPrefix: ""
+              oldPrefix: "/files/fs"
+              newPrefix: "/files"
     "/foo/.*":
       origin: https://foobar.com
       request:
@@ -65,7 +65,7 @@ rules:
           - id: scriptable
             params:
               path:
-                scripts/gino.js
+                test_data/scripts/gino.js
           - id: url
             params:
               oldPrefix: "/catchall"
