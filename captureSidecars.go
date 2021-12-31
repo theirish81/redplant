@@ -80,10 +80,13 @@ func (s *CaptureSidecar) GetChannel() chan *APIWrapper {
 // Consume starts the consumption workers
 func (s *CaptureSidecar) Consume(quantity int) {
 	var captureFunc func([]byte)
-	if strings.HasPrefix(s.Uri, "http") {
+
+	// If it's a web URL, then we'll use the HTTP capture function
+	if hasPrefixes(s.Uri, []string{"http://", "https://"}) {
 		s.httpClient = &http.Client{}
 		captureFunc = s.CaptureHttp
 	} else {
+		// Otherwise, it's a local file. However, we want to check whether it's a path or a file URI
 		if strings.HasPrefix(s.Uri, "file://") {
 			localUrl, err := url.Parse(s.Uri)
 			if err != nil {
@@ -92,26 +95,32 @@ func (s *CaptureSidecar) Consume(quantity int) {
 			}
 			s.Uri = localUrl.Host + localUrl.Path
 		}
+		// Creating logger and assigning local logging function
 		s.logger = NewLogHelperFromConfig(LoggerConfig{Path: s.Uri, Format: s.Format, Level: "info"})
 		captureFunc = s.CaptureLogger
 	}
 
+	// For each worker...
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
 				func() {
+					// We obtain the content-type of both the request and the response
 					reqCT := msg.Request.Header.Get("content-type")
 					resCT := msg.Response.Header.Get("content-type")
 					reqRx := false
 					resRx := false
+					// Does the request content type match the regexp?
 					if s._requestContentTypeRegexp != nil {
 						reqRx = s._requestContentTypeRegexp.MatchString(reqCT)
 					}
+					// Does the response content type match the regexp?
 					if s._responseContentTypeRegexp != nil {
 						resRx = s._responseContentTypeRegexp.MatchString(resCT)
 					}
-
+					// Do they agree?
 					if reqRx && resRx {
+						// Then we capture
 						capture := CaptureResponse(msg)
 						data, _ := json.Marshal(capture)
 						captureFunc(data)
