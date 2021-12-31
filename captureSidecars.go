@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -83,6 +84,14 @@ func (s *CaptureSidecar) Consume(quantity int) {
 		s.httpClient = &http.Client{}
 		captureFunc = s.CaptureHttp
 	} else {
+		if strings.HasPrefix(s.Uri, "file://") {
+			localUrl, err := url.Parse(s.Uri)
+			if err != nil {
+				log.Error("Could not parse capture URI. Disabling sidecar", err, nil)
+				return
+			}
+			s.Uri = localUrl.Host + localUrl.Path
+		}
 		s.logger = NewLogHelper(s.Uri, logrus.InfoLevel)
 		captureFunc = s.CaptureLogger
 	}
