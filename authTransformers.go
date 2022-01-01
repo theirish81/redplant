@@ -275,6 +275,7 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	return wrapper, nil
 }
 
+// NewJWTSignTransformer is the constructor for the JWTSignTransformer
 func NewJWTSignTransformer(activateOnTags []string, params map[string]interface{}) (*JWTSignTransformer, error) {
 	t := JWTSignTransformer{ActivateOnTags: activateOnTags}
 

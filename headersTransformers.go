@@ -43,6 +43,7 @@ func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[
 	return &t, err
 }
 
+// ResponseHeaderTransformer transforms the response header by setting or removing headers
 type ResponseHeaderTransformer struct {
 	Set            map[string]string `mapstructure:"set"`
 	Remove         []string          `mapstructure:"remove"`

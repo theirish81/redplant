@@ -8,9 +8,13 @@ import (
 
 // DelayTransformer will slow the request down by a certain amount
 type DelayTransformer struct {
-	_min           time.Duration
-	_max           time.Duration
-	Min            string `mapstructure:"min"`
+	// _min is the parsed minimum delay
+	_min time.Duration
+	// _max is the parsed minimum delay
+	_max time.Duration
+	// Min is the minimum delay in the form of a string
+	Min string `mapstructure:"min"`
+	// Max is the maximum delay in the form of a string
 	Max            string `mapstructure:"max"`
 	ActivateOnTags []string
 }

@@ -14,21 +14,24 @@ func SetupRouter() *mux.Router {
 	router := mux.NewRouter()
 
 	// Creating a custom reverse proxy
-	reverseProxy := &httputil.ReverseProxy{Director: func(req *http.Request) {
-		wrapper := GetWrapper(req)
-		// if wrapper is nil, then we don't have any match, and we shouldn't be here
-		if wrapper == nil {
-			return
-		}
-		wrapper.Request = req
-		wrapper.ExpandRequestIfNeeded()
-		wrapper.Rule.Request._sidecars.Run(wrapper.Clone())
-		handleURL(wrapper.Rule, req)
-		wrapper.Metrics.ReqTransStart = time.Now()
-		_, err := wrapper.Rule.Request._transformers.Transform(wrapper)
-		wrapper.Metrics.ReqTransEnd = time.Now()
-		wrapper.Err = err
-	},
+	reverseProxy := &httputil.ReverseProxy{
+		// Custom Director
+		Director: func(req *http.Request) {
+			wrapper := GetWrapper(req)
+			// if wrapper is nil, then we don't have any match, and we shouldn't be here
+			if wrapper == nil {
+				return
+			}
+			wrapper.Request = req
+			wrapper.ExpandRequestIfNeeded()
+			wrapper.Rule.Request._sidecars.Run(wrapper.Clone())
+			handleURL(wrapper.Rule, req)
+			wrapper.Metrics.ReqTransStart = time.Now()
+			_, err := wrapper.Rule.Request._transformers.Transform(wrapper)
+			wrapper.Metrics.ReqTransEnd = time.Now()
+			wrapper.Err = err
+		},
+		// Custom  error handler
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
 			wrapper := GetWrapper(request)
 			if wrapper != nil {
@@ -47,7 +50,9 @@ func SetupRouter() *mux.Router {
 				writer.WriteHeader(500)
 			}
 		},
+		// Custom transport
 		Transport: configTransport(),
+		// Post trip response modification
 		ModifyResponse: func(response *http.Response) error {
 			wrapper := GetWrapper(response.Request)
 			if wrapper != nil {
@@ -66,10 +71,14 @@ func SetupRouter() *mux.Router {
 			return nil
 		},
 	}
+	// Routing based on hostname
 	for k, rules := range config.Rules {
 		func(rules map[string]*Rule) {
+			// Handler for one hostname
 			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				// For each rule for a given hostname...
 				for _, rule := range rules {
+					// ... if there's match, then we can enrich with a context
 					if success := rule._pattern.MatchString(req.URL.Path); success {
 						req = ReqWithContext(req, rule)
 						break

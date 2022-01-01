@@ -69,6 +69,9 @@ func NewBarrageResponseTransformer(activateOnTags []string, params map[string]in
 func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	var headers *http.Header
 	var body *[]byte
+	// As the implementation of this transformer is identical for the request and the response, we determine
+	// whether we're targeting the request or the response based on the presence of the response,
+	// So here we collect headers and body from the right source
 	if t.response {
 		headers = &wrapper.Response.Header
 		body = &wrapper.ResponseBody
@@ -76,6 +79,7 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 		headers = &wrapper.Request.Header
 		body = &wrapper.RequestBody
 	}
+	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {
 		if t._headerRegexp != nil && t._headerRegexp.MatchString(k+":"+v[0]) {
 			return wrapper, errors.New("barraged")
@@ -87,6 +91,7 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 			return wrapper, errors.New("barraged")
 		}
 	}
+	// Similarly, we determine whether the body matches the regexp. If it does, we barrage
 	if t._bodyRegexp != nil && t._bodyRegexp.Match(*body) {
 		return wrapper, errors.New("barraged")
 	}

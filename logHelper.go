@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// LogHelper is wrapper for logrus. It exists to simplify the logging of metadata
 type LogHelper struct {
 	logger *logrus.Logger
 }

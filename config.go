@@ -29,9 +29,8 @@ type Config struct {
 type Rule struct {
 	// Origin is the origin URL
 	Origin string `yaml:"origin"`
-
+	// StripPrefix the inbound URL path prefix to strip out
 	StripPrefix string `yaml:"stripPrefix"`
-
 	// Request is the request transformation pipeline
 	Request RequestConfig `yaml:"request"`
 	// Response is the response transformation pipeline
@@ -133,6 +132,7 @@ type Upstream struct {
 
 // Tls is the configuration for the secure connection
 type Tls struct {
+	// Host is the hostname this certificate is for
 	Host string `yaml:"host"`
 	// Cert is the path to a certificate
 	Cert string `yaml:"cert"`

@@ -11,27 +11,41 @@ import (
 
 // CaptureMessage represents the serialization of an API conversation, forwarded to Fortress
 type CaptureMessage struct {
-	Request    RequestCapture         `json:"request"`
-	Response   ResponseCapture        `json:"response"`
+	// Request is the captured request
+	Request RequestCapture `json:"request"`
+	// Response is the captured response
+	Response ResponseCapture `json:"response"`
+	// Definition represent meta information of what rules where applied
 	Definition map[string]interface{} `json:"definition"`
-	Meta       map[string]interface{} `json:"meta"`
+	// Meta is free-hand meta information
+	Meta map[string]interface{} `json:"meta"`
 }
 
 // RequestCapture represents the serialization of an API Request
 type RequestCapture struct {
-	IP      string              `json:"ip"`
-	Body    string              `json:"body"`
-	Url     string              `json:"url"`
-	Size    int                 `json:"size"`
-	Method  string              `json:"method"`
+	// IP is the requesting IP address
+	IP string `json:"ip"`
+	// Body is the requested body
+	Body string `json:"body"`
+	// Url is the URL being requested
+	Url string `json:"url"`
+	// Size is the size of the body
+	Size int `json:"size"`
+	// Method is the method of the request
+	Method string `json:"method"`
+	// Headers are the request headers
 	Headers map[string][]string `json:"headers"`
 }
 
 // ResponseCapture represents the serialization of an API response
 type ResponseCapture struct {
-	Body    string              `json:"body"`
-	Status  int                 `json:"status"`
-	Size    int                 `json:"size"`
+	// Body is the response body
+	Body string `json:"body"`
+	// Status is the status code
+	Status int `json:"status"`
+	// Size is the size of the response body
+	Size int `json:"size"`
+	// Headers are the response headers
 	Headers map[string][]string `json:"headers"`
 }
 
@@ -59,17 +73,28 @@ func CaptureResponse(wrapper *APIWrapper) *CaptureMessage {
 
 // CaptureSidecar is the sidecar fo capturing API conversations
 type CaptureSidecar struct {
-	channel                    chan *APIWrapper
-	Uri                        string
-	RequestContentTypeRegexp   string
-	_requestContentTypeRegexp  *regexp.Regexp
-	ResponseContentTypeRegexp  string
+	// channel is the go inbound channel
+	channel chan *APIWrapper
+	// Uri is the destination of the capture
+	Uri string
+	// RequestContentTypeRegexp is the regexp for the allowed request content type in form of string
+	RequestContentTypeRegexp string
+	// _requestContentTypeRegexp is the compiled regexp for the allowed request content type
+	_requestContentTypeRegexp *regexp.Regexp
+	// ResponseContentTypeRegexp is the regexp for the allowed response content type in form of string
+	ResponseContentTypeRegexp string
+	// _responseContentTypeRegexp is the compiled regexp for the allowed response content type
 	_responseContentTypeRegexp *regexp.Regexp
-	block                      bool
-	httpClient                 *http.Client
-	Headers                    map[string]string
-	logger                     *LogHelper
-	Format                     string
+	// block, if true, will put back-pressure on the data flow if all workers are busy
+	block bool
+	// httpClient is an HTTP Client instance, if we're using a web destination
+	httpClient *http.Client
+	// Headers is a set of optional request headers we may want to send to the destination
+	Headers map[string]string
+	// logger is logger implementation, if we're using a local logging mechanism
+	logger *LogHelper
+	// Format determines the log format for local logging
+	Format string
 }
 
 // GetChannel returns the channel for the sidecar
@@ -140,6 +165,7 @@ func (s *CaptureSidecar) CaptureHttp(data []byte) {
 		return
 	}
 	outboundRequest.Header.Set("content-type", "application/json")
+	// Setting the custom headers
 	for k, v := range s.Headers {
 		outboundRequest.Header.Set(k, v)
 	}

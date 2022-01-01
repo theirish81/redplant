@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// ScriptableTransformer is a transformer that uses a JavaScript script
 type ScriptableTransformer struct {
 	Script         string
 	Path           string
@@ -16,6 +17,8 @@ type ScriptableTransformer struct {
 	ActivateOnTags []string
 }
 
+// Transform will perform the transformation. The script must return true if the scripts wants the request to move
+// forward
 func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	runtime := goja.New()
 	err := runtime.Set("wrapper", wrapper)

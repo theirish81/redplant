@@ -2,6 +2,7 @@ package main
 
 import "github.com/sirupsen/logrus"
 
+// RequestAccessLogSidecar logs the inbound access requests
 type RequestAccessLogSidecar struct {
 	channel chan *APIWrapper
 	log     *LogHelper
@@ -49,6 +50,7 @@ func NewRequestAccessLogSidecarFromParams(block bool, params map[string]interfac
 	return &sidecar, nil
 }
 
+// UpstreamAccessLogSidecar logs the accesses to the upstream server, once the conversation has happened
 type UpstreamAccessLogSidecar struct {
 	channel chan *APIWrapper
 	log     *LogHelper
