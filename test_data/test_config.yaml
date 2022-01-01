@@ -51,27 +51,17 @@ rules:
     "/fs/.*":
       # Path to the files
       origin: file://test_data/files
-      request:
-        # The request transformers
-        transformers:
-          # As the inbound path gets appended to the origin, we need to rewrite the URL
-          - id: url
-            params:
-              oldPrefix: "/files/fs"
-              newPrefix: "/files"
+      stripPrefix: /fs
     # A web route
     "/todo/.*":
       origin: https://jsonplaceholder.typicode.com/todos
+      stripPrefix: /todo
       request:
         transformers:
           - id: scriptable
             params:
               path:
                 test_data/scripts/gino.js
-          - id: url
-            params:
-              oldPrefix: "/todos/todo"
-              newPrefix: "/todos"
           - id: headers
             params:
               set:

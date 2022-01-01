@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -84,7 +85,11 @@ func SetupRouter() *mux.Router {
 // handleURL transforms the URL based on the rules
 func handleURL(rule *Rule, req *http.Request) {
 	newUrl, _ := url.Parse(rule.Origin)
-	newUrl.Path = newUrl.Path + req.URL.Path
+	reqPath := req.URL.Path
+	if len(rule.StripPrefix) > 0 {
+		reqPath = strings.Replace(reqPath, rule.StripPrefix, "", 1)
+	}
+	newUrl.Path = newUrl.Path + reqPath
 	req.URL = newUrl
 	req.Host = req.URL.Host
 }

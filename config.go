@@ -29,6 +29,9 @@ type Config struct {
 type Rule struct {
 	// Origin is the origin URL
 	Origin string `yaml:"origin"`
+
+	StripPrefix string `yaml:"stripPrefix"`
+
 	// Request is the request transformation pipeline
 	Request RequestConfig `yaml:"request"`
 	// Response is the response transformation pipeline
