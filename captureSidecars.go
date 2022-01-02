@@ -202,8 +202,8 @@ func (s *CaptureSidecar) ShouldExpandResponse() bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, params map[string]interface{}) (*CaptureSidecar, error) {
-	sidecar := CaptureSidecar{channel: make(chan *APIWrapper), block: block}
+func NewCaptureSidecarFromParams(block bool, queue int, params map[string]interface{}) (*CaptureSidecar, error) {
+	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err

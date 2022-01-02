@@ -85,6 +85,8 @@ type SidecarConfig struct {
 	ActivateOnTags []string `yaml:"activateOnTags"`
 	// Workers is the total number of workers we should have for this sidecar
 	Workers int `yaml:"workers"`
+
+	Queue int `yaml:"queue"`
 	// Block if set to true, will block the main flow if all sidecars are busy
 	Block bool `yaml:"block"`
 	// Params is a map of configuration params for the sidecar

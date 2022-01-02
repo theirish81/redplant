@@ -42,9 +42,15 @@ func (s *RequestSidecars) Run(wrapper *APIWrapper) {
 func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
 	res := RequestSidecars{}
 	for _, s := range *sidecars {
+		if s.Workers == 0 {
+			s.Workers = 1
+		}
+		if s.Queue == 0 {
+			s.Queue = 1
+		}
 		switch s.Id {
 		case "accessLog":
-			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Params)
+			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Queue, s.Params)
 			if err != nil {
 				log.Error("Could not initialise accessLog", err, nil)
 			} else {
@@ -93,9 +99,15 @@ func (s *ResponseSidecars) Run(wrapper *APIWrapper) {
 func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 	res := ResponseSidecars{}
 	for _, s := range *sidecars {
+		if s.Workers == 0 {
+			s.Workers = 1
+		}
+		if s.Queue == 0 {
+			s.Queue = 1
+		}
 		switch s.Id {
 		case "accessLog":
-			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Params)
+			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Queue, s.Params)
 			if err != nil {
 				log.Error("Could not initialize upstream access log", err, nil)
 			} else {
@@ -104,7 +116,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "metricsLog":
-			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Params)
+			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Queue, s.Params)
 			if err != nil {
 				log.Error("Could not initialize metrics log", err, nil)
 			} else {
@@ -113,7 +125,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "capture":
-			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Params)
+			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Queue, s.Params)
 			if err != nil {
 				log.Error("Could not initialize capture sidecar. Bypassing. ", err, nil)
 			} else {

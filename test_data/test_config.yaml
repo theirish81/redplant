@@ -79,6 +79,7 @@ rules:
           - id: capture
             workers: 2
             block: true
+            queue: 2
             params:
               uri: "{{.Variables.CAPTURE_URI}}"
               responseContentTypeRegexp: '.*json.*'
