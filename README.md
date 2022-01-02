@@ -167,6 +167,7 @@ Example:
 ```yaml
 id: capture
 workers: 2
+queue: 5
 block: true
 params:
   uri: "{{.Variables.CAPTURE_URI}}"
@@ -176,6 +177,8 @@ params:
 ```
 * `id` (required): the name of the sidecar
 * `workers` (optional): the number of instances of this sidecar (default: 1)
-* `block` (optional): if `true`, the lack of available workers (as in: all busy) will block the main data flow. This
-is useful when resources are limited, and we want to avoid a boundless escalation of used resources (default: false)
+* `queue` (optional): the size of the queue for the workers. Meaningful in conjunction with `block` (default: 1)
+* `block` (optional): if `true`, the lack of available workers (as in: all busy) combined with a full queue, 
+will block the main data flow. This is useful when resources are limited, and we want to avoid a boundless escalation
+of used resources (default: false)
 * `params`: the sidecar's specific parameters
