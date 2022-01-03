@@ -6,78 +6,71 @@ network: "$ref:file://network.yaml"
 
 # Transformers and sidecars to be executed BEFORE transformers and sidecars defined for the specific route
 before:
-  request:
+  request:                                 # Request transformers
     transformers:
-      # Very basic auth, using global variable for credentials
-      - id: basicAuth
+      - id: basicAuth                      # Very basic auth, using global variable for credentials
         params:
           username: "{{.Variables.UN}}"
           password: "{{.Variables.PW}}"
-      # Dumb barrage, will block any request with a header value containing "log4j"
-      - id: barrage
+      - id: barrage                       # Dumb barrage, will block any request with a header value containing "log4j"
         params:
           headerValueRegexp: ".*log4j.*"
-      # Will send an X-Server header with the value provided by the global variables
-      - id: headers
+      - id: headers                       # Will send an X-Server header with the value provided by the global variables
         params:
           set:
             X-Server: "{{.Variables.SERVER_NAME}}"
     sidecars:
-      # Access logs the request
-      - id: accessLog
-        workers: 1
+      - id: accessLog                     # Access logs the request as it reaches the reverse proxy. blocking
+        workers: 1                        # 1 worker, queue=2
+        queue: 2
         block: true
-  response:
+  response:                               # Response transformers
     transformers:
-      - id: headers
+      - id: headers                       # Adding a X-Proxied response header
         workers: 1
         params:
           set:
             X-Proxied: "true"
-    sidecars:
-      # Access logs the response
-      - id: accessLog
+    sidecars:                             # Response sidecars
+      - id: accessLog                     # Access logs the response
         workers: 1
+        queue: 2
         block: true
-      - id: metricsLog
+      - id: metricsLog                    # Logs the metrics
         workers: 1
+        queue: 2
         block: true
 
-# THE RULES. They represent how an inbound request should be matched, and defines the transformation rules
-rules:
-  # The inbound host. This is a regexp. Also, the path matchers are regexp
-  localhost:9001:
-    # File server route. Will load and return data loaded from FS
-    "/fs/.*":
-      # Path to the files
-      origin: file://test_data/files
-      stripPrefix: /fs
-    # A web route
-    "/todo/.*":
-      origin: https://jsonplaceholder.typicode.com/todos
+rules: # THE RULES. They represent how an inbound request should be matched, and defines the transformation rules
+  localhost:9001:                     # The inbound host. This is a regexp. Also, the path matchers are regexp
+    "/fs/.*":                         # File server route. Will load and return data loaded from FS
+      origin: file://test_data/files  # Path to the files
+      stripPrefix: /fs                # We're stripping the "/fs" from the final URL
+    "/todo/.*": # A web route
+      origin: https://jsonplaceholder.typicode.com/todos  # the HTTP origin
       stripPrefix: /todo
-      request:
-        transformers:
-          - id: scriptable
+      request:                                            # Request configuration
+        transformers:                                     # Transformers
+          - id: scriptable                                # Scriptable transformer
             params:
               path:
                 test_data/scripts/gino.js
-          - id: headers
+          - id: headers                                   # Headers transformer
             params:
               set:
-                username: "{{.Username}}"
+                username: "{{.Username}}"                 # Setting dynamic headers
                 "user-agent": "{{.Variables.userAgent}}"
               remove:
                 - authorization
-      response:
-        transformers:
-          - id: headers
+      response:                                           # Response configuration
+        transformers:                                     # Transformers
+          - id: headers                                   # Headers transformer
             params:
               set:
-                resfoo: resbar
-        sidecars:
-          - id: capture
-            workers: 2
+                resfoo: resbar                            # Setting a response header
+        sidecars:                                         # Sidecars
+          - id: capture                                   # Capture transformer
+            workers: 2                                    # 2 blocking workers with a queue=2
             block: true
             queue: 2
             params:

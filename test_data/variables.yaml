@@ -1,4 +1,4 @@
 UN: foo
 PW: bar
-SERVER_NAME: "{{.SERVER_NAME}}"
+SERVER_NAME: "{{.SERVER_NAME}}"               # picking SERVER_NAME from an environment variable
 CAPTURE_URI: file://test_data/capture.log
