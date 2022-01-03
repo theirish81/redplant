@@ -43,11 +43,11 @@ func main() {
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
 	if config.Network.Downstream.Tls != nil {
 		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
-		handleTerm(server)
+		go handleTerm(server)
 		log.Fatal("Stopping service", server.ListenAndServeTLS("", ""), nil)
 	} else {
 		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router}
-		handleTerm(server)
+		go handleTerm(server)
 		log.Fatal("Stopping service", http.ListenAndServe("", nil), nil)
 	}
 }
