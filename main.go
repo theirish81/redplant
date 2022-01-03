@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 )
 
 var log *LogHelper
@@ -39,9 +43,12 @@ func main() {
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
 	if config.Network.Downstream.Tls != nil {
 		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
+		handleTerm(server)
 		log.Fatal("Stopping service", server.ListenAndServeTLS("", ""), nil)
 	} else {
-		log.Fatal("Stopping service", http.ListenAndServe(":"+strconv.Itoa(config.Network.Downstream.Port), router), nil)
+		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router}
+		handleTerm(server)
+		log.Fatal("Stopping service", http.ListenAndServe("", nil), nil)
 	}
 }
 
@@ -57,4 +64,31 @@ func setupTLSConfig() *tls.Config {
 		}
 	}
 	return cfg
+}
+
+func handleTerm(server *http.Server) {
+	signalChanel := make(chan os.Signal, 1)
+	exitChan := make(chan int)
+	signal.Notify(signalChanel,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		for {
+			<-signalChanel
+			log.Info("Graceful shutdown initiated", nil)
+			err := server.Shutdown(context.Background())
+			if err != nil {
+				log.Error("Error while shutting down web server", err, nil)
+			}
+			duration, _ := time.ParseDuration("10s")
+			time.Sleep(duration)
+			log.Info("Graceful shutdown completed", nil)
+			exitChan <- 0
+		}
+	}()
+	exitCode := <-exitChan
+	os.Exit(exitCode)
+
 }
