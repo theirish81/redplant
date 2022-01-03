@@ -5,7 +5,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	config = LoadConfig("test_data/test_config.yaml")
+	config = LoadConfig("etc/config.yaml")
 	config.Init()
 	if len(config.Variables) == 0 {
 		t.Error("Variables not parsed correctly")

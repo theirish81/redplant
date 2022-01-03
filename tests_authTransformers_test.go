@@ -34,11 +34,11 @@ func TestBasicAuthTransformer_Transform(t *testing.T) {
 	}
 }
 func TestJWTAuthTransformerPem_Transform(t *testing.T) {
-	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"pem": "test_data/publicKey"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"pem": "etc/publicKey"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 
-	privateKey, _ := ioutil.ReadFile("test_data/privateKey")
+	privateKey, _ := ioutil.ReadFile("etc/privateKey")
 	signKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
 	at := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token, _ := at.SignedString(signKey)

@@ -11,7 +11,7 @@ import (
 
 func TestSetupRouter(t *testing.T) {
 	log = NewLogHelper("", logrus.InfoLevel)
-	config = LoadConfig("test_data/test_config.yaml")
+	config = LoadConfig("etc/config.yaml")
 	config.Init()
 	router := SetupRouter()
 	route := router.GetRoute("localhost:9001")
@@ -21,7 +21,7 @@ func TestSetupRouter(t *testing.T) {
 }
 func TestReverseProxy(t *testing.T) {
 	log = NewLogHelper("", logrus.InfoLevel)
-	config = LoadConfig("test_data/test_config.yaml")
+	config = LoadConfig("etc/config.yaml")
 	config.Init()
 	router := SetupRouter()
 	go func() {

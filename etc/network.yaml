@@ -8,5 +8,5 @@ downstream:
   port: 9001
   tls:
     - host: localhost
-      key: test_data/server.key
-      cert: test_data/server.crt
+      key: etc/server.key
+      cert: etc/server.crt

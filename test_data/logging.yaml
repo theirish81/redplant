@@ -1,3 +1,0 @@
-level: INFO
-format: simple
-path: "test_data/bananas.log"

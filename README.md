@@ -24,7 +24,7 @@ not fully leverage the software potential, or even discourage the use of one at 
 a vast array of tools, while maintaining a low complexity.
 
 ## Basic configuration
-You can check out an example of the configuration in the `test_data` directory.
+You can check out an example of the configuration in the `etc` directory.
 
 In short, you have two top level configuration files:
 
@@ -66,7 +66,7 @@ can also evaluate Go templates to include environment variables. Example:
 UN: foo
 PW: bar
 SERVER_NAME: "{{.SERVER_NAME}}"
-CAPTURE_URI: file://test_data/capture.log
+CAPTURE_URI: file://etc/capture.log
 ```
 
 In this example `SERVER_NAME` will acquire the value of the environment variable `SERVER_NAME`.
@@ -84,8 +84,8 @@ downstream:
   port: 9001
   tls:
     - host: localhost
-      key: test_data/server.key
-      cert: test_data/server.crt
+      key: etc/server.key
+      cert: etc/server.crt
 ```
 
 #### before
@@ -147,7 +147,7 @@ activateOnTags:
   - fs
 params:
   retain: false
-  htpasswd: test_data/passwords
+  htpasswd: etc/passwords
 ```
 
 * `id` (required): defines the type of transformer
