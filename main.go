@@ -41,14 +41,29 @@ func main() {
 	router := SetupRouter()
 
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
+	signalChanel := make(chan os.Signal, 1)
+	signal.Notify(signalChanel,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
 	if config.Network.Downstream.Tls != nil {
-		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
-		go handleTerm(server)
-		log.Fatal("Stopping service", server.ListenAndServeTLS("", ""), nil)
+		go func() {
+			err = server.ListenAndServeTLS("", "")
+			if err.Error() != "http: Server closed" {
+				log.Fatal("Error while running web server", err, nil)
+			}
+		}()
+		handleTerm(server)
 	} else {
-		server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router}
-		go handleTerm(server)
-		log.Fatal("Stopping service", http.ListenAndServe("", nil), nil)
+		go func() {
+			err = server.ListenAndServe()
+			if err.Error() != "http: Server closed" {
+				log.Fatal("Error while running web server", err, nil)
+			}
+		}()
+		handleTerm(server)
 	}
 }
 
