@@ -14,7 +14,6 @@ RUN go build -o redplant *.go
 FROM alpine:3.12.4
 RUN mkdir /usr/local/redplant
 WORKDIR /usr/local/redplant
-RUN mkdir etc
 COPY --from=builder /usr/local/redplant/redplant .
 
 RUN addgroup -g 1000 redplant && \
