@@ -8,14 +8,30 @@ import (
 type RequestUrlTransformer struct {
 	OldPrefix      string `yaml:"oldPrefix" mapstructure:"oldPrefix"`
 	NewPrefix      string `yaml:"newPrefix" mapstructure:"newPrefix"`
+	Query          Query
 	ActivateOnTags []string
+}
+
+type Query struct {
+	Set    map[string]string
+	Remove []string
 }
 
 func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	path := wrapper.Request.URL.Path
-	if strings.HasPrefix(path, t.OldPrefix) {
-		wrapper.Request.URL.Path = strings.Replace(path, t.OldPrefix, t.NewPrefix, 1)
+	if len(t.OldPrefix) > 0 {
+		if strings.HasPrefix(path, t.OldPrefix) {
+			wrapper.Request.URL.Path = strings.Replace(path, t.OldPrefix, t.NewPrefix, 1)
+		}
 	}
+	query := wrapper.Request.URL.Query()
+	for k, v := range t.Query.Set {
+		query.Set(k, v)
+	}
+	for _, remove := range t.Query.Remove {
+		query.Del(remove)
+	}
+	wrapper.Request.URL.RawQuery = query.Encode()
 	return wrapper, nil
 }
 
@@ -40,6 +56,6 @@ func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
 
 func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestUrlTransformer, error) {
 	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &transformer, nil, []string{})
+	err := DecodeAndTempl(params, &transformer, nil, []string{"query"})
 	return &transformer, err
 }
