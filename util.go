@@ -64,6 +64,26 @@ func parseBasicAuth(auth string) (username, password string, ok bool) {
 	return cs[:s], cs[s+1:], true
 }
 
+func convertMaps(intf interface{}) interface{} {
+	switch obj := intf.(type) {
+	case map[string]interface{}:
+		for k, v := range obj {
+			obj[k] = convertMaps(v)
+		}
+	case map[interface{}]interface{}:
+		nuMap := map[string]interface{}{}
+		for k, v := range obj {
+			nuMap[k.(string)] = convertMaps(v)
+		}
+		return nuMap
+	case []interface{}:
+		for index, object := range obj {
+			obj[index] = convertMaps(object)
+		}
+	}
+	return intf
+}
+
 type IPAddresser struct {
 	cidrs []*net.IPNet
 }

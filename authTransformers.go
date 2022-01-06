@@ -280,6 +280,7 @@ func NewJWTSignTransformer(activateOnTags []string, params map[string]interface{
 	t := JWTSignTransformer{ActivateOnTags: activateOnTags}
 
 	err := DecodeAndTempl(params, &t, nil, []string{"claims"})
+	t.Claims = convertMaps(t.Claims).(map[string]interface{})
 	if err != nil {
 		return nil, err
 	}
