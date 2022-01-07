@@ -94,7 +94,8 @@ type CaptureSidecar struct {
 	// logger is logger implementation, if we're using a local logging mechanism
 	logger *LogHelper
 	// Format determines the log format for local logging
-	Format string
+	Format         string
+	ActivateOnTags []string
 }
 
 // GetChannel returns the channel for the sidecar
@@ -201,9 +202,13 @@ func (s *CaptureSidecar) ShouldExpandResponse() bool {
 	return true
 }
 
+func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(s.ActivateOnTags)
+}
+
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, params map[string]interface{}) (*CaptureSidecar, error) {
-	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block}
+func NewCaptureSidecarFromParams(block bool, queue int, activateOnTags []string, params map[string]interface{}) (*CaptureSidecar, error) {
+	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err

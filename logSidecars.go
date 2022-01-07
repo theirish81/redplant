@@ -4,10 +4,11 @@ import "github.com/sirupsen/logrus"
 
 // RequestAccessLogSidecar logs the inbound access requests
 type RequestAccessLogSidecar struct {
-	channel chan *APIWrapper
-	log     *LogHelper
-	block   bool
-	Path    string
+	channel        chan *APIWrapper
+	log            *LogHelper
+	block          bool
+	Path           string
+	ActivateOnTags []string
 }
 
 func (s *RequestAccessLogSidecar) GetChannel() chan *APIWrapper {
@@ -36,9 +37,13 @@ func (s *RequestAccessLogSidecar) ShouldExpandResponse() bool {
 	return false
 }
 
-func NewRequestAccessLogSidecarFromParams(block bool, queue int, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
+func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(s.ActivateOnTags)
+}
+
+func NewRequestAccessLogSidecarFromParams(block bool, queue int, activateOnTags []string, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
 	logger := log
-	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block}
+	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -52,10 +57,11 @@ func NewRequestAccessLogSidecarFromParams(block bool, queue int, params map[stri
 
 // UpstreamAccessLogSidecar logs the accesses to the upstream server, once the conversation has happened
 type UpstreamAccessLogSidecar struct {
-	channel chan *APIWrapper
-	log     *LogHelper
-	block   bool
-	Path    string
+	channel        chan *APIWrapper
+	log            *LogHelper
+	block          bool
+	Path           string
+	ActivateOnTags []string
 }
 
 func (s *UpstreamAccessLogSidecar) GetChannel() chan *APIWrapper {
@@ -85,9 +91,13 @@ func (s *UpstreamAccessLogSidecar) ShouldExpandResponse() bool {
 	return false
 }
 
-func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
+func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(s.ActivateOnTags)
+}
+
+func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, activateOnTags []string, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
 	logger := log
-	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block}
+	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -100,10 +110,11 @@ func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, params map[str
 }
 
 type MetricsLogSidecar struct {
-	channel chan *APIWrapper
-	log     *LogHelper
-	block   bool
-	Path    string
+	channel        chan *APIWrapper
+	log            *LogHelper
+	block          bool
+	Path           string
+	ActivateOnTags []string
 }
 
 func (s *MetricsLogSidecar) GetChannel() chan *APIWrapper {
@@ -131,9 +142,13 @@ func (s *MetricsLogSidecar) ShouldExpandResponse() bool {
 	return false
 }
 
-func NewMetricsLogSidecarFromParams(block bool, queue int, params map[string]interface{}) (*MetricsLogSidecar, error) {
+func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
+	return wrapper.HasTag(s.ActivateOnTags)
+}
+
+func NewMetricsLogSidecarFromParams(block bool, queue int, activateOnTags []string, params map[string]interface{}) (*MetricsLogSidecar, error) {
 	logger := log
-	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block}
+	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
