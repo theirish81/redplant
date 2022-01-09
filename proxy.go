@@ -58,6 +58,9 @@ func SetupRouter() *mux.Router {
 			if wrapper != nil {
 				wrapper := GetWrapper(response.Request)
 				wrapper.Response = response
+				for k, v := range wrapper.ApplyHeaders {
+					wrapper.Response.Header.Set(k, v[0])
+				}
 				wrapper.ExpandResponseIfNeeded()
 				wrapper.Metrics.ResTransStart = time.Now()
 				_, err := wrapper.Rule.Response._transformers.Transform(wrapper)

@@ -108,7 +108,7 @@ the inbound request URLs. The instructions within a path are:
 * `origin` (required): a URL representing the origin we should forward the request to
 * `stripPrefix` (optional): inbound paths are generally appended as they are to the origin. For example, if the path is
 `/foo/abc123` and the origin is `http://example.com/data`, the request will be forwarded to `http://example.com/data/foo/abc123`.
-However this may not be the desired behavior. If we wanted to forward to `http://example.com/data/abc123`, then we give
+However, this may not be the desired behavior. If we wanted to forward to `http://example.com/data/abc123`, then we give
 the `stripPrefix` parameter the value of `/foo`.
 
 In our example, a set of rules with paths will look like this:
