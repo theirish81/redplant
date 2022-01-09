@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // CaptureMessage represents the serialization of an API conversation, forwarded to Fortress
@@ -91,6 +92,8 @@ type CaptureSidecar struct {
 	httpClient *http.Client
 	// Headers is a set of optional request headers we may want to send to the destination
 	Headers map[string]string
+	// Timeout is the HTTP client timeout
+	Timeout string
 	// logger is logger implementation, if we're using a local logging mechanism
 	logger *LogHelper
 	// Format determines the log format for local logging
@@ -106,10 +109,14 @@ func (s *CaptureSidecar) GetChannel() chan *APIWrapper {
 // Consume starts the consumption workers
 func (s *CaptureSidecar) Consume(quantity int) {
 	var captureFunc func([]byte)
-
 	// If it's a web URL, then we'll use the HTTP capture function
 	if hasPrefixes(s.Uri, []string{"http://", "https://"}) {
-		s.httpClient = &http.Client{}
+		to, err := time.ParseDuration(s.Timeout)
+		if err != nil {
+			log.Warn("Could not parse HTTP client timeout in Capture sidecar. Defaulting to 5s", err, nil)
+			to, _ = time.ParseDuration("5s")
+		}
+		s.httpClient = &http.Client{Timeout: to}
 		captureFunc = s.CaptureHttp
 	} else {
 		// Otherwise, it's a local file. However, we want to check whether it's a path or a file URI
