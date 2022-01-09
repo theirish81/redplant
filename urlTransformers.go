@@ -56,6 +56,6 @@ func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
 
 func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestUrlTransformer, error) {
 	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &transformer, nil, []string{"query"})
+	err := DecodeAndTempl(params, &transformer, nil, []string{"Query"})
 	return &transformer, err
 }
