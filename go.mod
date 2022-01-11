@@ -1,4 +1,4 @@
-module apifrp
+module redplant
 
 go 1.16
 

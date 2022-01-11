@@ -22,7 +22,7 @@ func main() {
 	logFilePath := flag.String("l", "", "Path to the logging configuration file")
 	flag.Parse()
 	if *configFilePath == "" {
-		fmt.Println("apifrp -c [config_file_path]")
+		fmt.Println("redplant -c [config_file_path]")
 		flag.PrintDefaults()
 		return
 	}
