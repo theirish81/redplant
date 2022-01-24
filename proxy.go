@@ -83,7 +83,7 @@ func SetupRouter() *mux.Router {
 				for _, rule := range rules {
 					// ... if there's match, then we can enrich with a context
 					if success := rule._pattern.MatchString(req.URL.Path); success {
-						req = ReqWithContext(req, rule)
+						req = ReqWithContext(req, w, rule)
 						break
 					}
 				}
@@ -102,6 +102,7 @@ func handleURL(rule *Rule, req *http.Request) {
 		reqPath = strings.Replace(reqPath, rule.StripPrefix, "", 1)
 	}
 	newUrl.Path = newUrl.Path + reqPath
+	newUrl.RawQuery = req.URL.RawQuery
 	req.URL = newUrl
 	req.Host = req.URL.Host
 }
