@@ -1,0 +1,97 @@
+version: 2.1
+jobs:
+  test:
+    docker:
+      - image: golang:latest
+    steps:
+      - checkout
+      - run:
+          name: "dependencies"
+          command: "go get"
+      - run:
+          name: "Run tests"
+          command: "go test"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  build:
+    docker:
+      - image: golang:latest
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: "build"
+          command: |
+            mkdir artifacts && \
+            env GOOS=linux GOARCH=amd64 go build -o artifacts/redplant
+      - persist_to_workspace:
+          root: .
+          paths:
+            - artifacts
+  release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: |
+            VERSION=${CIRCLE_TAG}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+  dockerPush:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+      - run:
+          command: |
+            tag=`echo ${CIRCLE_TAG} | cut -b 2-999`
+            majmin=`echo $tag | cut -d . -f 1-2
+            maj=`echo $tag | cut -d . -f 1
+            docker build -t theirish81/redplant:${tag} .
+            docker tag theirish81/redplant:${tag} theirish81/redplant:${majmin}
+            docker tag theirish81/redplant:${tag} theirish81/redplant:${maj}
+            docker tag theirish81/redplant:latest theirish81/redplant:latest
+            docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
+            docker push theirish81/redplant:${tag}
+            docker push theirish81/redplant:${majmin}
+            docker push theirish81/redplant:${maj}
+            docker push theirish81/redplant:latest
+
+workflows:
+  build-workflow:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - build:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - dockerPush:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/

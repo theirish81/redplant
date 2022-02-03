@@ -21,6 +21,6 @@ RUN addgroup -g 1000 redplant && \
     chown -R redplant:redplant /usr/local/redplant
 
 USER redplant
-
+WORKDIR /usr/local/redplant
 ENTRYPOINT [ "/usr/local/redplant/redplant" ]
 CMD ["-c", "etc/config.yaml", "-l", "etc/logging.yaml"]

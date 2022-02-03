@@ -15,7 +15,7 @@ func TestRoundTripperFilter_RoundTrip(t *testing.T) {
 	transport := configTransport()
 	request := &http.Request{Header: http.Header{}}
 	request.URL, _ = url.Parse("https://www.google.com")
-	request = ReqWithContext(request, nil)
+	request = ReqWithContext(request, nil, nil)
 	GetWrapper(request).Request = request
 	response, _ := transport.RoundTrip(request)
 	if response == nil {
