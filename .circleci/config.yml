@@ -57,7 +57,7 @@ jobs:
             docker build -t theirish81/redplant:${tag} .
             docker tag theirish81/redplant:${tag} theirish81/redplant:${majmin}
             docker tag theirish81/redplant:${tag} theirish81/redplant:${maj}
-            docker tag theirish81/redplant:latest theirish81/redplant:latest
+            docker tag theirish81/redplant:${tag} theirish81/redplant:latest
             docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
             docker push theirish81/redplant:${tag}
             docker push theirish81/redplant:${majmin}
