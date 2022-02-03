@@ -40,6 +40,17 @@ jobs:
           command: |
             VERSION=${CIRCLE_TAG}
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+  dockerPush:
+    docker:
+      - image: cimg/base:2022.02
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: |
+            docker build -t theirish81/redplant:${CIRCLE_TAG} .
+            docker login ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+            docker push theirish81/redplant:${CIRCLE_TAG}
 workflows:
   build-workflow:
     jobs:
@@ -56,6 +67,14 @@ workflows:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
       - release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - dockerPush:
           requires:
             - build
           filters:
