@@ -10,9 +10,9 @@ import (
 
 func TestAPIWrapper_Clone(t *testing.T) {
 	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
-							Response: &http.Response{StatusCode: 200},
-							RequestBody: []byte("foo"),
-							ResponseBody: []byte("foo")}
+		Response:     &http.Response{StatusCode: 200},
+		RequestBody:  []byte("foo"),
+		ResponseBody: []byte("foo")}
 	w2 := wrapper.Clone()
 	if wrapper.Request == w2.Request ||
 		&wrapper.RequestBody == &w2.RequestBody ||
@@ -30,7 +30,7 @@ func TestAPIWrapper_ExpandRequest(t *testing.T) {
 	}
 	wrapper.Request.Body = ioutil.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandRequest()
-	if string(wrapper.RequestBody) != "foo"{
+	if string(wrapper.RequestBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }
@@ -44,7 +44,7 @@ func TestAPIWrapper_ExpandResponse(t *testing.T) {
 	}
 	wrapper.Response.Body = ioutil.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandResponse()
-	if string(wrapper.ResponseBody) != "foo"{
+	if string(wrapper.ResponseBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }
@@ -52,7 +52,7 @@ func TestAPIWrapper_ExpandResponse(t *testing.T) {
 func TestAPIWrapper_Templ(t *testing.T) {
 	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
 		Response: &http.Response{StatusCode: 200}}
-	res,_ := wrapper.Templ("{{.Request.Method}}")
+	res, _ := wrapper.Templ("{{.Request.Method}}")
 	if res != "GET" {
 		t.Error("wrapper templ not working")
 	}
@@ -64,9 +64,9 @@ func TestReqWithContext(t *testing.T) {
 		t.Error("Empty wrapper retrieval has something wrong")
 	}
 	req.Header = http.Header{}
-	req.Header.Set("Authorization","Basic Zm9vOmJhcg==")
+	req.Header.Set("Authorization", "Basic Zm9vOmJhcg==")
 	rule := Rule{Origin: "foobar"}
-	req = ReqWithContext(req,&rule)
+	req = ReqWithContext(req, nil, &rule)
 	if req.Context().Value("wrapper").(*APIWrapper).Rule.Origin != "foobar" {
 		t.Error("req context not persisted correctly")
 	}
@@ -82,13 +82,13 @@ func TestReqWithContext(t *testing.T) {
 func TestAPIMetrics_Measurements(t *testing.T) {
 	req := &http.Request{Method: "GET"}
 	rule := Rule{Origin: "foobar"}
-	req = ReqWithContext(req,&rule)
+	req = ReqWithContext(req, nil, &rule)
 	wrapper := GetWrapper(req)
-	wrapper.Metrics.TransactionEnd = time.Now().Add(time.Duration(10*time.Millisecond))
+	wrapper.Metrics.TransactionEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
 	wrapper.Metrics.ReqTransStart = time.Now()
 	wrapper.Metrics.ResTransStart = time.Now()
-	wrapper.Metrics.ReqTransEnd = time.Now().Add(time.Duration(10*time.Millisecond))
-	wrapper.Metrics.ResTransEnd = time.Now().Add(time.Duration(10*time.Millisecond))
+	wrapper.Metrics.ReqTransEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
+	wrapper.Metrics.ResTransEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
 
 	if wrapper.Metrics.Transaction() < 10 || wrapper.Metrics.Transaction() > 15 ||
 		wrapper.Metrics.ResTransformation() < 10 || wrapper.Metrics.ResTransformation() > 15 ||
