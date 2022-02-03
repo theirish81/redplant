@@ -51,9 +51,19 @@ jobs:
           docker_layer_caching: true
       - run:
           command: |
-            docker build -t theirish81/redplant:${CIRCLE_TAG} .
+            tag=`echo ${CIRCLE_TAG} | cut -b 2-999`
+            majmin=`echo $tag | cut -d . -f 1-2
+            maj=`echo $tag | cut -d . -f 1
+            docker build -t theirish81/redplant:${tag} .
+            docker tag theirish81/redplant:${tag} theirish81/redplant:${majmin}
+            docker tag theirish81/redplant:${tag} theirish81/redplant:${maj}
+            docker tag theirish81/redplant:latest theirish81/redplant:latest
             docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
-            docker push theirish81/redplant:${CIRCLE_TAG}
+            docker push theirish81/redplant:${tag}
+            docker push theirish81/redplant:${majmin}
+            docker push theirish81/redplant:${maj}
+            docker push theirish81/redplant:latest
+
 workflows:
   build-workflow:
     jobs:
