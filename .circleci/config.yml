@@ -52,7 +52,7 @@ jobs:
       - run:
           command: |
             docker build -t theirish81/redplant:${CIRCLE_TAG} .
-            docker login ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+            docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
             docker push theirish81/redplant:${CIRCLE_TAG}
 workflows:
   build-workflow:
