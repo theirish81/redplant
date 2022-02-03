@@ -62,6 +62,8 @@ func (rtf *RoundTripperFilter) RoundTrip(r *http.Request) (*http.Response, error
 		return DBTrip(r, wrapper.Rule)
 	case "mysql":
 		return DBTrip(r, wrapper.Rule)
+	case "ws", "wss":
+		return WSTripper(r, wrapper.Rule)
 	default:
 		return rtf.parent.RoundTrip(r)
 	}

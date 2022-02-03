@@ -14,19 +14,20 @@ var addresser = newIPAddresser()
 
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
-	Request      *http.Request
-	Response     *http.Response
-	RequestBody  []byte
-	ResponseBody []byte
-	Claims       *jwt.MapClaims
-	Rule         *Rule
-	Metrics      *APIMetrics
-	Err          error
-	Username     string
-	Variables    *map[string]string
-	RealIP       string
-	Tags         []string
-	ApplyHeaders http.Header
+	Request        *http.Request
+	Response       *http.Response
+	ResponseWriter http.ResponseWriter
+	RequestBody    []byte
+	ResponseBody   []byte
+	Claims         *jwt.MapClaims
+	Rule           *Rule
+	Metrics        *APIMetrics
+	Err            error
+	Username       string
+	Variables      *map[string]string
+	RealIP         string
+	Tags           []string
+	ApplyHeaders   http.Header
 }
 
 func (w *APIWrapper) Clone() *APIWrapper {
@@ -101,13 +102,14 @@ func (m *APIMetrics) ResTransformation() int64 {
 	return m.ResTransEnd.Sub(m.ResTransStart).Milliseconds()
 }
 
-func ReqWithContext(req *http.Request, rule *Rule) *http.Request {
+func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule *Rule) *http.Request {
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
-		Tags:         []string{},
-		Variables:    &config.Variables,
-		RealIP:       addresser.RealIP(req),
-		ApplyHeaders: http.Header{}}
+		Tags:           []string{},
+		Variables:      &config.Variables,
+		RealIP:         addresser.RealIP(req),
+		ResponseWriter: responseWriter,
+		ApplyHeaders:   http.Header{}}
 	un, _, ok := req.BasicAuth()
 	if ok {
 		wrapper.Username = un
