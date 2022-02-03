@@ -42,7 +42,7 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
   dockerPush:
     docker:
-      - image: cimg/base:2022.02
+      - image: docker:17.05.0-ce-git
     steps:
       - attach_workspace:
           at: .
