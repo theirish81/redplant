@@ -52,8 +52,8 @@ jobs:
       - run:
           command: |
             tag=`echo ${CIRCLE_TAG} | cut -b 2-999`
-            majmin=`echo $tag | cut -d . -f 1-2
-            maj=`echo $tag | cut -d . -f 1
+            majmin=`echo $tag | cut -d . -f 1-2`
+            maj=`echo $tag | cut -d . -f 1`
             docker build -t theirish81/redplant:${tag} .
             docker tag theirish81/redplant:${tag} theirish81/redplant:${majmin}
             docker tag theirish81/redplant:${tag} theirish81/redplant:${maj}
