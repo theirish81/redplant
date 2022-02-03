@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"github.com/koding/websocketproxy"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -18,5 +20,6 @@ func WSTripper(request *http.Request, _ *Rule) (*http.Response, error) {
 	}
 	wrapper := GetWrapper(request)
 	socket.ServeHTTP(wrapper.ResponseWriter, request)
-	return nil, nil
+	response := http.Response{StatusCode: 200, Request: request, Body: ioutil.NopCloser(bytes.NewReader([]byte{}))}
+	return &response, nil
 }
