@@ -28,12 +28,15 @@ type APIWrapper struct {
 	RealIP         string
 	Tags           []string
 	ApplyHeaders   http.Header
+	// When set to true, it means that the connection has been hijacked. This is the case when websockets
+	// are involved
+	Hijacked bool
 }
 
 func (w *APIWrapper) Clone() *APIWrapper {
 	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
 		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
-		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders}
+		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
 
 func (w *APIWrapper) ExpandRequestIfNeeded() {
