@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -88,6 +89,8 @@ type CaptureSidecar struct {
 	_responseContentTypeRegexp *regexp.Regexp
 	// block, if true, will put back-pressure on the data flow if all workers are busy
 	block bool
+
+	dropOnOverflow bool
 	// httpClient is an HTTP Client instance, if we're using a web destination
 	httpClient *http.Client
 	// Headers is a set of optional request headers we may want to send to the destination
@@ -169,7 +172,7 @@ func (s *CaptureSidecar) CaptureHttp(data []byte) {
 	reader := bytes.NewReader(data)
 	outboundRequest, err := http.NewRequest("POST", s.Uri, reader)
 	if err != nil {
-		log.Error("Error creating the request during capture", err, map[string]interface{}{"uri": s.Uri})
+		log.Error("Error creating the request during capture", err, logrus.Fields{"uri": s.Uri})
 		return
 	}
 	outboundRequest.Header.Set("content-type", "application/json")
@@ -201,6 +204,10 @@ func (s *CaptureSidecar) ShouldBlock() bool {
 	return s.block
 }
 
+func (s *CaptureSidecar) ShouldDropOnOverflow() bool {
+	return s.dropOnOverflow
+}
+
 func (s *CaptureSidecar) ShouldExpandRequest() bool {
 	return true
 }
@@ -214,8 +221,8 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, activateOnTags []string, params map[string]interface{}) (*CaptureSidecar, error) {
-	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, ActivateOnTags: activateOnTags}
+func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*CaptureSidecar, error) {
+	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -52,7 +53,7 @@ func SetupRouter() *mux.Router {
 			case "no_mapping":
 				writer.WriteHeader(404)
 			default:
-				log.Error("Error while serving resource", err, map[string]interface{}{"url": request.URL.String()})
+				log.Error("Error while serving resource", err, logrus.Fields{"url": request.URL.String()})
 				writer.WriteHeader(500)
 			}
 		},

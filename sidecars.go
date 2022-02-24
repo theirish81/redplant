@@ -4,6 +4,7 @@ type ISidecar interface {
 	Consume(consumers int)
 	GetChannel() chan *APIWrapper
 	ShouldBlock() bool
+	ShouldDropOnOverflow() bool
 	ShouldExpandRequest() bool
 	ShouldExpandResponse() bool
 	IsActive(wrapper *APIWrapper) bool
@@ -56,7 +57,7 @@ func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
 		}
 		switch s.Id {
 		case "accessLog":
-			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Queue, s.ActivateOnTags, s.Params)
+			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
 			if err != nil {
 				log.Error("Could not initialise accessLog", err, nil)
 			} else {
@@ -100,7 +101,14 @@ func (s *ResponseSidecars) Run(wrapper *APIWrapper) {
 	for _, sidecar := range s.sidecars {
 		if sidecar.IsActive(wrapper) {
 			f := func() {
-				sidecar.GetChannel() <- wrapper
+				if sidecar.ShouldDropOnOverflow() {
+					select {
+					case sidecar.GetChannel() <- wrapper:
+					default:
+					}
+				} else {
+					sidecar.GetChannel() <- wrapper
+				}
 			}
 			if sidecar.ShouldBlock() {
 				f()
@@ -122,7 +130,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 		}
 		switch s.Id {
 		case "accessLog":
-			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Queue, s.ActivateOnTags, s.Params)
+			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
 			if err != nil {
 				log.Error("Could not initialize upstream access log", err, nil)
 			} else {
@@ -131,7 +139,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "metricsLog":
-			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Queue, s.ActivateOnTags, s.Params)
+			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
 			if err != nil {
 				log.Error("Could not initialize metrics log", err, nil)
 			} else {
@@ -140,7 +148,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "capture":
-			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Queue, s.ActivateOnTags, s.Params)
+			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
 			if err != nil {
 				log.Error("Could not initialize capture sidecar. Bypassing. ", err, nil)
 			} else {
