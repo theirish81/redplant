@@ -82,16 +82,16 @@ func setupTLSConfig() *tls.Config {
 }
 
 func handleTerm(server *http.Server) {
-	signalChanel := make(chan os.Signal, 1)
+	signalChannel := make(chan os.Signal, 1)
 	exitChan := make(chan int)
-	signal.Notify(signalChanel,
+	signal.Notify(signalChannel,
 		syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 	go func() {
 		for {
-			<-signalChanel
+			<-signalChannel
 			log.Info("Graceful shutdown initiated", nil)
 			err := server.Shutdown(context.Background())
 			if err != nil {
