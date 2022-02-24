@@ -181,4 +181,7 @@ params:
 * `block` (optional): if `true`, the lack of available workers (as in: all busy) combined with a full queue, 
 will block the main data flow. This is useful when resources are limited, and we want to avoid a boundless escalation
 of used resources (default: false)
+* `dropOnOverflow` (optional): if `true`, in case of a full queue, new messages to the sidecars will be dropped until
+a slot is freed in the queue.  The combination of `block=false` and `dropOnOverflow=true` puts a hard cap on resource
+usage for sidecars, while not limiting the performance of API transactions
 * `params`: the sidecar's specific parameters
