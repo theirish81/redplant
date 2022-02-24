@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httputil"
@@ -35,6 +36,11 @@ func SetupRouter() *mux.Router {
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
 			wrapper := GetWrapper(request)
 			if wrapper != nil {
+				// If the connection has been hijacked, we can't operate on the response anymore.
+				// Therefore, we simply return and ignore any further activity.
+				if wrapper.Hijacked && err.Error() == "connection_hijacked" {
+					return
+				}
 				if wrapper.Rule.Request._transformers.HandleError(err, &writer) {
 					return
 				}
@@ -56,6 +62,12 @@ func SetupRouter() *mux.Router {
 		ModifyResponse: func(response *http.Response) error {
 			wrapper := GetWrapper(response.Request)
 			if wrapper != nil {
+				// if the connection has been hijacked by a websocket, we can't operate on the response anymore.
+				// The error handler is the only stage that can deactivate further operations, so we're
+				// returning an error to trigger that handler.
+				if wrapper.Hijacked {
+					return errors.New("connection_hijacked")
+				}
 				wrapper := GetWrapper(response.Request)
 				wrapper.Response = response
 				for k, v := range wrapper.ApplyHeaders {

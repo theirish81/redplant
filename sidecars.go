@@ -28,12 +28,16 @@ func (s *RequestSidecars) Push(sidecar ISidecar) {
 }
 func (s *RequestSidecars) Run(wrapper *APIWrapper) {
 	for _, sidecar := range s.sidecars {
+		// If the sidecar is "active", then run it. "active" means that there's either no "activateOnTags"
+		// or the "activateOnTags" matches the tags in the wrapper
 		if sidecar.IsActive(wrapper) {
 			f := func() {
 				sidecar.GetChannel() <- wrapper
 			}
+			// If this is meant to be a blocking sidecar, we just run the function
 			if sidecar.ShouldBlock() {
 				f()
+
 			} else {
 				go f()
 			}
