@@ -185,3 +185,9 @@ of used resources (default: false)
 a slot is freed in the queue.  The combination of `block=false` and `dropOnOverflow=true` puts a hard cap on resource
 usage for sidecars, while not limiting the performance of API transactions
 * `params`: the sidecar's specific parameters
+
+
+## Exotic origins
+RedPlant can accept (more or less) exotic origins. See:
+* [DB Origin](./doc/db.md) : access your databases with API calls
+* [Websocket Origin](./doc/websocket.md) : I know, this is not really exotic, but it's currently in the experimental stage
