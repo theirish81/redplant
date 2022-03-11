@@ -4,6 +4,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
@@ -88,7 +89,8 @@ type SidecarConfig struct {
 
 	Queue int `yaml:"queue"`
 	// Block if set to true, will block the main flow if all sidecars are busy
-	Block bool `yaml:"block"`
+	Block          bool `yaml:"block"`
+	DropOnOverflow bool `yaml:"blockOnOverflow"`
 	// Params is a map of configuration params for the sidecar
 	Params map[string]interface{} `yaml:"params"`
 }
@@ -193,7 +195,7 @@ func (c *Config) Init() {
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = Templ(rule.Origin, nil)
 			if err != nil {
-				log.Fatal("Could not parse origin", err, map[string]interface{}{"origin": rule.Origin})
+				log.Fatal("Could not parse origin", err, logrus.Fields{"origin": rule.Origin})
 			}
 			// Before, Rule and After request transformers configuration are merged into one array...
 			mergedReqTransformers := append(append(c.Before.Request.Transformers, rule.Request.Transformers...), c.After.Request.Transformers...)
