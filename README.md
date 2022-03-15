@@ -155,6 +155,10 @@ params:
 otherwise it will not be applied
 * `params` (required): the transformer's specific parameters
 
+**Check the [request transformers documentation](./doc/request_transformers.md)**
+
+**Check the [response transformers documentation](./doc/response_transformers.md)**
+
 ## Sidecars
 Sidecars are operations that will feed on the request/response data, but do not alter the content of the transferred
 data. Therefore, they can be executed concurrently to the main data flow.
