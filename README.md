@@ -150,10 +150,10 @@ params:
   htpasswd: etc/passwords
 ```
 
-* `id` (required): defines the type of transformer
-* `activateOnTags` (optional): if the request is tagged with one of these tags, then the transformer will trigger,
+* `id` (string,required): defines the type of transformer
+* `activateOnTags` (array[string],optional): if the transaction is tagged with one of these tags, then the transformer will trigger,
 otherwise it will not be applied
-* `params` (required): the transformer's specific parameters
+* `params` (map[string,any],required): the transformer's specific parameters
 
 **Check the [request transformers documentation](./doc/request_transformers.md)**
 
@@ -179,16 +179,18 @@ params:
   requestContentTypeRegexp: '(^$|.*json.*)'
   format: JSON
 ```
-* `id` (required): the name of the sidecar
-* `workers` (optional): the number of instances of this sidecar (default: 1)
-* `queue` (optional): the size of the queue for the workers. Meaningful in conjunction with `block` (default: 1)
-* `block` (optional): if `true`, the lack of available workers (as in: all busy) combined with a full queue, 
+* `id` (string,required): the name of the sidecar
+* `workers` (int,optional): the number of instances of this sidecar (default: 1)
+* `queue` (int,optional): the size of the queue for the workers. Meaningful in conjunction with `block` (default: 1)
+* `block` (bool,optional): if `true`, the lack of available workers (as in: all busy) combined with a full queue, 
 will block the main data flow. This is useful when resources are limited, and we want to avoid a boundless escalation
 of used resources (default: false)
-* `dropOnOverflow` (optional): if `true`, in case of a full queue, new messages to the sidecars will be dropped until
+* `dropOnOverflow` (bool,optional): if `true`, in case of a full queue, new messages to the sidecars will be dropped until
 a slot is freed in the queue.  The combination of `block=false` and `dropOnOverflow=true` puts a hard cap on resource
 usage for sidecars, while not limiting the performance of API transactions
-* `params`: the sidecar's specific parameters
+* `activateOnTags` (array[string],optional): if the transaction is tagged with one of these tags, then the sidecar will trigger,
+  otherwise it will not be applied
+* `params`(map[string,any],required): the sidecar's specific parameters
 
 
 ## Exotic origins
