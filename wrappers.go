@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-var addresser = newIPAddresser()
-
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
 	Request        *http.Request

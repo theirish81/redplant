@@ -15,6 +15,7 @@ import (
 
 var log *LogHelper
 var config Config
+var addresser = NewIPAddresser()
 
 func main() {
 
