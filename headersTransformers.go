@@ -4,8 +4,8 @@ import "net/http"
 
 // RequestHeaderTransformer transforms the request header by setting or removing headers
 type RequestHeaderTransformer struct {
-	Set            map[string]string `mapstructure:"set"`
-	Remove         []string          `mapstructure:"remove"`
+	Set            map[string]string
+	Remove         []string
 	ActivateOnTags []string
 }
 
@@ -45,8 +45,8 @@ func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[
 
 // ResponseHeaderTransformer transforms the response header by setting or removing headers
 type ResponseHeaderTransformer struct {
-	Set            map[string]string `mapstructure:"set"`
-	Remove         []string          `mapstructure:"remove"`
+	Set            map[string]string
+	Remove         []string
 	ActivateOnTags []string
 }
 

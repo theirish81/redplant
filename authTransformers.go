@@ -13,23 +13,22 @@ import (
 )
 
 // BasicAuthTransformer is a transformer that will block the request in case the credentials do not match the
-// expectations
+// expectations.
+// Username directly provided in the conf
+// Password directly provided in the conf
+// Htpasswd is the path to the Htpasswd file
+// Proxy if set to true, the "proxy-authorization" will be used instead
+// Retain if set to false, the credentials will be removed from the request
+// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
+// _htpasswd is the parsed password file
 type BasicAuthTransformer struct {
-
-	// Username directly provided in the conf
-	Username string `mapstructure:"username"`
-	// Password directly provided in the conf
-	Password string `mapstructure:"password"`
-	// Path to the Htpasswd file
-	Htpasswd string `mapstructure:"htpasswd"`
-	// If Proxy is set to true, the "proxy-authorization" will be used instead
-	Proxy bool
-	// If Retain is set to false, the credentials will be removed from the request
-	Retain bool
-	// _htpasswd is the parsed password file
-	_htpasswd *htpasswd.File
-	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
+	Username       string
+	Password       string
+	Htpasswd       string
+	Proxy          bool
+	Retain         bool
 	ActivateOnTags []string
+	_htpasswd      *htpasswd.File
 }
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
@@ -112,16 +111,16 @@ func NewBasicAuthTransformer(activateOnTags []string, params map[string]interfac
 
 // JWTAuthTransformer will block any request without a Bearer token or a token whose signature cannot be verified.
 // In addition, it will store claims in the wrapper.
+// _publicKey is the loaded and parsed public key
+// _key is the key provided in the conf, in the form of bytes
+// Pem is the path to a PEM certificate
+// Key is the key provided in the conf, in the form of a string
+// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 type JWTAuthTransformer struct {
-	// _publicKey is the loaded and parsed public key
-	_publicKey *rsa.PublicKey
-	// _key is the key provided in the conf, in the form of bytes
-	_key []byte
-	// Pem is the path to a PEM certificate
-	Pem string `mapstructure:"pem"`
-	// Key is the key provided in the conf, in the form of a string
-	Key string `mapstructure:"key"`
-	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
+	_publicKey     *rsa.PublicKey
+	_key           []byte
+	Pem            string
+	Key            string
 	ActivateOnTags []string
 }
 
@@ -200,20 +199,20 @@ func NewJWTAuthTransformer(activateOnTags []string, params map[string]interface{
 }
 
 // JWTSignTransformer adds JWT tokens to the request
+// _privateKey is the loaded and parsed private key
+// _key is the byte representation of a key
+// Pem is the path to a PEM certificate
+// Key is the key for that certificate
+// ExistingClaims if set to true, will take existing claims from the wrapper and resign them
+// Claims custom crafted claims
+// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 type JWTSignTransformer struct {
-	// _privateKey is the loaded and parsed private key
-	_privateKey *rsa.PrivateKey
-	// _key is the byte representation of a key
-	_key []byte
-	// Pem is the path to a PEM certificate
-	Pem string `mapstructure:"pem"`
-	// Key is the key for that certificate
-	Key string `mapstructure:"key"`
-	// ExistingClaims if set to true, will take existing claims from the wrapper and resign them
+	_privateKey    *rsa.PrivateKey
+	_key           []byte
+	Pem            string
+	Key            string
 	ExistingClaims bool
-	// Claims custom crafted claims
-	Claims map[string]interface{}
-	// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
+	Claims         map[string]interface{}
 	ActivateOnTags []string
 }
 

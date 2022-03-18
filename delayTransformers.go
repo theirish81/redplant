@@ -7,15 +7,15 @@ import (
 )
 
 // DelayTransformer will slow the request down by a certain amount
+// _min is the parsed minimum delay
+// _max is the parsed minimum delay
+// Min is the minimum delay in the form of a string
+// Max is the maximum delay in the form of a string
 type DelayTransformer struct {
-	// _min is the parsed minimum delay
-	_min time.Duration
-	// _max is the parsed minimum delay
-	_max time.Duration
-	// Min is the minimum delay in the form of a string
-	Min string `mapstructure:"min"`
-	// Max is the maximum delay in the form of a string
-	Max            string `mapstructure:"max"`
+	_min           time.Duration
+	_max           time.Duration
+	Min            string
+	Max            string
 	ActivateOnTags []string
 }
 

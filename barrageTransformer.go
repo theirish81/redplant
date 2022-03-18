@@ -7,14 +7,19 @@ import (
 )
 
 // BarrageTransformer is a transformer that will stop the request if certain preconditions are met
+// HeaderNameRegexp is a regular expression for a forbidden header name
+// HeaderValueRegexp is a regular expression for a forbidden header name
+// HeaderRegexp is a regular expression for a forbidden full header as in name:value
+// BodyRegexp is a regular expression for a forbidden body
+// _headerNameRegexp is the compiled version of HeaderNameRegexp
+// _headerValueRegexp is the compiled version of HeaderValueRegexp
+// _bodyRegexp is the compiled version of BodyRegexp
+// response if set to true means that this is a response transformer
+// ActivateOnTags is a list of tags for which this plugin will activate. Leave empty for "always"
 type BarrageTransformer struct {
-	// HeaderNameRegexp is a regular expression for a forbidden header name
-	HeaderNameRegexp string
-	// HeaderValueRegexp is a regular expression for a forbidden header name
-	HeaderValueRegexp string
-	// HeaderRegexp is a regular expression for a forbidden full header as in name:value
-	HeaderRegexp string
-	// BodyRegexp is a regular expression for a forbidden body
+	HeaderNameRegexp   string
+	HeaderValueRegexp  string
+	HeaderRegexp       string
 	BodyRegexp         string
 	_headerNameRegexp  *regexp.Regexp
 	_headerValueRegexp *regexp.Regexp

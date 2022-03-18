@@ -13,135 +13,135 @@ import (
 )
 
 // Config is the root object of the configuration
+// Variables are global variables for the API scope
+// Network is the network configuration
+// Before is a set of transformers + sidecars to be executed before the rule's set of transformers + sidecars
+// After is a set of transformers + sidecars to be executed after the rule's set of transformers + sidecars
+// Rules are the routes
 type Config struct {
-	// Variables are global variables for the API scope
-	Variables map[string]string `yaml:"variables"`
-	// Network is the network configuration
-	Network Network `yaml:"network"`
-	// Before is a set of transformers + sidecars to be executed before the rule's set of transformers + sidecars
-	Before BeforeAfterConfig `yaml:"before"`
-	// After is a set of transformers + sidecars to be executed after the rule's set of transformers + sidecars
-	After BeforeAfterConfig `yaml:"after"`
-	// Rules are the routes
-	Rules map[string]map[string]*Rule `yaml:"rules"`
+	Variables map[string]string           `yaml:"variables"`
+	Network   Network                     `yaml:"network"`
+	Before    BeforeAfterConfig           `yaml:"before"`
+	After     BeforeAfterConfig           `yaml:"after"`
+	Rules     map[string]map[string]*Rule `yaml:"rules"`
 }
 
 // Rule is an upstream route
+// Origin is the origin URL
+// StripPrefix the inbound URL path prefix to strip out
+// Request is the request transformation pipeline
+// Response is the response transformation pipeline
+// Pattern is the pattern that matches the path of the URL, in the form of a regexp string
+// _pattern is the compiled Pattern
+// db is the database connection, assuming this rule is using a DBTripper
 type Rule struct {
-	// Origin is the origin URL
-	Origin string `yaml:"origin"`
-	// StripPrefix the inbound URL path prefix to strip out
-	StripPrefix string `yaml:"stripPrefix"`
-	// Request is the request transformation pipeline
-	Request RequestConfig `yaml:"request"`
-	// Response is the response transformation pipeline
-	Response ResponseConfig `yaml:"response"`
-	// Pattern is the pattern that matches the path of the URL, in the form of a regexp string
-	Pattern string `yaml:"pattern"`
-	// _pattern is the compiled Pattern
-	_pattern *regexp.Regexp
-	// db is the database connection, assuming this rule is using a DBTripper
-	db *sqlx.DB
+	Origin      string         `yaml:"origin"`
+	StripPrefix string         `yaml:"stripPrefix"`
+	Request     RequestConfig  `yaml:"request"`
+	Response    ResponseConfig `yaml:"response"`
+	Pattern     string         `yaml:"pattern"`
+	_pattern    *regexp.Regexp
+	db          *sqlx.DB
 }
 
 // RequestConfig is the configuration of the request pipeline
+// Transformers is an array of transformer configurations
+// Sidecars is an array of sidecar configurations
+// _transformers is an array of the actual transformer instances
+// _sidecars is an array of the actual transformer instances
 type RequestConfig struct {
-	// Transformers is an array of transformer configurations
-	Transformers []TransformerConfig `yaml:"transformers"`
-	// Sidecars is an array of sidecar configurations
-	Sidecars []SidecarConfig `yaml:"sidecars"`
-	// _transformers is an array of the actual transformer instances
+	Transformers  []TransformerConfig `yaml:"transformers"`
+	Sidecars      []SidecarConfig     `yaml:"sidecars"`
 	_transformers *RequestTransformers
-	// _sidecars is an array of the actual transformer instances
-	_sidecars *RequestSidecars
+	_sidecars     *RequestSidecars
 }
 
 // ResponseConfig is the configuration of the response pipeline
+// Transformers is an array of transformer configurations
+// Sidecars is an array of sidecar configurations
+// _transformers is an array of the actual transformer instances
+// _sidecars is an array of the actual transformer instances
 type ResponseConfig struct {
-	// Transformers is an array of transformer configurations
-	Transformers []TransformerConfig `yaml:"transformers"`
-	// Sidecars is an array of sidecar configurations
-	Sidecars []SidecarConfig `yaml:"sidecars"`
-	// _transformers is an array of the actual transformer instances
+	Transformers  []TransformerConfig `yaml:"transformers"`
+	Sidecars      []SidecarConfig     `yaml:"sidecars"`
 	_transformers *ResponseTransformers
-	// _sidecars is an array of the actual transformer instances
-	_sidecars *ResponseSidecars
+	_sidecars     *ResponseSidecars
 }
 
 // TransformerConfig is the base transformer configuration
+// Id is the name of the transformer
+// ActivateOnTags is a list of tags for which this transformer will activate
+// Params is a map of configuration params for the transformer
 type TransformerConfig struct {
-	// Id is the name of the transformer
-	Id string `yaml:"id"`
-	// ActivateOnTags is a list of tags for which this transformer will activate
-	ActivateOnTags []string `yaml:"activateOnTags"`
-	// Params is a map of configuration params for the transformer
-	Params map[string]interface{} `yaml:"params"`
+	Id             string                 `yaml:"id"`
+	ActivateOnTags []string               `yaml:"activateOnTags"`
+	Params         map[string]interface{} `yaml:"params"`
 }
 
 // SidecarConfig is the configuration of a sidecar
+// Id is the name of the transformer
+// ActivateOnTags is a list of tags for which this sidecar will activate
+// Workers is the total number of workers we should have for this sidecar
+// Block if set to true, will block the main flow if all sidecars are busy
+// DropOnOverflow if set to true, will drop messages if the queue is blocked
+// Params is a map of configuration params for the sidecar
 type SidecarConfig struct {
-	// Id is the name of the transformer
-	Id string `yaml:"id"`
-	// ActivateOnTags is a list of tags for which this sidecar will activate
-	ActivateOnTags []string `yaml:"activateOnTags"`
-	// Workers is the total number of workers we should have for this sidecar
-	Workers int `yaml:"workers"`
-
-	Queue int `yaml:"queue"`
-	// Block if set to true, will block the main flow if all sidecars are busy
-	Block          bool `yaml:"block"`
-	DropOnOverflow bool `yaml:"blockOnOverflow"`
-	// Params is a map of configuration params for the sidecar
-	Params map[string]interface{} `yaml:"params"`
+	Id             string                 `yaml:"id"`
+	ActivateOnTags []string               `yaml:"activateOnTags"`
+	Workers        int                    `yaml:"workers"`
+	Queue          int                    `yaml:"queue"`
+	Block          bool                   `yaml:"block"`
+	DropOnOverflow bool                   `yaml:"blockOnOverflow"`
+	Params         map[string]interface{} `yaml:"params"`
 }
 
 // BeforeAfterConfig represents a set of transformers + sidecars to be executed before or after the rule's
 // transformers + sidecar
+// Request is the configuration for the request pipeline
+// Response is the configuration for the request pipeline
 type BeforeAfterConfig struct {
-	// Request is the configuration for the request pipeline
-	Request RequestConfig `yaml:"request"`
-	// Response is the configuration for the request pipeline
+	Request  RequestConfig  `yaml:"request"`
 	Response ResponseConfig `yaml:"response"`
 }
 
 // Network is the network configuration
+// Upstream is the configuration of the client
+// Downstream is the configuration of the web server
 type Network struct {
-	// Upstream is the configuration of the client
-	Upstream Upstream `yaml:"upstream"`
-	// Downstream is the configuration of the web server
+	Upstream   Upstream   `yaml:"upstream"`
 	Downstream Downstream `yaml:"downstream"`
 }
 
 // Downstream is the downstream configuration
+// Port is the port number we should listen on
+// Tls is the secure connection configuration
 type Downstream struct {
-	// Port is the port number we should listen on
-	Port int `yaml:"port"`
-	// Tls is the secure connection configuration
-	Tls []Tls `yaml:"tls"`
+	Port int   `yaml:"port"`
+	Tls  []Tls `yaml:"tls"`
 }
 
 // Upstream is the upstream configuration
+// Timeout is the global timeout as a duration string
+// KeepAlive is the keep-alive timeout as a duration string
+// MaxIdleConnections is the maximum number of allowed idle connections
+// IdleConnectionTimeout is the timeout for an idle connection to be evicted
+// ExpectContinueTimeout is the timeout for the "continue" HTTP operation
 type Upstream struct {
-	// Timeout is the global timeout as a duration string
-	Timeout string `yaml:"timeout"`
-	// KeepAlive is the keep-alive timeout as a duration string
-	KeepAlive string `yaml:"keepAlive"`
-	// MaxIdleConnection is the maximum number of allowed idle connections
-	MaxIdleConnections int `yaml:"maxIdleConnections"`
-	// IdleConnectionTimeout is the timeout for an idle connection to be evicted
+	Timeout               string `yaml:"timeout"`
+	KeepAlive             string `yaml:"keepAlive"`
+	MaxIdleConnections    int    `yaml:"maxIdleConnections"`
 	IdleConnectionTimeout string `yaml:"idleConnectionTimeout"`
-	// ExpectContinueTimeout is the timeout for the "continue" HTTP operation
 	ExpectContinueTimeout string `yaml:"expectContinueTimeout"`
 }
 
 // Tls is the configuration for the secure connection
+// Host is the hostname this certificate is for
+// Cert is the path to a certificate
+// Key is the path to a key
 type Tls struct {
-	// Host is the hostname this certificate is for
 	Host string `yaml:"host"`
-	// Cert is the path to a certificate
 	Cert string `yaml:"cert"`
-	// Key is the path to a key
-	Key string `yaml:"key"`
+	Key  string `yaml:"key"`
 }
 
 // LoadConfig loads the configuration

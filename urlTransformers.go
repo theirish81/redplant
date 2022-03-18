@@ -6,8 +6,8 @@ import (
 )
 
 type RequestUrlTransformer struct {
-	OldPrefix      string `yaml:"oldPrefix" mapstructure:"oldPrefix"`
-	NewPrefix      string `yaml:"newPrefix" mapstructure:"newPrefix"`
+	OldPrefix      string `yaml:"oldPrefix"`
+	NewPrefix      string `yaml:"newPrefix"`
 	Query          Query
 	ActivateOnTags []string
 }
