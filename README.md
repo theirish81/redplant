@@ -192,6 +192,10 @@ usage for sidecars, while not limiting the performance of API transactions
   otherwise it will not be applied
 * `params`(map[string,any],required): the sidecar's specific parameters
 
+**Check the [request sidecars documentation](./doc/request_sidecars.md)**
+
+**Check the [response sidecars documentation](./doc/response_sidecars.md)**
+
 
 ## Exotic origins
 RedPlant can accept (more or less) exotic origins. See:
