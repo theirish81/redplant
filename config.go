@@ -19,11 +19,12 @@ import (
 // After is a set of transformers + sidecars to be executed after the rule's set of transformers + sidecars
 // Rules are the routes
 type Config struct {
-	Variables map[string]string           `yaml:"variables"`
-	Network   Network                     `yaml:"network"`
-	Before    BeforeAfterConfig           `yaml:"before"`
-	After     BeforeAfterConfig           `yaml:"after"`
-	Rules     map[string]map[string]*Rule `yaml:"rules"`
+	Variables  map[string]string           `yaml:"variables"`
+	Network    Network                     `yaml:"network"`
+	Before     BeforeAfterConfig           `yaml:"before"`
+	After      BeforeAfterConfig           `yaml:"after"`
+	Rules      map[string]map[string]*Rule `yaml:"rules"`
+	Prometheus *PrometheusConfig           `yaml:"prometheus"`
 }
 
 // Rule is an upstream route
@@ -144,6 +145,14 @@ type Tls struct {
 	Key  string `yaml:"key"`
 }
 
+// PrometheusConfig is the configuration of the Prometheus metrics endpoint
+// Port is the port we're exposing the endpoint to
+// Path is the URL path the metrics will be exposed to
+type PrometheusConfig struct {
+	Port int
+	Path string
+}
+
 // LoadConfig loads the configuration
 func LoadConfig(file string) Config {
 	config := Config{}
@@ -240,12 +249,14 @@ func (c *Config) Init() {
 	}
 }
 
+// LoggerConfig is the logger configuration
 type LoggerConfig struct {
 	Level  string `yaml:"level"`
 	Format string `yaml:"format"`
 	Path   string `yaml:"path"`
 }
 
+// LoadLoggerConfig loads the logger configuration from the provided file path
 func LoadLoggerConfig(path *string) (LoggerConfig, error) {
 	cfg := LoggerConfig{}
 	if path == nil || *path == "" {
