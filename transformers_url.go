@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// RequestUrlTransformer will transform the URL based on certain configuration keys
+// OldPrefix is the path prefix we want to get rid of
+// NewPrefix si the path prefix we want instead of OldPrefix
+// Query
 type RequestUrlTransformer struct {
 	OldPrefix      string `yaml:"oldPrefix"`
 	NewPrefix      string `yaml:"newPrefix"`

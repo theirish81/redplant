@@ -2,6 +2,7 @@ package main
 
 import "net/http"
 
+// TagTransformer will apply a tag to the request envelope
 type TagTransformer struct {
 	Tags []string
 }

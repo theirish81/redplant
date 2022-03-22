@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// RequestRateLimiterTransformer is a transformer that rate limits the requests based on configurable patterns.
+// This transformer will need Redis to work.
 type RequestRateLimiterTransformer struct {
 	ActivateOnTags []string
 	RedisUri       string
