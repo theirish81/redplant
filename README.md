@@ -201,3 +201,6 @@ usage for sidecars, while not limiting the performance of API transactions
 RedPlant can accept (more or less) exotic origins. See:
 * [DB Origin](./doc/db.md) : access your databases with API calls
 * [Websocket Origin](./doc/websocket.md) : I know, this is not really exotic, but it's currently in the experimental stage
+
+## Observability
+Check our [Prometheus metrics support](./doc/prometheus.md)
