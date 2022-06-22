@@ -9,14 +9,17 @@ import (
 	"time"
 )
 
+// RequestRateLimiterTransformer is a transformer that rate limits the requests based on configurable patterns.
+// This transformer will need Redis to work.
 type RequestRateLimiterTransformer struct {
-	ActivateOnTags []string
-	RedisUri       string
-	redisClient    *redis.Client
-	Vary           string
-	Limit          int64
-	Range          string
-	_range         time.Duration
+	ActivateOnTags   []string
+	RedisUri         string
+	redisClient      *redis.Client
+	Vary             string
+	Limit            int64
+	Range            string
+	_range           time.Duration
+	PrometheusPrefix string
 }
 
 func NewRateLimiterTransformer(activateOnTags []string, params map[string]interface{}) (*RequestRateLimiterTransformer, error) {
@@ -41,6 +44,13 @@ func NewRateLimiterTransformer(activateOnTags []string, params map[string]interf
 	return &transformer, nil
 }
 
+func (s *RequestRateLimiterTransformer) getPrometheusPrefix() string {
+	if s.PrometheusPrefix == "" {
+		return "rate_rejections"
+	}
+	return "rate_rejections_" + s.PrometheusPrefix
+}
+
 func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	vary, _ := Templ(t.Vary, wrapper)
 	cmd := t.redisClient.LLen(context.Background(), vary)
@@ -51,6 +61,9 @@ func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrap
 	}
 	current := cmd.Val()
 	if current > t.Limit {
+		if prom != nil {
+			prom.CustomCounter(t.getPrometheusPrefix()).Inc()
+		}
 		return nil, errors.New("rate_limit")
 	} else {
 		if t.redisClient.Exists(context.Background(), vary).Val() == 0 {

@@ -120,26 +120,50 @@ func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow
 }
 
 type MetricsLogSidecar struct {
-	channel        chan *APIWrapper
-	log            *LogHelper
-	block          bool
-	dropOnOverflow bool
-	Path           string
-	ActivateOnTags []string
+	channel          chan *APIWrapper
+	log              *LogHelper
+	block            bool
+	dropOnOverflow   bool
+	Path             string
+	PrometheusPrefix string
+	Mode             string
+	ActivateOnTags   []string
 }
 
 func (s *MetricsLogSidecar) GetChannel() chan *APIWrapper {
 	return s.channel
 }
 
+func (s *MetricsLogSidecar) getPrometheusPrefix() string {
+	if s.PrometheusPrefix == "" {
+		return "metrics"
+	}
+	return "metrics_" + s.PrometheusPrefix
+}
+
 func (s *MetricsLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				log.Info("metrics", logrus.Fields{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
+				if s.isPrometheusEnabled() {
+					prom.CustomSummary(s.getPrometheusPrefix() + "_transaction").Observe(float64(msg.Metrics.Transaction()))
+					prom.CustomSummary(s.getPrometheusPrefix() + "_req_transformation").Observe(float64(msg.Metrics.ReqTransformation()))
+					prom.CustomSummary(s.getPrometheusPrefix() + "_res_transformation").Observe(float64(msg.Metrics.ResTransformation()))
+				}
+				if s.isTextEnabled() {
+					log.Info("metrics", logrus.Fields{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
+				}
 			}
 		}()
 	}
+}
+
+func (s *MetricsLogSidecar) isPrometheusEnabled() bool {
+	return prom != nil && (s.Mode == "prometheus" || s.Mode == "")
+}
+
+func (s *MetricsLogSidecar) isTextEnabled() bool {
+	return s.Mode == "text" || s.Mode == ""
 }
 
 func (s *MetricsLogSidecar) ShouldBlock() bool {

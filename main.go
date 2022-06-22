@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +18,7 @@ import (
 var log *LogHelper
 var config Config
 var addresser = NewIPAddresser()
+var prom *Prometheus
 
 func main() {
 
@@ -38,7 +41,7 @@ func main() {
 
 	config = LoadConfig(*configFilePath)
 	config.Init()
-
+	startPrometheus()
 	router := SetupRouter()
 
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
@@ -65,6 +68,18 @@ func main() {
 			}
 		}()
 		handleTerm(server)
+	}
+}
+
+// startPrometheus initializes and starts the Prometheus monitoring functionality
+func startPrometheus() {
+	if config.Prometheus != nil {
+		prom = NewPrometheus()
+		go func() {
+			promRouter := mux.NewRouter()
+			promRouter.Handle(config.Prometheus.Path, promhttp.Handler())
+			http.ListenAndServe(":"+strconv.Itoa(config.Prometheus.Port),promRouter)
+		}()
 	}
 }
 

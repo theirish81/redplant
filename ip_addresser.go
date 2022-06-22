@@ -7,10 +7,12 @@ import (
 	"strings"
 )
 
+// IPAddresser will determine which IP address the request is coming from
 type IPAddresser struct {
 	cidrs []*net.IPNet
 }
 
+// NewIPAddresser is the constructor of IPAddresser
 func NewIPAddresser() *IPAddresser {
 	maxCidrBlocks := []string{
 		"127.0.0.1/8",    // localhost
@@ -33,6 +35,8 @@ func NewIPAddresser() *IPAddresser {
 	return &addresser
 }
 
+// isPrivateAddress will return true if the IP address is private. Note that it may error out if the address
+// is not valid at all
 func (a *IPAddresser) isPrivateAddress(address string) (bool, error) {
 	ipAddress := net.ParseIP(address)
 	if ipAddress == nil {
@@ -48,6 +52,7 @@ func (a *IPAddresser) isPrivateAddress(address string) (bool, error) {
 	return false, nil
 }
 
+// FromRequest will try to extract the IP address of the requesting agent from a request
 func (a *IPAddresser) FromRequest(r *http.Request) string {
 	xRealIP := r.Header.Get("X-Real-Ip")
 	xForwardedFor := r.Header.Get("X-Forwarded-For")
@@ -75,6 +80,7 @@ func (a *IPAddresser) FromRequest(r *http.Request) string {
 	return xRealIP
 }
 
+// RealIP will return the real IP address of the requesting agent
 func (a *IPAddresser) RealIP(r *http.Request) string {
 	return a.FromRequest(r)
 }
