@@ -34,4 +34,16 @@ func TestLoadConfig(t *testing.T) {
 			}
 		}
 	}
+
+}
+
+func TestExtractPattern(t *testing.T) {
+	method, path := extractPattern("[get] /bananas")
+	if method != "get" || path != "/bananas" {
+		t.Error("pattern extraction failed")
+	}
+	method, path = extractPattern("/bananas")
+	if method != "" || path != "/bananas" {
+		t.Error("pattern extraction failed in absence of a method")
+	}
 }

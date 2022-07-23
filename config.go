@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"regexp"
+	"strings"
 )
 
 // Config is the root object of the configuration
@@ -18,13 +19,23 @@ import (
 // Before is a set of transformers + sidecars to be executed before the rule's set of transformers + sidecars
 // After is a set of transformers + sidecars to be executed after the rule's set of transformers + sidecars
 // Rules are the routes
+// OpenAPI is the OpenAPI way tof configuring rules
+// Prometheus is the Prometheus configuration object
 type Config struct {
 	Variables  map[string]string           `yaml:"variables"`
 	Network    Network                     `yaml:"network"`
 	Before     BeforeAfterConfig           `yaml:"before"`
 	After      BeforeAfterConfig           `yaml:"after"`
 	Rules      map[string]map[string]*Rule `yaml:"rules"`
+	OpenAPI    map[string]*OpenAPIConfig   `yaml:"openAPI"`
 	Prometheus *PrometheusConfig           `yaml:"prometheus"`
+}
+
+//OpenAPIConfig is an OpenAPI configuration object
+type OpenAPIConfig struct {
+	File        string `yaml:"file"`
+	ServerIndex int    `yaml:"server_index"`
+	Tags        []string
 }
 
 // Rule is an upstream route
@@ -36,13 +47,15 @@ type Config struct {
 // _pattern is the compiled Pattern
 // db is the database connection, assuming this rule is using a DBTripper
 type Rule struct {
-	Origin      string         `yaml:"origin"`
-	StripPrefix string         `yaml:"stripPrefix"`
-	Request     RequestConfig  `yaml:"request"`
-	Response    ResponseConfig `yaml:"response"`
-	Pattern     string         `yaml:"pattern"`
-	_pattern    *regexp.Regexp
-	db          *sqlx.DB
+	Origin         string         `yaml:"origin"`
+	StripPrefix    string         `yaml:"stripPrefix"`
+	Request        RequestConfig  `yaml:"request"`
+	Response       ResponseConfig `yaml:"response"`
+	Pattern        string         `yaml:"pattern"`
+	AllowedMethods []string       `yaml:"allowedMethods"`
+	_pattern       *regexp.Regexp
+	_patternMethod string
+	db             *sqlx.DB
 }
 
 // RequestConfig is the configuration of the request pipeline
@@ -191,12 +204,16 @@ func LoadConfig(file string) Config {
 
 // Init initialize the configuration
 func (c *Config) Init() {
+	if c.OpenAPI != nil {
+		c.Rules = MergeRules(c.Rules, OpenAPI2Rules(c.OpenAPI))
+	}
 	// For every domain definition
-	for _, topRule := range c.Rules {
+	for domain, topRule := range c.Rules {
 		// For every rule within the domain definition
 		for pattern, rule := range topRule {
 			var err error
 			// Compile the pattern regexp and store it
+			rule._patternMethod, pattern = extractPattern(pattern)
 			rule._pattern, err = regexp.Compile(pattern)
 			if err != nil {
 				log.Fatal("Pattern is not a valida regex", err, nil)
@@ -245,6 +262,7 @@ func (c *Config) Init() {
 					log.Fatal("Could not connect to the database", err, nil)
 				}
 			}
+			log.Info("route registered", logrus.Fields{"pattern": pattern, "domain": domain})
 		}
 	}
 }
@@ -271,4 +289,15 @@ func LoadLoggerConfig(path *string) (LoggerConfig, error) {
 	}
 	err = yaml.Unmarshal(fileContent, &cfg)
 	return cfg, err
+}
+
+var methodFinderRegexp, _ = regexp.Compile("^\\[(get|post|put|patch|delete)\\]")
+
+func extractPattern(path string) (string, string) {
+	if hasPrefixes(path, []string{"[get]", "[post]", "[put]", "[patch]", "[delete]"}) {
+		method := strings.Replace(strings.Replace(string(methodFinderRegexp.Find([]byte(path))), "[", "", 1), "]", "", 1)
+		cleanPath := strings.TrimSpace(strings.SplitN(path, "]", 2)[1])
+		return method, cleanPath
+	}
+	return "", path
 }
