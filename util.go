@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -86,4 +88,19 @@ func convertMaps(intf interface{}) interface{} {
 		}
 	}
 	return intf
+}
+
+func FileNameFormat(file string) (string, error) {
+	if strings.HasPrefix(file, "file://") {
+		localUrl, err := url.Parse(file)
+		if err != nil {
+			return "", errors.New("wrong file format")
+		}
+		return localUrl.Host + localUrl.Path, nil
+	}
+	return file, nil
+}
+
+func IsHTTP(file string) bool {
+	return hasPrefixes(file, []string{"http://", "https://"})
 }
