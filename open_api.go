@@ -1,30 +1,64 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/getkin/kin-openapi/openapi3"
 	"net/url"
 	"regexp"
 )
+
+type OARule struct {
+	Request  RequestConfig
+	Response ResponseConfig
+}
 
 var repl = regexp.MustCompile(`{.*?}`)
 
 func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[string]*Rule {
 	res := make(map[string]map[string]*Rule)
 	for host, cfg := range openAPIConfigs {
-		op, _ := loadOpenAPI(*cfg)
-		serverURL, _ := url.Parse(op.Servers[cfg.ServerIndex].URL)
+		oa, _ := loadOpenAPI(*cfg)
+		serverURL, _ := url.Parse(oa.Servers[cfg.ServerIndex].URL)
 		partialPath := serverURL.Path
 		paths := make(map[string]*Rule)
-		for path, actions := range op.Paths {
+		for path, operations := range oa.Paths {
 			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte(".*")))
-			for _, m := range listMethods(actions) {
-				rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px}
+			for _, m := range listMethods(operations) {
+				op := getOperationByMethod(operations, m)
+				redExtension := op.Extensions["x-redplant"]
+				oaRule := OARule{}
+				if redExtension != nil {
+					err := json.Unmarshal(redExtension.(json.RawMessage), &oaRule)
+					if err != nil {
+						log.Error("could not read RedPlant configuration from OpenAPI", err, nil)
+						continue
+					}
+				}
+				rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px,
+					Request: oaRule.Request, Response: oaRule.Response}
 				paths["["+m+"] "+px] = &rule
 			}
 		}
 		res[host] = paths
 	}
 	return res
+}
+
+func getOperationByMethod(operations *openapi3.PathItem, method string) *openapi3.Operation {
+	switch method {
+	case "get":
+		return operations.Get
+	case "post":
+		return operations.Post
+	case "patch":
+		return operations.Patch
+	case "put":
+		return operations.Put
+	case "delete":
+		return operations.Delete
+	default:
+		return operations.Get
+	}
 }
 
 func loadOpenAPI(cfg OpenAPIConfig) (*openapi3.T, error) {
