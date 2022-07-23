@@ -17,9 +17,11 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[stri
 		partialPath := serverURL.Path
 		paths := make(map[string]*Rule)
 		for path, actions := range op.Paths {
-			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte(".*")))
-			rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px, AllowedMethods: listMethods(actions)}
-			paths[px] = &rule
+			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte("(!/).*")))
+			for _, m := range listMethods(actions) {
+				rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px}
+				paths["["+m+"] "+px] = &rule
+			}
 		}
 		res[host] = paths
 	}
