@@ -1,10 +1,12 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"testing"
 )
 
 func TestLoadConfig(t *testing.T) {
+	log = NewLogHelper("", logrus.InfoLevel)
 	config = LoadConfig("etc/config.yaml")
 	config.Init()
 	if len(config.Variables) == 0 {
