@@ -13,11 +13,11 @@ require (
 	github.com/koding/websocketproxy v0.0.0-20181220232114-7ed82d81a28c
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/neotoolkit/openapi v0.10.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tg123/go-htpasswd v1.2.0
 	github.com/theirish81/yamlRef v0.2.0
 	github.com/xo/dburl v0.9.0
 	gopkg.in/yaml.v2 v2.4.0
+	github.com/getkin/kin-openapi v0.97.0
 )

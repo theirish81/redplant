@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/neotoolkit/openapi"
+	"github.com/getkin/kin-openapi/openapi3"
 	"net/url"
-	"os"
 	"regexp"
 )
 
@@ -17,7 +16,7 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[stri
 		partialPath := serverURL.Path
 		paths := make(map[string]*Rule)
 		for path, actions := range op.Paths {
-			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte("(!/).*")))
+			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte(".*")))
 			for _, m := range listMethods(actions) {
 				rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px}
 				paths["["+m+"] "+px] = &rule
@@ -28,32 +27,8 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[stri
 	return res
 }
 
-func listMethods(path *openapi.Path) []string {
-	methods := make([]string, 0)
-	if path.Patch != nil {
-		methods = append(methods, "patch")
-	}
-	if path.Delete != nil {
-		methods = append(methods, "delete")
-	}
-	if path.Put != nil {
-		methods = append(methods, "put")
-	}
-	if path.Post != nil {
-		methods = append(methods, "post")
-	}
-	if path.Get != nil {
-		methods = append(methods, "get")
-	}
-	return methods
-}
-
-func loadOpenAPI(cfg OpenAPIConfig) (openapi.OpenAPI, error) {
-	data, err := os.ReadFile(cfg.File)
-	if err != nil {
-		return openapi.OpenAPI{}, err
-	}
-	return openapi.Parse(data)
+func loadOpenAPI(cfg OpenAPIConfig) (*openapi3.T, error) {
+	return openapi3.NewLoader().LoadFromFile(cfg.File)
 }
 
 func MergeRules(existing map[string]map[string]*Rule, new map[string]map[string]*Rule) map[string]map[string]*Rule {
@@ -72,4 +47,24 @@ func MergeRules(existing map[string]map[string]*Rule, new map[string]map[string]
 		}
 	}
 	return existing
+}
+
+func listMethods(path *openapi3.PathItem) []string {
+	methods := make([]string, 0)
+	if path.Patch != nil {
+		methods = append(methods, "patch")
+	}
+	if path.Delete != nil {
+		methods = append(methods, "delete")
+	}
+	if path.Put != nil {
+		methods = append(methods, "put")
+	}
+	if path.Post != nil {
+		methods = append(methods, "post")
+	}
+	if path.Get != nil {
+		methods = append(methods, "get")
+	}
+	return methods
 }
