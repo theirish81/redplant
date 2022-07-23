@@ -212,9 +212,10 @@ func (c *Config) Init() {
 		// For every rule within the domain definition
 		for pattern, rule := range topRule {
 			var err error
+			extractedPattern := pattern
 			// Compile the pattern regexp and store it
-			rule._patternMethod, pattern = extractPattern(pattern)
-			rule._pattern, err = regexp.Compile(pattern)
+			rule._patternMethod, extractedPattern = extractPattern(pattern)
+			rule._pattern, err = regexp.Compile(extractedPattern)
 			if err != nil {
 				log.Fatal("Pattern is not a valida regex", err, nil)
 			}
