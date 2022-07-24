@@ -119,6 +119,8 @@ func SetupRouter() *mux.Router {
 	return router
 }
 
+// hasMethod will check if the method set in the request is among the ones listed in the Rule.AllowedMethods setting.
+// IF Rule.AllowedMethods is nil or empty, then all methods are allowed
 func hasMethod(wrapper *APIWrapper) bool {
 	if wrapper.Rule.AllowedMethods != nil && len(wrapper.Rule.AllowedMethods) > 0 {
 		method := wrapper.Request.Method
