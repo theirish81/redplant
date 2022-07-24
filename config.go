@@ -35,7 +35,6 @@ type Config struct {
 type OpenAPIConfig struct {
 	File        string `yaml:"file"`
 	ServerIndex int    `yaml:"server_index"`
-	Tags        []string
 }
 
 // Rule is an upstream route
