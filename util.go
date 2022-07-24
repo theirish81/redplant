@@ -90,6 +90,7 @@ func convertMaps(intf interface{}) interface{} {
 	return intf
 }
 
+// FileNameFormat will convert file URIs to actually paths
 func FileNameFormat(file string) (string, error) {
 	if strings.HasPrefix(file, "file://") {
 		localUrl, err := url.Parse(file)
@@ -101,6 +102,7 @@ func FileNameFormat(file string) (string, error) {
 	return file, nil
 }
 
+// IsHTTP will tell you if the given string is somewhat likely to be an HTTP(s) URL
 func IsHTTP(file string) bool {
 	return hasPrefixes(file, []string{"http://", "https://"})
 }

@@ -9,13 +9,17 @@ import (
 	"time"
 )
 
+// WSTripper is the tripper for websocket requests
 func WSTripper(request *http.Request, _ *Rule) (*http.Response, error) {
+	// create a new websocket proxy for the provided URL
 	socket := websocketproxy.NewProxy(request.URL)
+	// set a timeout to the connection. It is the same as the Upstream.Timeout
 	timeout, _ := time.ParseDuration(config.Network.Upstream.Timeout)
 	socket.Dialer = &websocket.Dialer{
 		Proxy:            http.ProxyFromEnvironment,
 		HandshakeTimeout: timeout,
 	}
+	// During upgrades, we need to make sure a certain set of incoming headers are not overwritten
 	socket.Director = func(incoming *http.Request, out http.Header) {
 		for k, v := range incoming.Header {
 			switch k {

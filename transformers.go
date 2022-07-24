@@ -94,7 +94,7 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 		case "tag":
 			transformer, err = NewTagTransformer(t.Params)
 		case "rate-limiter":
-			transformer, err = NewRateLimiterTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewRequestRateLimiterTransformer(t.ActivateOnTags, t.Params)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
