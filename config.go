@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/routers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -8,7 +10,7 @@ import (
 	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -31,7 +33,7 @@ type Config struct {
 	Prometheus *PrometheusConfig           `yaml:"prometheus"`
 }
 
-//OpenAPIConfig is an OpenAPI configuration object
+// OpenAPIConfig is an OpenAPI configuration object
 type OpenAPIConfig struct {
 	File        string `yaml:"file"`
 	ServerIndex int    `yaml:"server_index"`
@@ -54,6 +56,9 @@ type Rule struct {
 	AllowedMethods []string       `yaml:"allowedMethods"`
 	_pattern       *regexp.Regexp
 	_patternMethod string
+	oa             *openapi3.T
+	oaOperation    *openapi3.Operation
+	oaRouter       *routers.Router
 	db             *sqlx.DB
 }
 
@@ -283,7 +288,7 @@ func LoadLoggerConfig(path *string) (LoggerConfig, error) {
 		cfg.Path = ""
 		return cfg, nil
 	}
-	fileContent, err := ioutil.ReadFile(*path)
+	fileContent, err := os.ReadFile(*path)
 	if err != nil {
 		return cfg, err
 	}

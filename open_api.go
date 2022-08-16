@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/sirupsen/logrus"
 	"net/url"
 	"regexp"
@@ -45,9 +46,10 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[stri
 		// An empty set of RedPlant rules we will fill
 		rules := make(map[string]*Rule)
 		// For every OpenAPI path, we obtain a path as a string, and its relative configuration
+		router, _ := gorillamux.NewRouter(oa)
 		for path, operations := range oa.Paths {
 			// converting the URI variables into our Regexp format
-			px := string(repl.ReplaceAll([]byte(partialPath+path), []byte(paramWildcard)))
+			px := "^" + string(repl.ReplaceAll([]byte(partialPath+path), []byte(paramWildcard))) + "$"
 			// for each method defined in `operations`
 			for _, m := range listMethods(operations) {
 				op := getOperationByMethod(operations, m)
@@ -66,7 +68,7 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[stri
 				// Creating the rule, containing the OpenAPI base information, plus the information from the extension
 				// if it has been provided
 				rule := Rule{Origin: serverURL.String(), StripPrefix: partialPath, Pattern: px,
-					Request: oaRule.Request, Response: oaRule.Response}
+					Request: oaRule.Request, Response: oaRule.Response, oaOperation: op, oa: oa, oaRouter: &router}
 				// Mapping the rule to the path, using the explicit method notation, as this is how
 				// OpenAPI works
 				rules["["+m+"] "+px] = &rule

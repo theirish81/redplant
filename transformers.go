@@ -1,6 +1,8 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // IRequestTransformer is the interface for all request transformers
 type IRequestTransformer interface {
@@ -95,6 +97,10 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 			transformer, err = NewTagTransformer(t.Params)
 		case "rate-limiter":
 			transformer, err = NewRequestRateLimiterTransformer(t.ActivateOnTags, t.Params)
+		case "parser":
+			transformer, err = NewRequestParserTransformer(t.ActivateOnTags)
+		case "openapi_validator":
+			transformer, err = NewRequestOpenAPIValidatorTransformer(t.ActivateOnTags)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
