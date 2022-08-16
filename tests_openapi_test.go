@@ -15,7 +15,7 @@ func TestOpenAPI2Rules(t *testing.T) {
 	if _, ok := rules["127.0.0.1"]; !ok {
 		t.Error("did not properly map domain")
 	}
-	if _, ok := rules["localhost"]["[get] /v1/pets/.*"]; !ok {
+	if _, ok := rules["localhost"]["[get] ^/v1/pets/.*$"]; !ok {
 		t.Error("could not find path")
 	}
 }
