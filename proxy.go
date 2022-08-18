@@ -60,7 +60,9 @@ func SetupRouter() *mux.Router {
 			case "method_not_allowed":
 				writer.WriteHeader(405)
 			default:
-				prom.InternalErrorsCounter.Inc()
+				if prom != nil {
+					prom.InternalErrorsCounter.Inc()
+				}
 				log.Error("Error while serving resource", err, logrus.Fields{"url": request.URL.String()})
 				writer.WriteHeader(500)
 			}
