@@ -221,7 +221,7 @@ func (c *Config) Init() {
 			rule._patternMethod, extractedPattern = extractPattern(pattern)
 			rule._pattern, err = regexp.Compile(extractedPattern)
 			if err != nil {
-				log.Fatal("Pattern is not a valida regex", err, nil)
+				log.Fatal("Pattern is not a valid regex", err, nil)
 			}
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = Templ(rule.Origin, nil)
