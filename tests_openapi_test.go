@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"testing"
 )
@@ -26,7 +25,6 @@ func TestMergeRules(t *testing.T) {
 	config = LoadConfig("etc/config.yaml")
 	config.OpenAPI = map[string]*OpenAPIConfig{"localhost:9001": {File: "etc/openapi.yaml"}}
 	config.Init()
-	fmt.Println(config.Rules["localhost:9001"])
 	if _, ok := config.Rules["localhost:9001"]["[get] ^/api/v3/pet/.*$"]; !ok {
 		t.Error("merge rules failed")
 	}
