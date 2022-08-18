@@ -8,7 +8,7 @@ import (
 	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"os"
 	"regexp"
 )
 
@@ -265,7 +265,7 @@ func LoadLoggerConfig(path *string) (LoggerConfig, error) {
 		cfg.Path = ""
 		return cfg, nil
 	}
-	fileContent, err := ioutil.ReadFile(*path)
+	fileContent, err := os.ReadFile(*path)
 	if err != nil {
 		return cfg, err
 	}

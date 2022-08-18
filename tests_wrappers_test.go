@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -28,7 +28,7 @@ func TestAPIWrapper_ExpandRequest(t *testing.T) {
 	if len(wrapper.RequestBody) > 0 {
 		t.Error("No body expansion failed")
 	}
-	wrapper.Request.Body = ioutil.NopCloser(bytes.NewReader([]byte("foo")))
+	wrapper.Request.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandRequest()
 	if string(wrapper.RequestBody) != "foo" {
 		t.Error("Request expansion failed")
@@ -42,7 +42,7 @@ func TestAPIWrapper_ExpandResponse(t *testing.T) {
 	if len(wrapper.ResponseBody) > 0 {
 		t.Error("No body expansion failed")
 	}
-	wrapper.Response.Body = ioutil.NopCloser(bytes.NewReader([]byte("foo")))
+	wrapper.Response.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandResponse()
 	if string(wrapper.ResponseBody) != "foo" {
 		t.Error("Request expansion failed")
@@ -84,11 +84,11 @@ func TestAPIMetrics_Measurements(t *testing.T) {
 	rule := Rule{Origin: "foobar"}
 	req = ReqWithContext(req, nil, &rule)
 	wrapper := GetWrapper(req)
-	wrapper.Metrics.TransactionEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
+	wrapper.Metrics.TransactionEnd = time.Now().Add(10 * time.Millisecond)
 	wrapper.Metrics.ReqTransStart = time.Now()
 	wrapper.Metrics.ResTransStart = time.Now()
-	wrapper.Metrics.ReqTransEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
-	wrapper.Metrics.ResTransEnd = time.Now().Add(time.Duration(10 * time.Millisecond))
+	wrapper.Metrics.ReqTransEnd = time.Now().Add(10 * time.Millisecond)
+	wrapper.Metrics.ResTransEnd = time.Now().Add(10 * time.Millisecond)
 
 	if wrapper.Metrics.Transaction() < 10 || wrapper.Metrics.Transaction() > 15 ||
 		wrapper.Metrics.ResTransformation() < 10 || wrapper.Metrics.ResTransformation() > 15 ||

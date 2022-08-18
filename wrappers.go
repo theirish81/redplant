@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/dgrijalva/jwt-go"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -56,13 +55,13 @@ func (w *APIWrapper) ExpandResponseIfNeeded() {
 func (w *APIWrapper) ExpandRequest() {
 	if len(w.RequestBody) == 0 && w.Request.Body != nil {
 		w.RequestBody, _ = io.ReadAll(w.Request.Body)
-		w.Request.Body = ioutil.NopCloser(bytes.NewReader(w.RequestBody))
+		w.Request.Body = io.NopCloser(bytes.NewReader(w.RequestBody))
 	}
 }
 func (w *APIWrapper) ExpandResponse() {
 	if len(w.ResponseBody) == 0 && w.Response.Body != nil {
 		w.ResponseBody, _ = io.ReadAll(w.Response.Body)
-		w.Response.Body = ioutil.NopCloser(bytes.NewReader(w.ResponseBody))
+		w.Response.Body = io.NopCloser(bytes.NewReader(w.ResponseBody))
 	}
 }
 

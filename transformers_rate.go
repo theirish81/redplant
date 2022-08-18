@@ -44,11 +44,11 @@ func NewRateLimiterTransformer(activateOnTags []string, params map[string]interf
 	return &transformer, nil
 }
 
-func (s *RequestRateLimiterTransformer) getPrometheusPrefix() string {
-	if s.PrometheusPrefix == "" {
+func (t *RequestRateLimiterTransformer) getPrometheusPrefix() string {
+	if t.PrometheusPrefix == "" {
 		return "rate_rejections"
 	}
-	return "rate_rejections_" + s.PrometheusPrefix
+	return "rate_rejections_" + t.PrometheusPrefix
 }
 
 func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {

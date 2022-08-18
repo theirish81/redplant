@@ -78,7 +78,7 @@ func startPrometheus() {
 		go func() {
 			promRouter := mux.NewRouter()
 			promRouter.Handle(config.Prometheus.Path, promhttp.Handler())
-			http.ListenAndServe(":"+strconv.Itoa(config.Prometheus.Port),promRouter)
+			_ = http.ListenAndServe(":"+strconv.Itoa(config.Prometheus.Port), promRouter)
 		}()
 	}
 }
