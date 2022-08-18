@@ -3,6 +3,7 @@ jobs:
   test:
     docker:
       - image: golang:latest
+    resource_class: small
     steps:
       - checkout
       - run:
