@@ -45,6 +45,7 @@ func NewRequestRateLimiterTransformer(activateOnTags []string, params map[string
 	return &transformer, nil
 }
 
+
 // getPrometheusPrefix will return the Prometheus prefix string
 func (t *RequestRateLimiterTransformer) getPrometheusPrefix() string {
 	if t.PrometheusPrefix == "" {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -35,6 +35,6 @@ func WSTripper(request *http.Request, _ *Rule) (*http.Response, error) {
 	wrapper.Hijacked = true
 
 	socket.ServeHTTP(wrapper.ResponseWriter, request)
-	response := http.Response{StatusCode: 200, Request: request, Body: ioutil.NopCloser(bytes.NewReader([]byte{}))}
+	response := http.Response{StatusCode: 200, Request: request, Body: io.NopCloser(bytes.NewReader([]byte{}))}
 	return &response, nil
 }

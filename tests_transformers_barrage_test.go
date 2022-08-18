@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 )
@@ -35,7 +35,7 @@ func TestBarrageRequestTransformer_Transform(t *testing.T) {
 	if err == nil {
 		t.Error("Barrage did not trigger for header pair")
 	}
-	req.Body = ioutil.NopCloser(bytes.NewReader([]byte("foo bar foo")))
+	req.Body = io.NopCloser(bytes.NewReader([]byte("foo bar foo")))
 	wrapper.ExpandRequest()
 	transformer, _ = NewBarrageRequestTransformer([]string{}, map[string]interface{}{"bodyRegexp": ".*bar.*"})
 	_, err = transformer.Transform(&wrapper)

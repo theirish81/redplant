@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 // DBTrip will perform the request to a database and compose the http response
 func DBTrip(request *http.Request, rule *Rule) (*http.Response, error) {
 	// the request body contains the query
-	queryData, _ := ioutil.ReadAll(request.Body)
+	queryData, _ := io.ReadAll(request.Body)
 	query := string(queryData)
 	// performing the query
 	rows, err := rule.db.Query(query)
@@ -27,7 +27,7 @@ func DBTrip(request *http.Request, rule *Rule) (*http.Response, error) {
 	response.Header = http.Header{}
 
 	response.Header.Set("content-type", "application/json")
-	response.Body = ioutil.NopCloser(bytes.NewReader(body))
+	response.Body = io.NopCloser(bytes.NewReader(body))
 	return &response, nil
 }
 

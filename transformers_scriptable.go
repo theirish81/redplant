@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/dop251/goja"
-	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 // ScriptableTransformer is a transformer that uses a JavaScript script
@@ -77,7 +77,7 @@ func NewScriptableTransformer(activateOnTags []string, params map[string]interfa
 		return &t, nil
 	}
 	if t.Path != "" {
-		data, err := ioutil.ReadFile(t.Path)
+		data, err := os.ReadFile(t.Path)
 		if err != nil {
 			return nil, err
 		}
