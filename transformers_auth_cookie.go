@@ -7,13 +7,19 @@ import (
 	"net/http"
 )
 
+// RequestCookieToTokenTransformer will check the presence of a cookie and will use it as a key to pull a token
+// from a Redis instance.
+// ActivateOnTags is a list of tags for which the transformer will activate
+// RedisUri is the URI to the Redis server
+// CookieName is the name of the cookie that we're matching against
 type RequestCookieToTokenTransformer struct {
 	ActivateOnTags []string
 	RedisUri       string
-	redisClient    *redis.Client
 	CookieName     string
+	redisClient    *redis.Client
 }
 
+// NewCookieToTokenTransformer is the constructor for the RequestCookieToTokenTransformer
 func NewCookieToTokenTransformer(activateOnTags []string, params map[string]interface{}) (*RequestCookieToTokenTransformer, error) {
 	transformer := RequestCookieToTokenTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &transformer, nil, []string{})

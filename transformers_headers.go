@@ -37,6 +37,7 @@ func (t *RequestHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(t.ActivateOnTags)
 }
 
+// NewRequestHeadersTransformerFromParams is the constructor for RequestHeaderTransformer
 func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestHeaderTransformer, error) {
 	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
@@ -50,6 +51,7 @@ type ResponseHeaderTransformer struct {
 	ActivateOnTags []string
 }
 
+// NewResponseHeadersTransformerFromParams is the constructor for ResponseHeaderTransformer
 func NewResponseHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*ResponseHeaderTransformer, error) {
 	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})

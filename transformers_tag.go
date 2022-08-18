@@ -32,6 +32,8 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 		if err != nil {
 			return nil, err
 		}
+		// we don't want a <no value> to appear in the tags, so in case that's what's happening, we just don't
+		// append the tag
 		if val != "" && val != "<no value>" {
 			wrapper.Tags = append(wrapper.Tags, val)
 		}
@@ -39,6 +41,7 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	return wrapper, nil
 }
 
+// NewTagTransformer is the constructor for TagTransformer
 func NewTagTransformer(params map[string]interface{}) (*TagTransformer, error) {
 	t := TagTransformer{}
 	err := DecodeAndTempl(params, &t, nil, []string{"Tags"})

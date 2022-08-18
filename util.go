@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -45,6 +47,9 @@ func hasPrefixes(data string, prefixes []string) bool {
 
 // isString given an interface, it will return true if the data type is a string
 func isString(data interface{}) bool {
+	if data == nil {
+		return false
+	}
 	return reflect.ValueOf(data).Type().String() == "string"
 }
 
@@ -86,4 +91,21 @@ func convertMaps(intf interface{}) interface{} {
 		}
 	}
 	return intf
+}
+
+// FileNameFormat will convert file URIs to actually paths
+func FileNameFormat(file string) (string, error) {
+	if strings.HasPrefix(file, "file://") {
+		localUrl, err := url.Parse(file)
+		if err != nil {
+			return "", errors.New("wrong file format")
+		}
+		return localUrl.Host + localUrl.Path, nil
+	}
+	return file, nil
+}
+
+// IsHTTP will tell you if the given string is somewhat likely to be an HTTP(s) URL
+func IsHTTP(file string) bool {
+	return hasPrefixes(file, []string{"http://", "https://"})
 }

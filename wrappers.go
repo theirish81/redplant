@@ -11,31 +11,36 @@ import (
 
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
-	Request        *http.Request
-	Response       *http.Response
-	ResponseWriter http.ResponseWriter
-	RequestBody    []byte
-	ResponseBody   []byte
-	Claims         *jwt.MapClaims
-	Rule           *Rule
-	Metrics        *APIMetrics
-	Err            error
-	Username       string
-	Variables      *map[string]string
-	RealIP         string
-	Tags           []string
-	ApplyHeaders   http.Header
+	Request           *http.Request
+	Response          *http.Response
+	ResponseWriter    http.ResponseWriter
+	RequestBody       []byte
+	ParsedRequestBody interface{}
+	ResponseBody      []byte
+	Claims            *jwt.MapClaims
+	Rule              *Rule
+	Metrics           *APIMetrics
+	Err               error
+	Username          string
+	Variables         *map[string]string
+	RealIP            string
+	Tags              []string
+	ApplyHeaders      http.Header
 	// When set to true, it means that the connection has been hijacked. This is the case when websockets
 	// are involved
 	Hijacked bool
 }
 
+// Clone will do sort of a somewhat shallow clone of the wrapper. This is useful when sending the wrapper is being
+// sent to a sidecar but also transformers apply. If we didn't clone, results may vary on timing
 func (w *APIWrapper) Clone() *APIWrapper {
 	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
 		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
 		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
 
+// ExpandRequestIfNeeded determines whether the various transformers and sidecars configured for the route need the
+// request expanded. If so, it expands it
 func (w *APIWrapper) ExpandRequestIfNeeded() {
 	if w.Rule.Request._transformers.ShouldExpandRequest(); w.Rule.Response._transformers.ShouldExpandRequest() ||
 		w.Rule.Request._sidecars.ShouldExpandRequest() ||
@@ -44,6 +49,8 @@ func (w *APIWrapper) ExpandRequestIfNeeded() {
 	}
 }
 
+// ExpandResponseIfNeeded determines whether the various transformers and sidecars configured for the route need the
+// // response expanded. If so, it expands it
 func (w *APIWrapper) ExpandResponseIfNeeded() {
 	if w.Rule.Response._transformers.ShouldExpandResponse() ||
 		w.Rule.Response._sidecars.ShouldExpandResponse() {
@@ -58,6 +65,8 @@ func (w *APIWrapper) ExpandRequest() {
 		w.Request.Body = io.NopCloser(bytes.NewReader(w.RequestBody))
 	}
 }
+
+// ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
 	if len(w.ResponseBody) == 0 && w.Response.Body != nil {
 		w.ResponseBody, _ = io.ReadAll(w.Response.Body)
@@ -65,6 +74,7 @@ func (w *APIWrapper) ExpandResponse() {
 	}
 }
 
+// HasTag will return true if the APIWrapper has hany of the provided tags
 func (w *APIWrapper) HasTag(tags []string) bool {
 	if len(tags) == 0 {
 		return true
@@ -79,10 +89,12 @@ func (w *APIWrapper) HasTag(tags []string) bool {
 	return false
 }
 
+// Templ will compile the provided template using APIWrapper as scope
 func (w *APIWrapper) Templ(data string) (string, error) {
 	return Templ(data, w)
 }
 
+// APIMetrics is a collector of metrics for the transaction
 type APIMetrics struct {
 	TransactionStart time.Time
 	TransactionEnd   time.Time
@@ -92,16 +104,22 @@ type APIMetrics struct {
 	ResTransEnd      time.Time
 }
 
+// Transaction will return the transaction duration in milliseconds
 func (m *APIMetrics) Transaction() int64 {
 	return m.TransactionEnd.Sub(m.TransactionStart).Milliseconds()
 }
+
+// ReqTransformation will return the duration of the request transformation in milliseconds
 func (m *APIMetrics) ReqTransformation() int64 {
 	return m.ReqTransEnd.Sub(m.ReqTransStart).Milliseconds()
 }
+
+// ResTransformation will return the duration of the response transformation in milliseconds
 func (m *APIMetrics) ResTransformation() int64 {
 	return m.ResTransEnd.Sub(m.ResTransStart).Milliseconds()
 }
 
+// ReqWithContext will add the RedPlant context to the provided request
 func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule *Rule) *http.Request {
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
@@ -119,6 +137,8 @@ func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule 
 	req = req.WithContext(ctx)
 	return req
 }
+
+// GetWrapper will extract the wrapper from the context in the request
 func GetWrapper(req *http.Request) *APIWrapper {
 	wrapper := req.Context().Value("wrapper")
 	if wrapper == nil {

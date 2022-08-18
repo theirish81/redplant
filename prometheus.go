@@ -2,6 +2,11 @@ package main
 
 import "github.com/prometheus/client_golang/prometheus"
 
+// Prometheus is the RedPlant configuration for Prometheus
+// GlobalInboundRequestsCounter is the counter for all inbound requests
+// GlobalOriginRequestsCounter is the counter for all the origin hits
+// CustomCounters is a map of counters transformers and sidecars can use
+// CustomSummaries is a map of summaries transformers and sidecars can use
 type Prometheus struct {
 	GlobalInboundRequestsCounter prometheus.Counter
 	GlobalOriginRequestsCounter  prometheus.Counter
@@ -10,6 +15,7 @@ type Prometheus struct {
 	CustomSummaries              map[string]prometheus.Summary
 }
 
+// NewPrometheus is the Prometheus constructor
 func NewPrometheus() *Prometheus {
 	prom := Prometheus{}
 	grc := prometheus.NewCounter(prometheus.CounterOpts{
@@ -41,6 +47,8 @@ func NewPrometheus() *Prometheus {
 	return &prom
 }
 
+// CustomCounter will return a prometheus.Counter instance for the given name. If the counter does not already exist
+// it will create one
 func (p *Prometheus) CustomCounter(name string) prometheus.Counter {
 	if counter, ok := p.CustomCounters[name]; ok {
 		return counter
@@ -53,6 +61,8 @@ func (p *Prometheus) CustomCounter(name string) prometheus.Counter {
 	return p.CustomCounters[name]
 }
 
+// CustomSummary will return a prometheus.Summary instance for the given name. If the counter does not already exist
+// it will create one
 func (p *Prometheus) CustomSummary(name string) prometheus.Summary {
 	if summary, ok := p.CustomSummaries[name]; ok {
 		return summary

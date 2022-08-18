@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"net/url"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -112,7 +110,7 @@ func (s *CaptureSidecar) GetChannel() chan *APIWrapper {
 func (s *CaptureSidecar) Consume(quantity int) {
 	var captureFunc func([]byte)
 	// If it's a web URL, then we'll use the HTTP capture function
-	if hasPrefixes(s.Uri, []string{"http://", "https://"}) {
+	if IsHTTP(s.Uri) {
 		to, err := time.ParseDuration(s.Timeout)
 		if err != nil {
 			log.Warn("Could not parse HTTP client timeout in Capture sidecar. Defaulting to 5s", err, nil)
@@ -122,13 +120,11 @@ func (s *CaptureSidecar) Consume(quantity int) {
 		captureFunc = s.CaptureHttp
 	} else {
 		// Otherwise, it's a local file. However, we want to check whether it's a path or a file URI
-		if strings.HasPrefix(s.Uri, "file://") {
-			localUrl, err := url.Parse(s.Uri)
-			if err != nil {
-				log.Error("Could not parse capture URI. Disabling sidecar", err, nil)
-				return
-			}
-			s.Uri = localUrl.Host + localUrl.Path
+		var err error
+		s.Uri, err = FileNameFormat(s.Uri)
+		if err != nil {
+			log.Error("Could not parse capture URI. Disabling sidecar", err, nil)
+			return
 		}
 		// Creating logger and assigning local logging function
 		s.logger = NewLogHelperFromConfig(LoggerConfig{Path: s.Uri, Format: s.Format, Level: "info"})
