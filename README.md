@@ -119,6 +119,15 @@ localhost:9001:
     stripPrefix: /todo
 ```
 
+### Paths with explicit method
+In some situations you may want to describe substantially different behaviours for different methods.
+In this case you can explicitly declare the method you're describing in the path pattern as in:
+```yaml
+"[get] /todo/.*":
+   origin: https://jsonplaceholder.typicode.com/todos
+   stripPrefix: /todo
+```
+
 #### request
 A collection of request transformers and sidecars which apply to this specific route.
 
@@ -204,3 +213,8 @@ RedPlant can accept (more or less) exotic origins. See:
 
 ## Observability
 Check our [Prometheus metrics support](./doc/prometheus.md)
+
+
+## OpenAPI support
+OpenAPI specification files can be used to instruct RedPlant about the routes, please refer to the
+[OpenAPI support](./doc/openapi.md) section

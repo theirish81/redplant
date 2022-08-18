@@ -4,6 +4,11 @@ variables: "$ref:file://variables.yaml"
 # Loading network configuration from external file
 network: "$ref:file://network.yaml"
 
+## Uncomment this block to try the OpenAPI integration
+# openAPI:
+#  'localhost:9001':
+#    file: etc/openapi.yaml
+
 # Transformers and sidecars to be executed BEFORE transformers and sidecars defined for the specific route
 before:
   request:                                 # Request transformers
@@ -43,10 +48,10 @@ before:
 
 rules: # THE RULES. They represent how an inbound request should be matched, and defines the transformation rules
   localhost:9001:                     # The inbound host. This is a regexp. Also, the path matchers are regexp
-    "/fs/.*":                         # File server route. Will load and return data loaded from FS
+    "^/fs/.*$":                         # File server route. Will load and return data loaded from FS
       origin: file://etc/files  # Path to the files
       stripPrefix: /fs                # We're stripping the "/fs" from the final URL
-    "/todo/.*": # A web route
+    "^/todo/.*$": # A web route
       origin: https://jsonplaceholder.typicode.com/todos  # the HTTP origin
       stripPrefix: /todo
       request:                                            # Request configuration

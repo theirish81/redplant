@@ -25,6 +25,11 @@ func SetupRouter() *mux.Router {
 				return
 			}
 			wrapper.Request = req
+
+			if !hasMethod(wrapper) {
+				wrapper.Err = errors.New("method_not_allowed")
+				return
+			}
 			wrapper.ExpandRequestIfNeeded()
 			wrapper.Rule.Request._sidecars.Run(wrapper.Clone())
 			handleURL(wrapper.Rule, req)
@@ -52,8 +57,12 @@ func SetupRouter() *mux.Router {
 			switch err.Error() {
 			case "no_mapping":
 				writer.WriteHeader(404)
+			case "method_not_allowed":
+				writer.WriteHeader(405)
 			default:
-				prom.InternalErrorsCounter.Inc()
+				if prom != nil {
+					prom.InternalErrorsCounter.Inc()
+				}
 				log.Error("Error while serving resource", err, logrus.Fields{"url": request.URL.String()})
 				writer.WriteHeader(500)
 			}
@@ -99,7 +108,8 @@ func SetupRouter() *mux.Router {
 				// For each rule for a given hostname...
 				for _, rule := range rules {
 					// ... if there's match, then we can enrich with a context
-					if success := rule._pattern.MatchString(req.URL.Path); success {
+					methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(req.Method)
+					if methodMatch && rule._pattern.MatchString(req.URL.Path) {
 						req = ReqWithContext(req, w, rule)
 						break
 					}
@@ -109,6 +119,23 @@ func SetupRouter() *mux.Router {
 		}(rules)
 	}
 	return router
+}
+
+// hasMethod will check if the method set in the request is among the ones listed in the Rule.AllowedMethods setting.
+// IF Rule.AllowedMethods is nil or empty, then all methods are allowed
+func hasMethod(wrapper *APIWrapper) bool {
+	if wrapper.Rule.AllowedMethods != nil && len(wrapper.Rule.AllowedMethods) > 0 {
+		method := wrapper.Request.Method
+		found := false
+		for _, m := range wrapper.Rule.AllowedMethods {
+			if strings.ToLower(method) == strings.ToLower(m) {
+				found = true
+			}
+			break
+		}
+		return found
+	}
+	return true
 }
 
 // handleURL transforms the URL based on the rules

@@ -19,6 +19,8 @@ require (
 	github.com/theirish81/yamlRef v0.2.0
 	github.com/xo/dburl v0.9.0
 	gopkg.in/yaml.v2 v2.4.0
+	github.com/getkin/kin-openapi v0.97.0
+	github.com/bitly/go-simplejson v0.5.0
 )
 
 require (
