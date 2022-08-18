@@ -16,3 +16,36 @@ func TestConvertMaps(t *testing.T) {
 		t.Error("Second level conversion failed")
 	}
 }
+
+func TestIsString(t *testing.T) {
+	if !isString("foo") {
+		t.Error("mis-identification of string")
+	}
+	if isString(2) {
+		t.Error("mis-identification of int")
+	}
+	if isString(true) {
+		t.Error("mis-identification of bool")
+	}
+	if isString(nil) {
+		t.Error("mis-identification of nil")
+	}
+}
+
+func TestParseBasicAuth(t *testing.T) {
+	if un, pw, ok := parseBasicAuth("Basic Zm9vOmJhcg=="); !ok || un != "foo" || pw != "bar" {
+		t.Error("error parsing basic auth")
+	}
+	if _, _, ok := parseBasicAuth("Basic foobar"); ok {
+		t.Error("found auth where there's none")
+	}
+	if _, _, ok := parseBasicAuth("Basic foobar"); ok {
+		t.Error("found auth where there's none")
+	}
+	if _, _, ok := parseBasicAuth("Basic "); ok {
+		t.Error("found auth where there's none")
+	}
+	if _, _, ok := parseBasicAuth("foo"); ok {
+		t.Error("found auth where there's none")
+	}
+}

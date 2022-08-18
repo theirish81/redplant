@@ -47,6 +47,9 @@ func hasPrefixes(data string, prefixes []string) bool {
 
 // isString given an interface, it will return true if the data type is a string
 func isString(data interface{}) bool {
+	if data == nil {
+		return false
+	}
 	return reflect.ValueOf(data).Type().String() == "string"
 }
 
