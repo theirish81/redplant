@@ -19,3 +19,13 @@ func TestOpenAPI2Rules(t *testing.T) {
 		t.Error("could not find path")
 	}
 }
+
+func TestMergeRules(t *testing.T) {
+	log = NewLogHelper("", logrus.InfoLevel)
+	config = LoadConfig("etc/config.yaml")
+	config.OpenAPI = map[string]*OpenAPIConfig{"localhost:9001": {File: "etc/openapi.yaml"}}
+	config.Init()
+	if _, ok := config.Rules["localhost:9001"]["[get] ^/v1/pets$"]; !ok {
+		t.Error("merge rules failed")
+	}
+}

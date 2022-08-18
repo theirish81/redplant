@@ -49,3 +49,27 @@ func TestExtractPattern(t *testing.T) {
 		t.Error("pattern extraction failed in absence of a method")
 	}
 }
+
+func TestDBPatterns(t *testing.T) {
+	log = NewLogHelper("", logrus.InfoLevel)
+	config = LoadConfig("etc/config.yaml")
+	config.Init()
+	config.Rules["localhost:9001"] = map[string]*Rule{"/db": {Origin: "mysql://foo"}}
+	config.Init()
+	if config.Rules["localhost:9001"]["/db"].db == nil {
+		t.Error("could not initialise DB")
+	}
+}
+
+func TestLoadLoggerConfig(t *testing.T) {
+	logging := "etc/logging.yaml"
+	lc, _ := LoadLoggerConfig(&logging)
+	if lc.Level == "" || lc.Format == "" {
+		t.Error("could not load logger config properly")
+	}
+
+	lc, _ = LoadLoggerConfig(nil)
+	if lc.Level != "INFO" {
+		t.Error("nil logging config does not produce the defaults")
+	}
+}
