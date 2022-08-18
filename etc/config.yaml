@@ -4,6 +4,11 @@ variables: "$ref:file://variables.yaml"
 # Loading network configuration from external file
 network: "$ref:file://network.yaml"
 
+## Uncomment this block to try the OpenAPI integration
+# openAPI:
+#  'localhost:9001':
+#    file: etc/openapi.yaml
+
 # Transformers and sidecars to be executed BEFORE transformers and sidecars defined for the specific route
 before:
   request:                                 # Request transformers
