@@ -18,7 +18,7 @@ func Templ(data string, scope any) (string, error) {
 	}
 	parsed := bytes.NewBufferString("")
 	if scope == nil {
-		err = templ.Execute(parsed, map[string]any{"Variables": config.Variables})
+		err = templ.Execute(parsed, AnyMap{"Variables": config.Variables})
 	} else {
 		err = templ.Execute(parsed, scope)
 	}
@@ -43,6 +43,12 @@ func templFieldSet(target any, scope any, excludeEval []string) {
 	objectType := reflect.ValueOf(target).Type().String()
 	switch objectType {
 	// If it's a map of strings...
+	case "*main.StringMap":
+		t2 := target.(*StringMap)
+		// ... we iterate on each element and evaluate
+		for k, v := range *t2 {
+			(*t2)[k], _ = Templ(v, scope)
+		}
 	case "*map[string]string":
 		t2 := target.(*map[string]string)
 		// ... we iterate on each element and evaluate

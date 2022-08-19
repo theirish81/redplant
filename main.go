@@ -44,7 +44,7 @@ func main() {
 	startPrometheus()
 	router := SetupRouter()
 
-	log.Info("Starting Server", map[string]any{"port": config.Network.Downstream.Port})
+	log.Info("Starting Server", AnyMap{"port": config.Network.Downstream.Port})
 
 	server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
 	if config.Network.Downstream.Tls != nil {

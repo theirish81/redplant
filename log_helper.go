@@ -11,8 +11,8 @@ type LogHelper struct {
 	logger *logrus.Logger
 }
 
-func (h *LogHelper) wrapperToMap(wrapper *APIWrapper) map[string]any {
-	data := map[string]any{}
+func (h *LogHelper) wrapperToMap(wrapper *APIWrapper) AnyMap {
+	data := AnyMap{}
 	data["remote_addr"] = wrapper.Request.RemoteAddr
 	data["url"] = wrapper.Request.URL.String()
 	data["method"] = wrapper.Request.Method

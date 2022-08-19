@@ -17,8 +17,8 @@ import (
 type CaptureMessage struct {
 	Request    RequestCapture  `json:"request"`
 	Response   ResponseCapture `json:"response"`
-	Definition map[string]any  `json:"definition"`
-	Meta       map[string]any  `json:"meta"`
+	Definition AnyMap          `json:"definition"`
+	Meta       AnyMap          `json:"meta"`
 }
 
 // RequestCapture represents the serialization of an API Request
@@ -65,8 +65,8 @@ func CaptureResponse(wrapper *APIWrapper) *CaptureMessage {
 			Headers: wrapper.Response.Header,
 			Body:    string(wrapper.ResponseBody),
 		},
-		Definition: map[string]any{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
-		Meta:       make(map[string]any),
+		Definition: AnyMap{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
+		Meta:       make(AnyMap),
 	}
 	return &captureMessage
 }
@@ -94,7 +94,7 @@ type CaptureSidecar struct {
 	block                      bool
 	dropOnOverflow             bool
 	httpClient                 *http.Client
-	Headers                    map[string]string
+	Headers                    StringMap
 	Timeout                    string
 	logger                     *LogHelper
 	Format                     string
@@ -216,7 +216,7 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]any) (*CaptureSidecar, error) {
+func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params AnyMap) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {

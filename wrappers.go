@@ -22,7 +22,7 @@ type APIWrapper struct {
 	Metrics           *APIMetrics
 	Err               error
 	Username          string
-	Variables         *map[string]string
+	Variables         *StringMap
 	RealIP            string
 	Tags              []string
 	ApplyHeaders      http.Header

@@ -20,7 +20,7 @@ type RequestUrlTransformer struct {
 // Set is a map of query params to set
 // Remove is an array of query params to remove
 type Query struct {
-	Set    map[string]string
+	Set    StringMap
 	Remove []string
 }
 

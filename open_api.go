@@ -24,8 +24,8 @@ var paramWildcard = ".*"
 
 // OpenAPI2Rules will load a number of OpenAPI files and convert it to a set of RedPlant Rules
 // `openAPIConfigs` is a set of OpenAPIConfig, the RedPlant configuration for them
-func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[string]*Rule {
-	res := make(map[string]map[string]*Rule)
+func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) RulesMap {
+	res := make(RulesMap)
 	// for each RedPlant host, one openAPI can be mapped. So for each host, we obtain an OpenAPI config
 	for host, cfg := range openAPIConfigs {
 		// first we load and parse the OpenAPI spec
@@ -110,9 +110,9 @@ func loadOpenAPI(cfg OpenAPIConfig) (*openapi3.T, error) {
 // and regular RedPlant specs can coexist
 // `existing` is the existing set of rules
 // `new` is the new set of rules
-func MergeRules(existing map[string]map[string]*Rule, new map[string]map[string]*Rule) map[string]map[string]*Rule {
+func MergeRules(existing RulesMap, new RulesMap) RulesMap {
 	if existing == nil {
-		existing = make(map[string]map[string]*Rule)
+		existing = make(RulesMap)
 	}
 	for domain, routes := range new {
 		route, ok := existing[domain]

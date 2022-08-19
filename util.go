@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+type StringMap map[string]string
+type AnyMap map[string]any
+type RulesMap map[string]map[string]*Rule
+
 // stringInArray will search a string in an array of strings and return true if the string is found
 func stringInArray(search string, array []string) bool {
 	for _, sx := range array {
@@ -26,13 +30,13 @@ func getFieldName(val reflect.Value, index int) string {
 }
 
 // getEnvs converts environment variables to a map
-func getEnvs() *map[string]string {
-	envs := make(map[string]string)
+func getEnvs() StringMap {
+	envs := make(StringMap)
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
 		envs[pair[0]] = pair[1]
 	}
-	return &envs
+	return envs
 }
 
 // hasPrefixes will check whether an input string has one of the provided prefixes
