@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -38,7 +38,7 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 
-	privateKey, _ := ioutil.ReadFile("etc/privateKey")
+	privateKey, _ := os.ReadFile("etc/privateKey")
 	signKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
 	at := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token, _ := at.SignedString(signKey)

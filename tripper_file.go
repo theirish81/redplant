@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,6 +38,6 @@ func FileTrip(request *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	response.Header.Set("content-type", getCT(body, request.URL.Path))
-	response.Body = ioutil.NopCloser(bytes.NewReader(body))
+	response.Body = io.NopCloser(bytes.NewReader(body))
 	return &response, nil
 }

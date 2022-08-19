@@ -4,8 +4,8 @@ import (
 	"crypto/rsa"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -80,7 +80,7 @@ func NewJWTAuthTransformer(activateOnTags []string, params map[string]interface{
 	}
 	// If there's a "pem" parameter, then we treat that as a path to the certificate
 	if t.Pem != "" {
-		cert, err := ioutil.ReadFile(t.Pem)
+		cert, err := os.ReadFile(t.Pem)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +187,7 @@ func NewJWTSignTransformer(activateOnTags []string, params map[string]interface{
 	}
 	// If there's a "pem" parameter, then we treat that as a path to the certificate
 	if t.Pem != "" {
-		cert, err := ioutil.ReadFile(t.Pem)
+		cert, err := os.ReadFile(t.Pem)
 		if err != nil {
 			return nil, err
 		}

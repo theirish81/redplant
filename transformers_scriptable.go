@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/dop251/goja"
-	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 // ScriptableTransformer is a transformer that uses a JavaScript script
@@ -65,6 +65,7 @@ func (t *ScriptableTransformer) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(t.ActivateOnTags)
 }
 
+// NewScriptableTransformer is the constructor for ScriptableTransformer
 func NewScriptableTransformer(activateOnTags []string, params map[string]interface{}) (*ScriptableTransformer, error) {
 	t := ScriptableTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
@@ -76,7 +77,7 @@ func NewScriptableTransformer(activateOnTags []string, params map[string]interfa
 		return &t, nil
 	}
 	if t.Path != "" {
-		data, err := ioutil.ReadFile(t.Path)
+		data, err := os.ReadFile(t.Path)
 		if err != nil {
 			return nil, err
 		}

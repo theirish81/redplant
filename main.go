@@ -45,12 +45,7 @@ func main() {
 	router := SetupRouter()
 
 	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
-	signalChanel := make(chan os.Signal, 1)
-	signal.Notify(signalChanel,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
+
 	server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
 	if config.Network.Downstream.Tls != nil {
 		go func() {
@@ -78,11 +73,12 @@ func startPrometheus() {
 		go func() {
 			promRouter := mux.NewRouter()
 			promRouter.Handle(config.Prometheus.Path, promhttp.Handler())
-			http.ListenAndServe(":"+strconv.Itoa(config.Prometheus.Port),promRouter)
+			_ = http.ListenAndServe(":"+strconv.Itoa(config.Prometheus.Port), promRouter)
 		}()
 	}
 }
 
+// setupTLSConfig will set up the TLS specifics if Network.Downstream.Tls was configured
 func setupTLSConfig() *tls.Config {
 	cfg := &tls.Config{}
 	if config.Network.Downstream.Tls != nil {
@@ -97,6 +93,8 @@ func setupTLSConfig() *tls.Config {
 	return cfg
 }
 
+// handleTerm will listen to the termination signals. When a signal is captured, then it will wait 10s of grace period
+// before shutting down completely
 func handleTerm(server *http.Server) {
 	signalChannel := make(chan os.Signal, 1)
 	exitChan := make(chan int)

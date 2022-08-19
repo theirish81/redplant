@@ -64,6 +64,7 @@ func NewBarrageRequestTransformer(activateOnTags []string, params map[string]int
 	return &t, err
 }
 
+// NewBarrageResponseTransformer is the constructor for the BarrageTransformer dedicated to the request
 func NewBarrageResponseTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
 	transformer, err := NewBarrageRequestTransformer(activateOnTags, params)
 	transformer.response = true
