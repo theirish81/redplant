@@ -38,7 +38,7 @@ func (t *RequestHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewRequestHeadersTransformerFromParams is the constructor for RequestHeaderTransformer
-func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestHeaderTransformer, error) {
+func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[string]any) (*RequestHeaderTransformer, error) {
 	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
@@ -52,7 +52,7 @@ type ResponseHeaderTransformer struct {
 }
 
 // NewResponseHeadersTransformerFromParams is the constructor for ResponseHeaderTransformer
-func NewResponseHeadersTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*ResponseHeaderTransformer, error) {
+func NewResponseHeadersTransformerFromParams(activateOnTags []string, params map[string]any) (*ResponseHeaderTransformer, error) {
 	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err

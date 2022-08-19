@@ -30,7 +30,7 @@ type BarrageTransformer struct {
 }
 
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
-func NewBarrageRequestTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
+func NewBarrageRequestTransformer(activateOnTags []string, params map[string]any) (*BarrageTransformer, error) {
 	t := BarrageTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
@@ -65,7 +65,7 @@ func NewBarrageRequestTransformer(activateOnTags []string, params map[string]int
 }
 
 // NewBarrageResponseTransformer is the constructor for the BarrageTransformer dedicated to the request
-func NewBarrageResponseTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
+func NewBarrageResponseTransformer(activateOnTags []string, params map[string]any) (*BarrageTransformer, error) {
 	transformer, err := NewBarrageRequestTransformer(activateOnTags, params)
 	transformer.response = true
 	return transformer, err

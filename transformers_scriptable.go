@@ -66,7 +66,7 @@ func (t *ScriptableTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewScriptableTransformer is the constructor for ScriptableTransformer
-func NewScriptableTransformer(activateOnTags []string, params map[string]interface{}) (*ScriptableTransformer, error) {
+func NewScriptableTransformer(activateOnTags []string, params map[string]any) (*ScriptableTransformer, error) {
 	t := ScriptableTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {

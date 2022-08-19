@@ -90,7 +90,7 @@ func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
-func NewBasicAuthTransformer(activateOnTags []string, params map[string]interface{}) (*BasicAuthTransformer, error) {
+func NewBasicAuthTransformer(activateOnTags []string, params map[string]any) (*BasicAuthTransformer, error) {
 	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it

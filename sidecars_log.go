@@ -45,7 +45,7 @@ func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
+func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]any) (*RequestAccessLogSidecar, error) {
 	logger := log
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
@@ -102,7 +102,7 @@ func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
+func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]any) (*UpstreamAccessLogSidecar, error) {
 	logger := log
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
@@ -182,7 +182,7 @@ func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*MetricsLogSidecar, error) {
+func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]any) (*MetricsLogSidecar, error) {
 	logger := log
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})

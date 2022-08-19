@@ -67,7 +67,7 @@ func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewRequestUrlTransformerFromParams is the constructor for RequestUrlTransformer
-func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]interface{}) (*RequestUrlTransformer, error) {
+func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]any) (*RequestUrlTransformer, error) {
 	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &transformer, nil, []string{"Query"})
 	return &transformer, err

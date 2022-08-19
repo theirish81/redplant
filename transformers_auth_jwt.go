@@ -72,7 +72,7 @@ func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
 }
 
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params
-func NewJWTAuthTransformer(activateOnTags []string, params map[string]interface{}) (*JWTAuthTransformer, error) {
+func NewJWTAuthTransformer(activateOnTags []string, params map[string]any) (*JWTAuthTransformer, error) {
 	t := JWTAuthTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
@@ -112,7 +112,7 @@ type JWTSignTransformer struct {
 	Pem            string
 	Key            string
 	ExistingClaims bool
-	Claims         map[string]interface{}
+	Claims         map[string]any
 	ActivateOnTags []string
 }
 
@@ -177,11 +177,11 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 }
 
 // NewJWTSignTransformer is the constructor for the JWTSignTransformer
-func NewJWTSignTransformer(activateOnTags []string, params map[string]interface{}) (*JWTSignTransformer, error) {
+func NewJWTSignTransformer(activateOnTags []string, params map[string]any) (*JWTSignTransformer, error) {
 	t := JWTSignTransformer{ActivateOnTags: activateOnTags}
 
 	err := DecodeAndTempl(params, &t, nil, []string{"Claims"})
-	t.Claims = convertMaps(t.Claims).(map[string]interface{})
+	t.Claims = convertMaps(t.Claims).(map[string]any)
 	if err != nil {
 		return nil, err
 	}

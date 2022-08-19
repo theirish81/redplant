@@ -18,17 +18,17 @@ func Templ(data string, scope interface{}) (string, error) {
 	}
 	parsed := bytes.NewBufferString("")
 	if scope == nil {
-		err = templ.Execute(parsed, map[string]interface{}{"Variables": config.Variables})
+		err = templ.Execute(parsed, map[string]any{"Variables": config.Variables})
 	} else {
 		err = templ.Execute(parsed, scope)
 	}
 	return parsed.String(), err
 }
 
-// DecodeAndTempl will decode a map[string]interface{} into a target data structure. Then it will evaluate all the
+// DecodeAndTempl will decode a map[string]any into a target data structure. Then it will evaluate all the
 // templates found in the decoded structure, against a provided scope (see Templ). Evaluation will not trigger for
 // any field listed in the excludeVal array
-func DecodeAndTempl(data map[string]interface{}, target interface{}, scope interface{}, excludeEval []string) error {
+func DecodeAndTempl(data map[string]any, target interface{}, scope interface{}, excludeEval []string) error {
 	err := mapstructure.Decode(data, target)
 	if err != nil {
 		return err

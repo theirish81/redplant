@@ -15,10 +15,10 @@ import (
 // Definition represent meta information of what rules where applied
 // Meta is free-hand meta information
 type CaptureMessage struct {
-	Request    RequestCapture         `json:"request"`
-	Response   ResponseCapture        `json:"response"`
-	Definition map[string]interface{} `json:"definition"`
-	Meta       map[string]interface{} `json:"meta"`
+	Request    RequestCapture  `json:"request"`
+	Response   ResponseCapture `json:"response"`
+	Definition map[string]any  `json:"definition"`
+	Meta       map[string]any  `json:"meta"`
 }
 
 // RequestCapture represents the serialization of an API Request
@@ -65,8 +65,8 @@ func CaptureResponse(wrapper *APIWrapper) *CaptureMessage {
 			Headers: wrapper.Response.Header,
 			Body:    string(wrapper.ResponseBody),
 		},
-		Definition: map[string]interface{}{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
-		Meta:       make(map[string]interface{}),
+		Definition: map[string]any{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
+		Meta:       make(map[string]any),
 	}
 	return &captureMessage
 }
@@ -216,7 +216,7 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*CaptureSidecar, error) {
+func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]any) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {

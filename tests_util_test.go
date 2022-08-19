@@ -12,7 +12,7 @@ func TestConvertMaps(t *testing.T) {
 	if reflect.ValueOf(d2).Type().String() != "map[string]interface {}" {
 		t.Error("First level conversion failed")
 	}
-	if reflect.ValueOf(d2.(map[string]interface{})["foo"]).Type().String() != "map[string]interface {}" {
+	if reflect.ValueOf(d2.(map[string]any)["foo"]).Type().String() != "map[string]interface {}" {
 		t.Error("Second level conversion failed")
 	}
 }

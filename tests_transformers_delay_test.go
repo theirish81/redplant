@@ -6,7 +6,7 @@ import (
 )
 
 func TestDelayTransformer_Transform(t *testing.T) {
-	transformer, _ := NewDelayTransformer([]string{}, map[string]interface{}{"min": "1s", "max": "3s"})
+	transformer, _ := NewDelayTransformer([]string{}, map[string]any{"min": "1s", "max": "3s"})
 	wrapper := APIWrapper{}
 	before := time.Now()
 	_, _ = transformer.Transform(&wrapper)

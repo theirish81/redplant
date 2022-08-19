@@ -72,15 +72,15 @@ func parseBasicAuth(auth string) (username, password string, ok bool) {
 }
 
 // convertMaps will recursively go through a nested structure and converting map[interface{}]interface{} to
-// map[string]interface{}
+// map[string]any
 func convertMaps(intf interface{}) interface{} {
 	switch obj := intf.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k, v := range obj {
 			obj[k] = convertMaps(v)
 		}
 	case map[interface{}]interface{}:
-		nuMap := map[string]interface{}{}
+		nuMap := map[string]any{}
 		for k, v := range obj {
 			nuMap[k.(string)] = convertMaps(v)
 		}

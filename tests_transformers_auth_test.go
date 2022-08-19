@@ -8,7 +8,7 @@ import (
 )
 
 func TestBasicAuthTransformer_Transform(t *testing.T) {
-	transformer, _ := NewBasicAuthTransformer([]string{}, map[string]interface{}{"username": "foo", "password": "bar"})
+	transformer, _ := NewBasicAuthTransformer([]string{}, map[string]any{"username": "foo", "password": "bar"})
 	if transformer.Username != "foo" || transformer.Password != "bar" {
 		t.Error("Wrong param assignment")
 	}
@@ -34,7 +34,7 @@ func TestBasicAuthTransformer_Transform(t *testing.T) {
 	}
 }
 func TestJWTAuthTransformerPem_Transform(t *testing.T) {
-	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"pem": "etc/publicKey"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]any{"pem": "etc/publicKey"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 
@@ -69,7 +69,7 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 }
 
 func TestJWTAuthTransformerKey_Transform(t *testing.T) {
-	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"key": "foobar"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]any{"key": "foobar"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

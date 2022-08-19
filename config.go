@@ -91,9 +91,9 @@ type ResponseConfig struct {
 // ActivateOnTags is a list of tags for which this transformer will activate
 // Params is a map of configuration params for the transformer
 type TransformerConfig struct {
-	Id             string                 `yaml:"id"`
-	ActivateOnTags []string               `yaml:"activateOnTags"`
-	Params         map[string]interface{} `yaml:"params"`
+	Id             string         `yaml:"id"`
+	ActivateOnTags []string       `yaml:"activateOnTags"`
+	Params         map[string]any `yaml:"params"`
 }
 
 // SidecarConfig is the configuration of a sidecar
@@ -104,13 +104,13 @@ type TransformerConfig struct {
 // DropOnOverflow if set to true, will drop messages if the queue is blocked
 // Params is a map of configuration params for the sidecar
 type SidecarConfig struct {
-	Id             string                 `yaml:"id"`
-	ActivateOnTags []string               `yaml:"activateOnTags"`
-	Workers        int                    `yaml:"workers"`
-	Queue          int                    `yaml:"queue"`
-	Block          bool                   `yaml:"block"`
-	DropOnOverflow bool                   `yaml:"blockOnOverflow"`
-	Params         map[string]interface{} `yaml:"params"`
+	Id             string         `yaml:"id"`
+	ActivateOnTags []string       `yaml:"activateOnTags"`
+	Workers        int            `yaml:"workers"`
+	Queue          int            `yaml:"queue"`
+	Block          bool           `yaml:"block"`
+	DropOnOverflow bool           `yaml:"blockOnOverflow"`
+	Params         map[string]any `yaml:"params"`
 }
 
 // BeforeAfterConfig represents a set of transformers + sidecars to be executed before or after the rule's

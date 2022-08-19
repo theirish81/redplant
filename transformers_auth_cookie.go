@@ -20,7 +20,7 @@ type RequestCookieToTokenTransformer struct {
 }
 
 // NewCookieToTokenTransformer is the constructor for the RequestCookieToTokenTransformer
-func NewCookieToTokenTransformer(activateOnTags []string, params map[string]interface{}) (*RequestCookieToTokenTransformer, error) {
+func NewCookieToTokenTransformer(activateOnTags []string, params map[string]any) (*RequestCookieToTokenTransformer, error) {
 	transformer := RequestCookieToTokenTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &transformer, nil, []string{})
 	redisOptions, err := redis.ParseURL(transformer.RedisUri)

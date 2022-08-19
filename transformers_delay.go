@@ -20,7 +20,7 @@ type DelayTransformer struct {
 }
 
 // NewDelayTransformer is the constructor for DelayTransformer
-func NewDelayTransformer(activateOnTags []string, params map[string]interface{}) (*DelayTransformer, error) {
+func NewDelayTransformer(activateOnTags []string, params map[string]any) (*DelayTransformer, error) {
 	t := DelayTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {

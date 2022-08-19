@@ -42,7 +42,7 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 }
 
 // NewTagTransformer is the constructor for TagTransformer
-func NewTagTransformer(params map[string]interface{}) (*TagTransformer, error) {
+func NewTagTransformer(params map[string]any) (*TagTransformer, error) {
 	t := TagTransformer{}
 	err := DecodeAndTempl(params, &t, nil, []string{"Tags"})
 	return &t, err

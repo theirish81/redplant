@@ -23,7 +23,7 @@ type RequestRateLimiterTransformer struct {
 }
 
 // NewRequestRateLimiterTransformer is the constructor for RequestRateLimiterTransformer
-func NewRequestRateLimiterTransformer(activateOnTags []string, params map[string]interface{}) (*RequestRateLimiterTransformer, error) {
+func NewRequestRateLimiterTransformer(activateOnTags []string, params map[string]any) (*RequestRateLimiterTransformer, error) {
 	transformer := RequestRateLimiterTransformer{ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &transformer, nil, []string{"Vary"})
 	if err != nil {
@@ -44,7 +44,6 @@ func NewRequestRateLimiterTransformer(activateOnTags []string, params map[string
 	}
 	return &transformer, nil
 }
-
 
 // getPrometheusPrefix will return the Prometheus prefix string
 func (t *RequestRateLimiterTransformer) getPrometheusPrefix() string {

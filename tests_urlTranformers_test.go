@@ -7,7 +7,7 @@ import (
 )
 
 func TestRequestUrlTransformer_Transform(t *testing.T) {
-	transformer, _ := NewRequestUrlTransformerFromParams([]string{}, map[string]interface{}{"oldPrefix": "/foo", "newPrefix": "/bar"})
+	transformer, _ := NewRequestUrlTransformerFromParams([]string{}, map[string]any{"oldPrefix": "/foo", "newPrefix": "/bar"})
 	req := http.Request{}
 	req.URL, _ = url.Parse("https://example.com/foo")
 	wrapper := APIWrapper{Request: &req}
