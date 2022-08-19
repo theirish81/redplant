@@ -11,11 +11,29 @@ type LogHelper struct {
 	logger *logrus.Logger
 }
 
-func (h *LogHelper) Info(message string, meta logrus.Fields) {
+func (h *LogHelper) wrapperToMap(wrapper *APIWrapper) map[string]interface{} {
+	data := map[string]interface{}{}
+	data["remote_addr"] = wrapper.Request.RemoteAddr
+	data["url"] = wrapper.Request.URL.String()
+	data["method"] = wrapper.Request.Method
+	data["tags"] = wrapper.Tags
+
+	if wrapper.Response != nil {
+		data["status"] = wrapper.Response.Status
+		data["tags"] = wrapper.Tags
+	}
+	return data
+}
+
+func (h *LogHelper) Log(message string, wrapper *APIWrapper, fn func(message string, meta map[string]any)) {
+	fn(message, h.wrapperToMap(wrapper))
+}
+
+func (h *LogHelper) Info(message string, meta map[string]any) {
 	h.logger.WithFields(meta).Info(message)
 }
 
-func (h *LogHelper) Warn(message string, err error, meta logrus.Fields) {
+func (h *LogHelper) Warn(message string, err error, meta map[string]any) {
 	if meta == nil {
 		meta = logrus.Fields{}
 	}
@@ -23,7 +41,7 @@ func (h *LogHelper) Warn(message string, err error, meta logrus.Fields) {
 	h.logger.WithFields(meta).Warn(message)
 }
 
-func (h *LogHelper) Error(message string, err error, meta logrus.Fields) {
+func (h *LogHelper) Error(message string, err error, meta map[string]any) {
 	if meta == nil {
 		meta = logrus.Fields{}
 	}
@@ -31,7 +49,7 @@ func (h *LogHelper) Error(message string, err error, meta logrus.Fields) {
 	h.logger.WithFields(meta).Error(message)
 }
 
-func (h *LogHelper) Fatal(message string, err error, meta logrus.Fields) {
+func (h *LogHelper) Fatal(message string, err error, meta map[string]any) {
 	if meta == nil {
 		meta = logrus.Fields{}
 	}

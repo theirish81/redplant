@@ -20,8 +20,7 @@ func (s *RequestAccessLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				req := msg.Request
-				s.log.Info("request access", logrus.Fields{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.Host + req.URL.String(), "tags": msg.Tags})
+				s.log.Log("request access", msg, s.log.Info)
 			}
 		}()
 	}
@@ -78,9 +77,7 @@ func (s *UpstreamAccessLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				res := msg.Response
-				req := res.Request
-				log.Info("upstream access", logrus.Fields{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.URL.String(), "status": res.StatusCode, "tags": msg.Tags})
+				s.log.Log("upstream access", msg, s.log.Info)
 			}
 		}()
 	}
