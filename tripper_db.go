@@ -38,9 +38,9 @@ func toJSON(rows *sql.Rows) ([]byte, error) {
 		return nil, err
 	}
 	count := len(columnTypes)
-	finalRows := make([]interface{}, 0)
+	finalRows := make([]any, 0)
 	for rows.Next() {
-		scanArgs := make([]interface{}, count)
+		scanArgs := make([]any, count)
 		for i, v := range columnTypes {
 			switch v.DatabaseTypeName() {
 			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":

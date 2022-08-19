@@ -50,7 +50,7 @@ func (t *JWTAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	token := strings.TrimSpace(header[7:])
 	claims := jwt.MapClaims{}
 	// Parsing with signature check and claims extraction
-	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (any, error) {
 		// If we have a public _key, we'll use that
 		if t._publicKey != nil {
 			return t._publicKey, nil

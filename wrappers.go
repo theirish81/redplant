@@ -15,7 +15,7 @@ type APIWrapper struct {
 	Response          *http.Response
 	ResponseWriter    http.ResponseWriter
 	RequestBody       []byte
-	ParsedRequestBody interface{}
+	ParsedRequestBody any
 	ResponseBody      []byte
 	Claims            *jwt.MapClaims
 	Rule              *Rule

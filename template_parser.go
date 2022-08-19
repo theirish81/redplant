@@ -10,7 +10,7 @@ import "text/template"
 
 // Templ evaluates a template against a scope. If the provided scope is nil, a scope will get created containing
 // a "Variables" object, directed from Config
-func Templ(data string, scope interface{}) (string, error) {
+func Templ(data string, scope any) (string, error) {
 	templ := template.New("Templ")
 	templ, err := templ.Parse(data)
 	if err != nil {
@@ -28,7 +28,7 @@ func Templ(data string, scope interface{}) (string, error) {
 // DecodeAndTempl will decode a map[string]any into a target data structure. Then it will evaluate all the
 // templates found in the decoded structure, against a provided scope (see Templ). Evaluation will not trigger for
 // any field listed in the excludeVal array
-func DecodeAndTempl(data map[string]any, target interface{}, scope interface{}, excludeEval []string) error {
+func DecodeAndTempl(data map[string]any, target any, scope any, excludeEval []string) error {
 	err := mapstructure.Decode(data, target)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func DecodeAndTempl(data map[string]any, target interface{}, scope interface{}, 
 
 // templFieldSet will recursively evaluate templates for a set of fields, against a provided scope (see Templ).
 // Any field with a name that is present in the excludedVal array will not be evaluated
-func templFieldSet(target interface{}, scope interface{}, excludeEval []string) {
+func templFieldSet(target any, scope any, excludeEval []string) {
 	objectType := reflect.ValueOf(target).Type().String()
 	switch objectType {
 	// If it's a map of strings...

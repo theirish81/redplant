@@ -6,8 +6,8 @@ import (
 )
 
 func TestConvertMaps(t *testing.T) {
-	data := map[interface{}]interface{}{}
-	data["foo"] = map[interface{}]interface{}{"foo": map[interface{}]interface{}{"foo": 22}}
+	data := map[any]any{}
+	data["foo"] = map[any]any{"foo": map[any]any{"foo": 22}}
 	d2 := convertMaps(data)
 	if reflect.ValueOf(d2).Type().String() != "map[string]interface {}" {
 		t.Error("First level conversion failed")

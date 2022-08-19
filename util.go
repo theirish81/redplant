@@ -46,7 +46,7 @@ func hasPrefixes(data string, prefixes []string) bool {
 }
 
 // isString given an interface, it will return true if the data type is a string
-func isString(data interface{}) bool {
+func isString(data any) bool {
 	if data == nil {
 		return false
 	}
@@ -71,21 +71,21 @@ func parseBasicAuth(auth string) (username, password string, ok bool) {
 	return cs[:s], cs[s+1:], true
 }
 
-// convertMaps will recursively go through a nested structure and converting map[interface{}]interface{} to
+// convertMaps will recursively go through a nested structure and converting map[any]any to
 // map[string]any
-func convertMaps(intf interface{}) interface{} {
+func convertMaps(intf any) any {
 	switch obj := intf.(type) {
 	case map[string]any:
 		for k, v := range obj {
 			obj[k] = convertMaps(v)
 		}
-	case map[interface{}]interface{}:
+	case map[any]any:
 		nuMap := map[string]any{}
 		for k, v := range obj {
 			nuMap[k.(string)] = convertMaps(v)
 		}
 		return nuMap
-	case []interface{}:
+	case []any:
 		for index, object := range obj {
 			obj[index] = convertMaps(object)
 		}
