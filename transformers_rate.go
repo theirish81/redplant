@@ -46,14 +46,6 @@ func NewRequestRateLimiterTransformer(activateOnTags []string, logCfg *STLogConf
 	return &transformer, nil
 }
 
-// getPrometheusPrefix will return the Prometheus prefix string
-func (t *RequestRateLimiterTransformer) getPrometheusPrefix() string {
-	if t.PrometheusPrefix == "" {
-		return "rate_rejections"
-	}
-	return "rate_rejections_" + t.PrometheusPrefix
-}
-
 func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering rate limiter", wrapper, t.log.Debug)
 	// compiling the `vary` template in real time
@@ -69,9 +61,7 @@ func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrap
 	current := cmd.Val()
 	// if the retrieved count is greater than the configured limit
 	if current > t.Limit {
-		if prom != nil {
-			prom.CustomCounter(t.getPrometheusPrefix()).Inc()
-		}
+		t.log.PrometheusCounterInc("rate_limited")
 		t.log.LogErr("rate limited. Request dropped", nil, wrapper, t.log.Warn)
 		// we cut the request and return an error
 		return nil, errors.New("rate_limit")

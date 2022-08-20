@@ -45,6 +45,7 @@ func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, erro
 		return wrapper, nil
 	} else {
 		t.log.Log("basic auth denied", wrapper, t.log.Debug)
+		t.log.PrometheusCounterInc("basic_auth_denied")
 		// If nothing works, then no_auth
 		return nil, errors.New("no_auth")
 	}

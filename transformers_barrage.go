@@ -90,14 +90,17 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {
 		if t._headerRegexp != nil && t._headerRegexp.MatchString(k+":"+v[0]) {
+			t.log.PrometheusCounterInc("request_barraged")
 			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerNameRegexp != nil && t._headerNameRegexp.MatchString(k) {
+			t.log.PrometheusCounterInc("request_barraged")
 			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerValueRegexp != nil && t._headerValueRegexp.MatchString(v[0]) {
+			t.log.PrometheusCounterInc("request_barraged")
 			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}

@@ -47,6 +47,7 @@ func (t *JWTAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// if no Bearer prefix, then we have no auth
 	if !strings.HasPrefix(header, "Bearer") {
 		t.log.Log("no auth header provided", wrapper, t.log.Debug)
+		t.log.PrometheusCounterInc("jwt_auth_denied")
 		return nil, errors.New("no_auth")
 	}
 
@@ -64,6 +65,9 @@ func (t *JWTAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	})
 	// Storing claims in the wrapper
 	wrapper.Claims = &claims
+	if err != nil {
+		t.log.PrometheusCounterInc("jwt_auth_denied")
+	}
 	return wrapper, err
 }
 

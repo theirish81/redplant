@@ -46,6 +46,7 @@ func (t *RequestCookieToTokenTransformer) Transform(wrapper *APIWrapper) (*APIWr
 	if cmd.Err() != nil {
 		if cmd.Err() == redis.Nil {
 			t.log.Log("no auth", wrapper, t.log.Debug)
+			t.log.PrometheusCounterInc("cookie_to_token_auth_denied")
 			return nil, errors.New("no_auth")
 		}
 		t.log.LogErr("something wrong while retrieving token from Redis", err, wrapper, t.log.Error)

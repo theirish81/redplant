@@ -30,6 +30,7 @@ func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWr
 	}
 	err = openapi3filter.ValidateRequest(wrapper.Request.Context(), requestValidationInput)
 	if err != nil {
+		t.log.PrometheusCounterInc("openapi_validation_failed")
 		t.log.LogErr("validation error in OpenAPI", err, wrapper, t.log.Warn)
 		err = errors.New("validation_error: " + err.Error())
 	}
