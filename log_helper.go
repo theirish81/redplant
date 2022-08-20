@@ -42,6 +42,7 @@ func (h *LogHelper) adjustMeta(meta map[string]any) map[string]any {
 	if meta == nil {
 		meta = map[string]any{}
 	}
+	meta["component"] = "redplant"
 	if _, ok := meta["module"]; !ok {
 		meta["module"] = h.extractCaller()
 	}
