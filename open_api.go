@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
-	"github.com/sirupsen/logrus"
 	"net/url"
 	"regexp"
 )
@@ -31,14 +30,14 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) RulesMap {
 		// first we load and parse the OpenAPI spec
 		oa, err := loadOpenAPI(*cfg)
 		if err != nil {
-			log.Error("could not load the OpenAPI spec", err, logrus.Fields{"file": cfg.File})
+			log.Error("could not load the OpenAPI spec", err, AnyMap{"file": cfg.File})
 			continue
 		}
 		// Servers can contain multiple items. We will pick one based on the configuration. We pare it into a URL
 		// for ease of use. Partial URLs are not acceptable because they defeat the purpose
 		serverURL, err := url.Parse(oa.Servers[cfg.ServerIndex].URL)
 		if err != nil {
-			log.Error("could not parse server URL in OpenAPI spec", err, logrus.Fields{"url": oa.Servers[cfg.ServerIndex].URL})
+			log.Error("could not parse server URL in OpenAPI spec", err, AnyMap{"url": oa.Servers[cfg.ServerIndex].URL})
 			continue
 		}
 		// As the `Servers` definition may include not only a protocol and a host, but also a partial path, we extract it

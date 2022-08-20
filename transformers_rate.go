@@ -20,11 +20,12 @@ type RequestRateLimiterTransformer struct {
 	Range            string
 	_range           time.Duration
 	PrometheusPrefix string
+	log              *STLogHelper
 }
 
 // NewRequestRateLimiterTransformer is the constructor for RequestRateLimiterTransformer
-func NewRequestRateLimiterTransformer(activateOnTags []string, params map[string]any) (*RequestRateLimiterTransformer, error) {
-	transformer := RequestRateLimiterTransformer{ActivateOnTags: activateOnTags}
+func NewRequestRateLimiterTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestRateLimiterTransformer, error) {
+	transformer := RequestRateLimiterTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &transformer, nil, []string{"Vary"})
 	if err != nil {
 		return nil, err
@@ -54,6 +55,7 @@ func (t *RequestRateLimiterTransformer) getPrometheusPrefix() string {
 }
 
 func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering rate limiter", wrapper, t.log.Debug)
 	// compiling the `vary` template in real time
 	vary, _ := Templ(t.Vary, wrapper)
 	// getting the length of the item retrieved with the value of `vary` as key
@@ -61,7 +63,7 @@ func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrap
 	// setting response header displaying the rate limit
 	wrapper.ApplyHeaders.Set("RateLimit-Limit", fmt.Sprintf("%d %d;window=%d", t.Limit, t.Limit, int(t._range.Seconds())))
 	if cmd.Err() != nil {
-		log.Error("error while reading length from redis", cmd.Err(), nil)
+		t.log.LogErr("error while reading length from redis", cmd.Err(), wrapper, t.log.Error)
 		return wrapper, nil
 	}
 	current := cmd.Val()
@@ -70,6 +72,7 @@ func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrap
 		if prom != nil {
 			prom.CustomCounter(t.getPrometheusPrefix()).Inc()
 		}
+		t.log.LogErr("rate limited. Request dropped", nil, wrapper, t.log.Warn)
 		// we cut the request and return an error
 		return nil, errors.New("rate_limit")
 	} else {
@@ -79,11 +82,11 @@ func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrap
 			pipeline := t.redisClient.TxPipeline()
 			// we push the item
 			if err := pipeline.RPush(context.Background(), vary, vary).Err(); err != nil {
-				log.Error("error while pushing to Redis in rate limiter", err, nil)
+				t.log.LogErr("error while pushing to Redis in rate limiter", err, wrapper, t.log.Error)
 			}
 			// set the expiry time
 			if err := pipeline.Expire(context.Background(), vary, t._range).Err(); err != nil {
-				log.Error("error while setting Redis TTL in rate limiter", err, nil)
+				t.log.LogErr("error while setting Redis TTL in rate limiter", err, wrapper, t.log.Error)
 			}
 			// and execute the pipeline
 			if _, err := pipeline.Exec(context.Background()); err != nil {

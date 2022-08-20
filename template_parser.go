@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sirupsen/logrus"
 	"reflect"
 )
 import "text/template"
@@ -68,7 +67,7 @@ func templFieldSet(target any, scope any, excludeEval []string) {
 					// Evaluating the template
 					parsed, err := Templ(val.Field(i).String(), scope)
 					if err != nil {
-						log.Warn("Error while compiling template", err, logrus.Fields{"template": val.Field(i).String()})
+						log.Warn("Error while compiling template", err, AnyMap{"template": val.Field(i).String()})
 					}
 					// Setting the value
 					val.Field(i).Set(reflect.ValueOf(parsed))

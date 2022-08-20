@@ -9,15 +9,18 @@ import (
 
 type RequestOpenAPISchemaTransformer struct {
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
-func NewRequestOpenAPIValidatorTransformer(activateOnTags []string) (*RequestOpenAPISchemaTransformer, error) {
-	return &RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags}, nil
+func NewRequestOpenAPIValidatorTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestOpenAPISchemaTransformer, error) {
+	return &RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}, nil
 }
 
 func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering request OpenAPI schema transformer", wrapper, t.log.Debug)
 	route, params, err := (*wrapper.Rule.oaRouter).FindRoute(wrapper.Request)
 	if err != nil {
+		t.log.LogErr("problem finding route in OpenAPI", err, wrapper, t.log.Warn)
 		return wrapper, err
 	}
 	requestValidationInput := &openapi3filter.RequestValidationInput{
@@ -27,6 +30,7 @@ func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWr
 	}
 	err = openapi3filter.ValidateRequest(wrapper.Request.Context(), requestValidationInput)
 	if err != nil {
+		t.log.LogErr("validation error in OpenAPI", err, wrapper, t.log.Warn)
 		err = errors.New("validation_error: " + err.Error())
 	}
 	return wrapper, err

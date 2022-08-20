@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -17,11 +18,12 @@ type DelayTransformer struct {
 	Min            string
 	Max            string
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 // NewDelayTransformer is the constructor for DelayTransformer
-func NewDelayTransformer(activateOnTags []string, params map[string]any) (*DelayTransformer, error) {
-	t := DelayTransformer{ActivateOnTags: activateOnTags}
+func NewDelayTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*DelayTransformer, error) {
+	t := DelayTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -40,6 +42,7 @@ func NewDelayTransformer(activateOnTags []string, params map[string]any) (*Delay
 func (t *DelayTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	timeRange := t._max.Nanoseconds() - t._min.Nanoseconds()
 	nanos := t._min.Nanoseconds() + rand.Int63n(timeRange)
+	t.log.Log("delaying request by "+fmt.Sprintf("%d", nanos/1000)+"ms", wrapper, t.log.Debug)
 	time.Sleep(time.Duration(nanos))
 	return wrapper, nil
 }

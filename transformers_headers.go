@@ -7,9 +7,11 @@ type RequestHeaderTransformer struct {
 	Set            StringMap
 	Remove         []string
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 func (t *RequestHeaderTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering request header transformation", wrapper, t.log.Debug)
 	for hk, hv := range t.Set {
 		hv, err := wrapper.Templ(hv)
 		if err != nil {
@@ -38,8 +40,8 @@ func (t *RequestHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewRequestHeadersTransformerFromParams is the constructor for RequestHeaderTransformer
-func NewRequestHeadersTransformerFromParams(activateOnTags []string, params map[string]any) (*RequestHeaderTransformer, error) {
-	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags}
+func NewRequestHeadersTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestHeaderTransformer, error) {
+	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
@@ -49,16 +51,18 @@ type ResponseHeaderTransformer struct {
 	Set            StringMap
 	Remove         []string
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 // NewResponseHeadersTransformerFromParams is the constructor for ResponseHeaderTransformer
-func NewResponseHeadersTransformerFromParams(activateOnTags []string, params map[string]any) (*ResponseHeaderTransformer, error) {
-	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags}
+func NewResponseHeadersTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ResponseHeaderTransformer, error) {
+	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
 
 func (t *ResponseHeaderTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering response header transformation", wrapper, t.log.Debug)
 	for hk, hv := range t.Set {
 		wrapper.Response.Header.Set(hk, hv)
 	}

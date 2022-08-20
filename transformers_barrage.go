@@ -27,11 +27,12 @@ type BarrageTransformer struct {
 	_bodyRegexp        *regexp.Regexp
 	response           bool
 	ActivateOnTags     []string
+	log                *STLogHelper
 }
 
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
-func NewBarrageRequestTransformer(activateOnTags []string, params map[string]any) (*BarrageTransformer, error) {
-	t := BarrageTransformer{ActivateOnTags: activateOnTags}
+func NewBarrageRequestTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
+	t := BarrageTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -65,14 +66,15 @@ func NewBarrageRequestTransformer(activateOnTags []string, params map[string]any
 }
 
 // NewBarrageResponseTransformer is the constructor for the BarrageTransformer dedicated to the request
-func NewBarrageResponseTransformer(activateOnTags []string, params map[string]any) (*BarrageTransformer, error) {
-	transformer, err := NewBarrageRequestTransformer(activateOnTags, params)
+func NewBarrageResponseTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
+	transformer, err := NewBarrageRequestTransformer(activateOnTags, logCfg, params)
 	transformer.response = true
 	return transformer, err
 }
 
 // Transform will block the request if the preconditions are not met
 func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("barrage triggered", wrapper, t.log.Debug)
 	var headers *http.Header
 	var body *[]byte
 	// As the implementation of this transformer is identical for the request and the response, we determine
@@ -88,15 +90,19 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {
 		if t._headerRegexp != nil && t._headerRegexp.MatchString(k+":"+v[0]) {
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerNameRegexp != nil && t._headerNameRegexp.MatchString(k) {
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerValueRegexp != nil && t._headerValueRegexp.MatchString(v[0]) {
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 	}
+	t.log.Log("barrage agrees with this request", wrapper, t.log.Debug)
 	// Similarly, we determine whether the body matches the regexp. If it does, we barrage
 	if t._bodyRegexp != nil && t._bodyRegexp.Match(*body) {
 		return wrapper, errors.New("barraged")

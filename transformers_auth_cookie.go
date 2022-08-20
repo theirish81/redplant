@@ -17,11 +17,12 @@ type RequestCookieToTokenTransformer struct {
 	RedisUri       string
 	CookieName     string
 	redisClient    *redis.Client
+	log            *STLogHelper
 }
 
 // NewCookieToTokenTransformer is the constructor for the RequestCookieToTokenTransformer
-func NewCookieToTokenTransformer(activateOnTags []string, params map[string]any) (*RequestCookieToTokenTransformer, error) {
-	transformer := RequestCookieToTokenTransformer{ActivateOnTags: activateOnTags}
+func NewCookieToTokenTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestCookieToTokenTransformer, error) {
+	transformer := RequestCookieToTokenTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &transformer, nil, []string{})
 	redisOptions, err := redis.ParseURL(transformer.RedisUri)
 	if err != nil {
@@ -36,6 +37,7 @@ func NewCookieToTokenTransformer(activateOnTags []string, params map[string]any)
 }
 
 func (t *RequestCookieToTokenTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("cookie-to-token auth triggered", wrapper, t.log.Debug)
 	cookie, err := wrapper.Request.Cookie(t.CookieName)
 	if err != nil {
 		return nil, errors.New("no_auth")
@@ -43,10 +45,13 @@ func (t *RequestCookieToTokenTransformer) Transform(wrapper *APIWrapper) (*APIWr
 	cmd := t.redisClient.Get(context.Background(), cookie.Value)
 	if cmd.Err() != nil {
 		if cmd.Err() == redis.Nil {
+			t.log.Log("no auth", wrapper, t.log.Debug)
 			return nil, errors.New("no_auth")
 		}
+		t.log.LogErr("something wrong while retrieving token from Redis", err, wrapper, t.log.Error)
 		return nil, cmd.Err()
 	}
+	t.log.Log("cookie-to-token auth granted", wrapper, t.log.Debug)
 	wrapper.Request.Header.Set("Authorization", "Bearer "+cmd.Val())
 	return wrapper, nil
 }

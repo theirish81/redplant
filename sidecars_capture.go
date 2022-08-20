@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"regexp"
 	"time"
@@ -96,7 +95,7 @@ type CaptureSidecar struct {
 	httpClient                 *http.Client
 	Headers                    StringMap
 	Timeout                    string
-	logger                     *LogHelper
+	logger                     *STLogHelper
 	Format                     string
 	ActivateOnTags             []string
 }
@@ -118,18 +117,8 @@ func (s *CaptureSidecar) Consume(quantity int) {
 		}
 		s.httpClient = &http.Client{Timeout: to}
 		captureFunc = s.CaptureHttp
-	} else {
-		// Otherwise, it's a local file. However, we want to check whether it's a path or a file URI
-		var err error
-		s.Uri, err = FileNameFormat(s.Uri)
-		if err != nil {
-			log.Error("Could not parse capture URI. Disabling sidecar", err, nil)
-			return
-		}
-		// Creating logger and assigning local logging function
-		s.logger = NewLogHelperFromConfig(LoggerConfig{Path: s.Uri, Format: s.Format, Level: "info"})
-		captureFunc = s.CaptureLogger
 	}
+	captureFunc = s.CaptureLogger
 
 	// For each worker...
 	for i := 0; i < quantity; i++ {
@@ -167,7 +156,7 @@ func (s *CaptureSidecar) CaptureHttp(data []byte) {
 	reader := bytes.NewReader(data)
 	outboundRequest, err := http.NewRequest("POST", s.Uri, reader)
 	if err != nil {
-		log.Error("Error creating the request during capture", err, logrus.Fields{"uri": s.Uri})
+		log.Error("Error creating the request during capture", err, AnyMap{"uri": s.Uri})
 		return
 	}
 	outboundRequest.Header.Set("content-type", "application/json")
@@ -216,7 +205,7 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params AnyMap) (*CaptureSidecar, error) {
+func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, params AnyMap) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	err := DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
@@ -234,5 +223,6 @@ func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, act
 			return nil, err
 		}
 	}
+	sidecar.logger = NewSTLogHelper(logCfg)
 	return &sidecar, nil
 }

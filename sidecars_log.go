@@ -1,11 +1,9 @@
 package main
 
-import "github.com/sirupsen/logrus"
-
 // RequestAccessLogSidecar logs the inbound access requests
 type RequestAccessLogSidecar struct {
 	channel        chan *APIWrapper
-	log            *LogHelper
+	log            *STLogHelper
 	block          bool
 	dropOnOverflow bool
 	Path           string
@@ -45,24 +43,16 @@ func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params AnyMap) (*RequestAccessLogSidecar, error) {
-	logger := log
+func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*RequestAccessLogSidecar, error) {
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
+	sidecar.log = NewSTLogHelper(logCfg)
 	return &sidecar, nil
 }
 
 // UpstreamAccessLogSidecar logs the accesses to the upstream server, once the conversation has happened
 type UpstreamAccessLogSidecar struct {
 	channel        chan *APIWrapper
-	log            *LogHelper
+	log            *STLogHelper
 	block          bool
 	dropOnOverflow bool
 	Path           string
@@ -102,23 +92,15 @@ func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params AnyMap) (*UpstreamAccessLogSidecar, error) {
-	logger := log
+func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*UpstreamAccessLogSidecar, error) {
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
-	return &sidecar, err
+	sidecar.log = NewSTLogHelper(logCfg)
+	return &sidecar, nil
 }
 
 type MetricsLogSidecar struct {
 	channel          chan *APIWrapper
-	log              *LogHelper
+	log              *STLogHelper
 	block            bool
 	dropOnOverflow   bool
 	Path             string
@@ -148,7 +130,7 @@ func (s *MetricsLogSidecar) Consume(quantity int) {
 					prom.CustomSummary(s.getPrometheusPrefix() + "_res_transformation").Observe(float64(msg.Metrics.ResTransformation()))
 				}
 				if s.isTextEnabled() {
-					log.Info("metrics", logrus.Fields{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
+					s.log.Info("metrics", AnyMap{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
 				}
 			}
 		}()
@@ -182,16 +164,8 @@ func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params AnyMap) (*MetricsLogSidecar, error) {
-	logger := log
+func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*MetricsLogSidecar, error) {
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
+	sidecar.log = NewSTLogHelper(logCfg)
 	return &sidecar, nil
 }

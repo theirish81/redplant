@@ -22,6 +22,7 @@ type JWTAuthTransformer struct {
 	Pem            string
 	Key            string
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 func (t *JWTAuthTransformer) ShouldExpandRequest() bool {
@@ -39,10 +40,13 @@ func (t *JWTAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 // Transform will block any request without a Bearer token or a token whose signature cannot be verified.
 // In addition, it will store claims in the wrapper.
 func (t *JWTAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("JWT auth triggered", wrapper, t.log.Debug)
+
 	header := wrapper.Request.Header.Get("authorization")
 
 	// if no Bearer prefix, then we have no auth
 	if !strings.HasPrefix(header, "Bearer") {
+		t.log.Log("no auth header provided", wrapper, t.log.Debug)
 		return nil, errors.New("no_auth")
 	}
 
@@ -72,8 +76,8 @@ func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
 }
 
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params
-func NewJWTAuthTransformer(activateOnTags []string, params map[string]any) (*JWTAuthTransformer, error) {
-	t := JWTAuthTransformer{ActivateOnTags: activateOnTags}
+func NewJWTAuthTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*JWTAuthTransformer, error) {
+	t := JWTAuthTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
@@ -114,6 +118,7 @@ type JWTSignTransformer struct {
 	ExistingClaims bool
 	Claims         map[string]any
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 func (t *JWTSignTransformer) ShouldExpandRequest() bool {
@@ -136,19 +141,23 @@ func (t *JWTSignTransformer) IsActive(wrapper *APIWrapper) bool {
 
 // Transform adds the JWT token to the request
 func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("JWT sign triggered", wrapper, t.log.Debug)
 	var token *jwt.Token = nil
 	var signedString = ""
 	var err error
 	// If ExistingClaims is true, then we'll take the claims from the wrapper
 	if t.ExistingClaims {
+		t.log.Log("carrying existing claims to token", wrapper, t.log.Debug)
 		token = jwt.NewWithClaims(jwt.SigningMethodRS256, wrapper.Claims)
 	} else {
+		t.log.Log("composing new claims", wrapper, t.log.Debug)
 		// If it's not true, then we build some hand crafter claims
 		claims := jwt.MapClaims{}
 		for k, v := range t.Claims {
 			if isString(v) {
 				parsedClaim, err := Templ(v.(string), wrapper)
 				if err != nil {
+					t.log.LogErr("unable to parse claims", err, wrapper, t.log.Error)
 					return nil, err
 				}
 				claims[k] = parsedClaim
@@ -163,22 +172,25 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	if t._privateKey != nil {
 		signedString, err = token.SignedString(t._privateKey)
 		if err != nil {
+			t.log.LogErr("unable to sign token", err, wrapper, log.Error)
 			return nil, err
 		}
 	} else {
 		// If we've been provided a key in the conf, then we use it to sign
 		signedString, err = token.SignedString(t._key)
 		if err != nil {
+			t.log.LogErr("unable to sign token", err, wrapper, log.Error)
 			return nil, err
 		}
 	}
+	t.log.Log("JWT sign succeeded", wrapper, t.log.Debug)
 	wrapper.Request.Header.Set("authorization", "Bearer "+signedString)
 	return wrapper, nil
 }
 
 // NewJWTSignTransformer is the constructor for the JWTSignTransformer
-func NewJWTSignTransformer(activateOnTags []string, params map[string]any) (*JWTSignTransformer, error) {
-	t := JWTSignTransformer{ActivateOnTags: activateOnTags}
+func NewJWTSignTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*JWTSignTransformer, error) {
+	t := JWTSignTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 
 	err := DecodeAndTempl(params, &t, nil, []string{"Claims"})
 	t.Claims = convertMaps(t.Claims).(map[string]any)

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -63,7 +62,7 @@ func SetupRouter() *mux.Router {
 				if prom != nil {
 					prom.InternalErrorsCounter.Inc()
 				}
-				log.Error("Error while serving resource", err, logrus.Fields{"url": request.URL.String()})
+				log.Error("Error while serving resource", err, AnyMap{"url": request.URL.String()})
 				writer.WriteHeader(500)
 			}
 		},

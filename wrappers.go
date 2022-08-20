@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"time"
@@ -11,6 +12,7 @@ import (
 
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
+	ID                string
 	Request           *http.Request
 	Response          *http.Response
 	ResponseWriter    http.ResponseWriter
@@ -34,7 +36,7 @@ type APIWrapper struct {
 // Clone will do sort of a somewhat shallow clone of the wrapper. This is useful when sending the wrapper is being
 // sent to a sidecar but also transformers apply. If we didn't clone, results may vary on timing
 func (w *APIWrapper) Clone() *APIWrapper {
-	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
+	return &APIWrapper{ID: w.ID, Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
 		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
 		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
@@ -123,6 +125,7 @@ func (m *APIMetrics) ResTransformation() int64 {
 func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule *Rule) *http.Request {
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
+		ID:             uuid.New().String(),
 		Tags:           []string{},
 		Variables:      &config.Variables,
 		RealIP:         addresser.RealIP(req),

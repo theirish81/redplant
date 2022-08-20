@@ -14,6 +14,7 @@ type RequestUrlTransformer struct {
 	NewPrefix      string `yaml:"newPrefix"`
 	Query          Query
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 // Query is a collection of operations to apply to the query
@@ -25,11 +26,13 @@ type Query struct {
 }
 
 func (t *RequestUrlTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("request url transformer triggered", wrapper, t.log.Debug)
 	path := wrapper.Request.URL.Path
 	// if we have an OldPrefix...
 	if len(t.OldPrefix) > 0 {
 		// ... then if the path has that OldPrefix
 		if strings.HasPrefix(path, t.OldPrefix) {
+			t.log.Log("url transformed", wrapper, t.log.Debug)
 			// we replace the OldPrefix with the NewPrefix
 			wrapper.Request.URL.Path = strings.Replace(path, t.OldPrefix, t.NewPrefix, 1)
 		}
@@ -67,8 +70,8 @@ func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewRequestUrlTransformerFromParams is the constructor for RequestUrlTransformer
-func NewRequestUrlTransformerFromParams(activateOnTags []string, params map[string]any) (*RequestUrlTransformer, error) {
-	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags}
+func NewRequestUrlTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestUrlTransformer, error) {
+	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &transformer, nil, []string{"Query"})
 	return &transformer, err
 }
