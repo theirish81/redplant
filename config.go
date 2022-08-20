@@ -86,10 +86,15 @@ type ResponseConfig struct {
 }
 
 type STLogConfig struct {
-	Level      string `yaml:"level"`
-	Path       string `yaml:"path"`
-	Format     string `yaml:"format"`
-	Prometheus bool   `yaml:"prometheus"`
+	Level      string             `yaml:"level"`
+	Path       string             `yaml:"path"`
+	Format     string             `yaml:"format"`
+	Prometheus STPrometheusConfig `yaml:"prometheus"`
+}
+
+type STPrometheusConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Prefix  string `yaml:"prefix"`
 }
 
 // TransformerConfig is the base transformer configuration

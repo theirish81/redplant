@@ -49,8 +49,19 @@ func (h *LogHelper) adjustMeta(meta map[string]any) map[string]any {
 	return meta
 }
 
+func (h *LogHelper) addMeta(meta map[string]any, more map[string]any) map[string]any {
+	for k, v := range more {
+		meta[k] = v
+	}
+	return meta
+}
+
 func (h *LogHelper) Log(message string, wrapper *APIWrapper, fn func(message string, meta map[string]any)) {
 	fn(message, h.wrapperToMap(wrapper))
+}
+
+func (h *LogHelper) LogWithMeta(message string, wrapper *APIWrapper, meta map[string]any, fn func(message string, meta map[string]any)) {
+	fn(message, h.addMeta(h.wrapperToMap(wrapper), meta))
 }
 
 func (h *LogHelper) LogErr(message string, err error, wrapper *APIWrapper, fn func(message string, err error, meta map[string]any)) {
@@ -124,12 +135,38 @@ func NewLogHelperFromConfig(cfg LoggerConfig) *LogHelper {
 
 type STLogHelper struct {
 	LogHelper
+	prometheusEnabled bool
+	prometheusPrefix  string
+}
+
+func (l *STLogHelper) PrometheusCounterAdd(name string, inc int) {
+	if prom != nil {
+		prom.CustomCounter(l.prometheusPrefix + name).Add(float64(inc))
+	}
+}
+func (l *STLogHelper) PrometheusCounterInc(name string) {
+	if prom != nil {
+		prom.CustomCounter(l.prometheusPrefix + name).Inc()
+	}
+}
+
+func (l *STLogHelper) PrometheusSummaryObserve(name string, data int64) {
+	if prom != nil {
+		prom.CustomSummary(l.prometheusPrefix + name).Observe(float64(data))
+	}
 }
 
 func NewSTLogHelper(config *STLogConfig) *STLogHelper {
+	helper := STLogHelper{LogHelper: *log}
 	if config != nil {
-		return &STLogHelper{LogHelper: *NewLogHelperFromConfig(LoggerConfig{Path: config.Path, Level: config.Level, Format: config.Format})}
-	} else {
-		return &STLogHelper{LogHelper: *log}
+		helper.LogHelper = *NewLogHelperFromConfig(LoggerConfig{Path: config.Path, Level: config.Level, Format: config.Format})
+		if config.Prometheus.Enabled {
+			helper.prometheusEnabled = true
+			if len(config.Prometheus.Prefix) > 0 {
+				helper.prometheusPrefix = config.Prometheus.Prefix + "_"
+			}
+
+		}
 	}
+	return &helper
 }
