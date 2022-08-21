@@ -1,5 +1,5 @@
 # Prometheus support
-Support for prometheus metrics is still in its infancy, but will grow.
+Support for Prometheus metrics is evolving and not yet to its final state.
 
 ## General configuration
 In the main config file, add the following object:
@@ -30,6 +30,9 @@ The `prefix` field will prepend a string to the name of the `summary` so that yo
 but it's totally optional.
 
 ## Metrics exposed by component
+Not all components will publish Prometheus metrics. Here's an incomplete list of which metrics will be published
+if you enable the integration.
+More will be added in the future.
 
 ### metricsLog
 * `transaction` : summary
