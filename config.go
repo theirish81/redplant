@@ -85,6 +85,11 @@ type ResponseConfig struct {
 	_sidecars     *ResponseSidecars
 }
 
+// STLogConfig is a specialised logging configuration for transformers and sidecars
+// Level is the level of the logger
+// Path is a path to a file, in case you want to log to a file. Leave empty for stdout
+// Format the format of the log. Can either be JSON or simple
+// Prometheus holds the Prometheus configuration
 type STLogConfig struct {
 	Level      string             `yaml:"level"`
 	Path       string             `yaml:"path"`
@@ -92,6 +97,9 @@ type STLogConfig struct {
 	Prometheus STPrometheusConfig `yaml:"prometheus"`
 }
 
+// STPrometheusConfig is the configuration of Prometheus, for a specific sidecar or transformer
+// Enabled will enable the integration, if set to true
+// Prefix will be used as a prefix for the collected metric
 type STPrometheusConfig struct {
 	Enabled bool   `yaml:"enabled"`
 	Prefix  string `yaml:"prefix"`
@@ -260,7 +268,7 @@ func (c *Config) Init() {
 			// Before, Rule and After request sidecars configuration are merged into one array...
 			mergedReqSidecars := append(append(c.Before.Request.Sidecars, rule.Request.Sidecars...), c.After.Request.Sidecars...)
 			// ... and then sidecars get initialized
-			rule.Request._sidecars = NewRequestSidecars(&mergedReqSidecars)
+			rule.Request._sidecars = NewRequestSidecars(mergedReqSidecars)
 
 			// Before, Rule and After response sidecars configuration are merged into one array...
 			mergedResSidecars := append(append(c.Before.Response.Sidecars, rule.Response.Sidecars...), c.After.Response.Sidecars...)

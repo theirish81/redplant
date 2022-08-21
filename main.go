@@ -38,10 +38,9 @@ func main() {
 		return
 	}
 	log = NewLogHelperFromConfig(loggingConfig)
-
 	config = LoadConfig(*configFilePath)
-	config.Init()
 	startPrometheus()
+	config.Init()
 	router := SetupRouter()
 
 	log.Info("Starting Server", AnyMap{"port": config.Network.Downstream.Port})

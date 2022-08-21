@@ -106,5 +106,6 @@ func NewBasicAuthTransformer(activateOnTags []string, logCfg *STLogConfig, param
 			return nil, err
 		}
 	}
+	t.log.PrometheusRegisterCounter("basic_auth_denied")
 	return &t, err
 }

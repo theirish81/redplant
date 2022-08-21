@@ -19,6 +19,7 @@ func (s *RequestAccessLogSidecar) Consume(quantity int) {
 		go func() {
 			for msg := range s.GetChannel() {
 				s.log.Log("request access", msg, s.log.Info)
+				s.log.PrometheusCounterInc("request_access")
 			}
 		}()
 	}
@@ -46,6 +47,7 @@ func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*RequestAccessLogSidecar, error) {
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusCounterInc("request_access")
 	return &sidecar, nil
 }
 
@@ -68,6 +70,7 @@ func (s *UpstreamAccessLogSidecar) Consume(quantity int) {
 		go func() {
 			for msg := range s.GetChannel() {
 				s.log.Log("upstream access", msg, s.log.Info)
+				s.log.PrometheusCounterInc("upstream_access")
 			}
 		}()
 	}
@@ -95,6 +98,7 @@ func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*UpstreamAccessLogSidecar, error) {
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusRegisterCounter("upstream_access")
 	return &sidecar, nil
 }
 
@@ -148,5 +152,9 @@ func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
 func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*MetricsLogSidecar, error) {
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusRegisterSummary("transaction")
+	sidecar.log.PrometheusRegisterSummary("req_transformation")
+	sidecar.log.PrometheusRegisterSummary("res_transformation")
+	sidecar.log.PrometheusRegisterSummary("transaction")
 	return &sidecar, nil
 }

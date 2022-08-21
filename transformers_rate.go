@@ -43,6 +43,7 @@ func NewRequestRateLimiterTransformer(activateOnTags []string, logCfg *STLogConf
 	if err != nil {
 		return nil, err
 	}
+	transformer.log.PrometheusRegisterCounter("rate_limited")
 	return &transformer, nil
 }
 

@@ -13,7 +13,9 @@ type RequestOpenAPISchemaTransformer struct {
 }
 
 func NewRequestOpenAPIValidatorTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestOpenAPISchemaTransformer, error) {
-	return &RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}, nil
+	t := RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
+	t.log.PrometheusRegisterCounter("openapi_validation_failed")
+	return &t, nil
 }
 
 func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {

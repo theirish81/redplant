@@ -4,7 +4,7 @@ import "testing"
 
 func TestPrometheus(t *testing.T) {
 	p := NewPrometheus()
-	if p.CustomSummaries == nil || p.CustomCounters == nil || p.InternalErrorsCounter == nil || p.GlobalInboundRequestsCounter == nil || p.GlobalOriginRequestsCounter == nil {
+	if p.CustomSummaries == nil || p.CustomCounters == nil || p.InternalErrorsCounter == nil {
 		t.Error("prometheus init did not work")
 	}
 	c := p.CustomCounter("foo")

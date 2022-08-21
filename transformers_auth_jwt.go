@@ -86,6 +86,7 @@ func NewJWTAuthTransformer(activateOnTags []string, logCfg *STLogConfig, params 
 	if err != nil {
 		return nil, err
 	}
+	t.log.PrometheusRegisterCounter("jwt_auth_denied")
 	// If there's a "pem" parameter, then we treat that as a path to the certificate
 	if t.Pem != "" {
 		cert, err := os.ReadFile(t.Pem)

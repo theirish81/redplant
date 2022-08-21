@@ -73,9 +73,9 @@ func (s *RequestSidecars) runFunc(sidecar ISidecar, wrapper *APIWrapper) {
 }
 
 // NewRequestSidecars is the constructor of RequestSidecars
-func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
+func NewRequestSidecars(sidecars []SidecarConfig) *RequestSidecars {
 	res := RequestSidecars{}
-	for _, s := range *sidecars {
+	for _, s := range sidecars {
 		if s.Workers == 0 {
 			s.Workers = 1
 		}

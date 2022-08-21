@@ -101,9 +101,6 @@ func SetupRouter() *mux.Router {
 		func(rules map[string]*Rule) {
 			// Handler for one hostname
 			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				if prom != nil {
-					prom.GlobalInboundRequestsCounter.Inc()
-				}
 				// For each rule for a given hostname...
 				for _, rule := range rules {
 					// ... if there's match, then we can enrich with a context

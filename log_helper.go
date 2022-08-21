@@ -139,6 +139,17 @@ type STLogHelper struct {
 	prometheusPrefix  string
 }
 
+func (l *STLogHelper) PrometheusRegisterCounter(name string) {
+	if prom != nil && l.prometheusEnabled {
+		prom.CustomCounter(l.prometheusPrefix + name)
+	}
+}
+func (l *STLogHelper) PrometheusRegisterSummary(name string) {
+	if prom != nil && l.prometheusEnabled {
+		prom.CustomSummary(l.prometheusPrefix + name)
+	}
+}
+
 func (l *STLogHelper) PrometheusCounterAdd(name string, inc int) {
 	if prom != nil {
 		prom.CustomCounter(l.prometheusPrefix + name).Add(float64(inc))

@@ -33,6 +33,7 @@ func NewCookieToTokenTransformer(activateOnTags []string, logCfg *STLogConfig, p
 	if err != nil {
 		return nil, err
 	}
+	transformer.log.PrometheusRegisterCounter("cookie_to_token_auth_denied")
 	return &transformer, nil
 }
 
