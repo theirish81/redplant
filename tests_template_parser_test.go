@@ -5,7 +5,7 @@ import (
 )
 
 func TestTempl(t *testing.T) {
-	scope := map[string]interface{}{"foo": "bar"}
+	scope := map[string]any{"foo": "bar"}
 	data, _ := Templ("yay {{.foo}}", &scope)
 	if data != "yay bar" {
 		t.Error("Template with provided scope is not working")
@@ -17,7 +17,7 @@ func TestTempl(t *testing.T) {
 	}
 
 	config = Config{}
-	config.Variables = map[string]string{"john": "doe"}
+	config.Variables = StringMap{"john": "doe"}
 	data, _ = Templ("yay {{.Variables.john}}", nil)
 	if data != "yay doe" {
 		t.Error("Templating with global variables not working")
@@ -26,13 +26,24 @@ func TestTempl(t *testing.T) {
 
 func TestDecodeAndTempl(t *testing.T) {
 	config = Config{}
-	config.Variables = map[string]string{"john": "doe"}
-	data := map[string]interface{}{"Data": "{{.Variables.john}}"}
+	config.Variables = StringMap{"john": "doe"}
+	data := map[string]any{"Data": "{{.Variables.john}}"}
 	type Foo struct {
 		Data string
 	}
 	var foo Foo
 	_ = DecodeAndTempl(data, &foo, nil, []string{})
+	if foo.Data != "doe" {
+		t.Error("DecodeAndTempl doesn't seem to work correctly")
+	}
+
+	var foo2 StringMap
+	_ = DecodeAndTempl(data, &foo2, nil, []string{})
+	if foo.Data != "doe" {
+		t.Error("DecodeAndTempl doesn't seem to work correctly")
+	}
+	var foo3 map[string]string
+	_ = DecodeAndTempl(data, &foo3, nil, []string{})
 	if foo.Data != "doe" {
 		t.Error("DecodeAndTempl doesn't seem to work correctly")
 	}

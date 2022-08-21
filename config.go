@@ -6,7 +6,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"github.com/theirish81/yamlRef"
 	"github.com/xo/dburl"
 	"gopkg.in/yaml.v2"
@@ -24,13 +23,13 @@ import (
 // OpenAPI is the OpenAPI way tof configuring rules
 // Prometheus is the Prometheus configuration object
 type Config struct {
-	Variables  map[string]string           `yaml:"variables"`
-	Network    Network                     `yaml:"network"`
-	Before     BeforeAfterConfig           `yaml:"before"`
-	After      BeforeAfterConfig           `yaml:"after"`
-	Rules      map[string]map[string]*Rule `yaml:"rules"`
-	OpenAPI    map[string]*OpenAPIConfig   `yaml:"openAPI"`
-	Prometheus *PrometheusConfig           `yaml:"prometheus"`
+	Variables  StringMap                 `yaml:"variables"`
+	Network    Network                   `yaml:"network"`
+	Before     BeforeAfterConfig         `yaml:"before"`
+	After      BeforeAfterConfig         `yaml:"after"`
+	Rules      RulesMap                  `yaml:"rules"`
+	OpenAPI    map[string]*OpenAPIConfig `yaml:"openAPI"`
+	Prometheus *PrometheusConfig         `yaml:"prometheus"`
 }
 
 // OpenAPIConfig is an OpenAPI configuration object
@@ -86,14 +85,35 @@ type ResponseConfig struct {
 	_sidecars     *ResponseSidecars
 }
 
+// STLogConfig is a specialised logging configuration for transformers and sidecars
+// Level is the level of the logger
+// Path is a path to a file, in case you want to log to a file. Leave empty for stdout
+// Format the format of the log. Can either be JSON or simple
+// Prometheus holds the Prometheus configuration
+type STLogConfig struct {
+	Level      string             `yaml:"level"`
+	Path       string             `yaml:"path"`
+	Format     string             `yaml:"format"`
+	Prometheus STPrometheusConfig `yaml:"prometheus"`
+}
+
+// STPrometheusConfig is the configuration of Prometheus, for a specific sidecar or transformer
+// Enabled will enable the integration, if set to true
+// Prefix will be used as a prefix for the collected metric
+type STPrometheusConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Prefix  string `yaml:"prefix"`
+}
+
 // TransformerConfig is the base transformer configuration
 // Id is the name of the transformer
 // ActivateOnTags is a list of tags for which this transformer will activate
 // Params is a map of configuration params for the transformer
 type TransformerConfig struct {
-	Id             string                 `yaml:"id"`
-	ActivateOnTags []string               `yaml:"activateOnTags"`
-	Params         map[string]interface{} `yaml:"params"`
+	Id             string       `yaml:"id"`
+	ActivateOnTags []string     `yaml:"activateOnTags"`
+	Logging        *STLogConfig `yaml:"logging"`
+	Params         AnyMap       `yaml:"params"`
 }
 
 // SidecarConfig is the configuration of a sidecar
@@ -104,13 +124,14 @@ type TransformerConfig struct {
 // DropOnOverflow if set to true, will drop messages if the queue is blocked
 // Params is a map of configuration params for the sidecar
 type SidecarConfig struct {
-	Id             string                 `yaml:"id"`
-	ActivateOnTags []string               `yaml:"activateOnTags"`
-	Workers        int                    `yaml:"workers"`
-	Queue          int                    `yaml:"queue"`
-	Block          bool                   `yaml:"block"`
-	DropOnOverflow bool                   `yaml:"blockOnOverflow"`
-	Params         map[string]interface{} `yaml:"params"`
+	Id             string       `yaml:"id"`
+	ActivateOnTags []string     `yaml:"activateOnTags"`
+	Workers        int          `yaml:"workers"`
+	Queue          int          `yaml:"queue"`
+	Block          bool         `yaml:"block"`
+	DropOnOverflow bool         `yaml:"blockOnOverflow"`
+	Logging        *STLogConfig `yaml:"logging"`
+	Params         AnyMap       `yaml:"params"`
 }
 
 // BeforeAfterConfig represents a set of transformers + sidecars to be executed before or after the rule's
@@ -226,7 +247,7 @@ func (c *Config) Init() {
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = Templ(rule.Origin, nil)
 			if err != nil {
-				log.Fatal("Could not parse origin", err, logrus.Fields{"origin": rule.Origin})
+				log.Fatal("Could not parse origin", err, AnyMap{"origin": rule.Origin})
 			}
 			// Before, Rule and After request transformers configuration are merged into one array...
 			mergedReqTransformers := append(append(c.Before.Request.Transformers, rule.Request.Transformers...), c.After.Request.Transformers...)
@@ -247,7 +268,7 @@ func (c *Config) Init() {
 			// Before, Rule and After request sidecars configuration are merged into one array...
 			mergedReqSidecars := append(append(c.Before.Request.Sidecars, rule.Request.Sidecars...), c.After.Request.Sidecars...)
 			// ... and then sidecars get initialized
-			rule.Request._sidecars = NewRequestSidecars(&mergedReqSidecars)
+			rule.Request._sidecars = NewRequestSidecars(mergedReqSidecars)
 
 			// Before, Rule and After response sidecars configuration are merged into one array...
 			mergedResSidecars := append(append(c.Before.Response.Sidecars, rule.Response.Sidecars...), c.After.Response.Sidecars...)
@@ -267,7 +288,7 @@ func (c *Config) Init() {
 					log.Fatal("Could not connect to the database", err, nil)
 				}
 			}
-			log.Info("route registered", logrus.Fields{"pattern": pattern, "domain": domain})
+			log.Info("route registered", AnyMap{"pattern": pattern, "domain": domain})
 		}
 	}
 }

@@ -3,16 +3,18 @@ package main
 import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"net/url"
 	"os"
 	"testing"
 )
 
 func TestBasicAuthTransformer_Transform(t *testing.T) {
-	transformer, _ := NewBasicAuthTransformer([]string{}, map[string]interface{}{"username": "foo", "password": "bar"})
+	transformer, _ := NewBasicAuthTransformer([]string{}, nil, map[string]any{"username": "foo", "password": "bar"})
 	if transformer.Username != "foo" || transformer.Password != "bar" {
 		t.Error("Wrong param assignment")
 	}
-	req := http.Request{Header: http.Header{}}
+	ux, _ := url.Parse("http://www.example.com")
+	req := http.Request{Header: http.Header{}, URL: ux}
 	wrapper := APIWrapper{Request: &req}
 	req.Header.Set("Authorization", "Basic Zm9vOmJhcg==")
 	_, err := transformer.Transform(&wrapper)
@@ -34,7 +36,7 @@ func TestBasicAuthTransformer_Transform(t *testing.T) {
 	}
 }
 func TestJWTAuthTransformerPem_Transform(t *testing.T) {
-	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"pem": "etc/publicKey"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, nil, map[string]any{"pem": "etc/publicKey"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 
@@ -42,7 +44,8 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 	signKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
 	at := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token, _ := at.SignedString(signKey)
-	req := http.Request{Header: http.Header{}}
+	ux, _ := url.Parse("http://www.example.com")
+	req := http.Request{Header: http.Header{}, URL: ux}
 	req.Header.Set("Authorization", "Bearer "+token)
 	wrapper := APIWrapper{Request: &req}
 	_, err := transformer.Transform(&wrapper)
@@ -69,12 +72,13 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 }
 
 func TestJWTAuthTransformerKey_Transform(t *testing.T) {
-	transformer, _ := NewJWTAuthTransformer([]string{}, map[string]interface{}{"key": "foobar"})
+	transformer, _ := NewJWTAuthTransformer([]string{}, nil, map[string]any{"key": "foobar"})
 	claims := jwt.MapClaims{}
 	claims["data"] = "123detectme"
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, _ := at.SignedString([]byte("foobar"))
-	req := http.Request{Header: http.Header{}}
+	ux, _ := url.Parse("http://www.example.com")
+	req := http.Request{Header: http.Header{}, URL: ux}
 	req.Header.Set("Authorization", "Bearer "+token)
 	wrapper := APIWrapper{Request: &req}
 	_, err := transformer.Transform(&wrapper)

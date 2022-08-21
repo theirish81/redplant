@@ -5,6 +5,7 @@ import "net/http"
 // TagTransformer will apply a tag to the request envelope
 type TagTransformer struct {
 	Tags []string
+	log  *STLogHelper
 }
 
 func (t *TagTransformer) ShouldExpandRequest() bool {
@@ -27,6 +28,7 @@ func (t *TagTransformer) IsActive(_ *APIWrapper) bool {
 
 // Transform adds the JWT token to the request
 func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering tag transformer", wrapper, t.log.Debug)
 	for _, tag := range t.Tags {
 		val, err := Templ(tag, wrapper)
 		if err != nil {
@@ -42,8 +44,8 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 }
 
 // NewTagTransformer is the constructor for TagTransformer
-func NewTagTransformer(params map[string]interface{}) (*TagTransformer, error) {
-	t := TagTransformer{}
+func NewTagTransformer(logCfg *STLogConfig, params map[string]any) (*TagTransformer, error) {
+	t := TagTransformer{log: NewSTLogHelper(logCfg)}
 	err := DecodeAndTempl(params, &t, nil, []string{"Tags"})
 	return &t, err
 }

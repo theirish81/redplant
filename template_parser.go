@@ -3,14 +3,13 @@ package main
 import (
 	"bytes"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sirupsen/logrus"
 	"reflect"
 )
 import "text/template"
 
 // Templ evaluates a template against a scope. If the provided scope is nil, a scope will get created containing
 // a "Variables" object, directed from Config
-func Templ(data string, scope interface{}) (string, error) {
+func Templ(data string, scope any) (string, error) {
 	templ := template.New("Templ")
 	templ, err := templ.Parse(data)
 	if err != nil {
@@ -18,17 +17,17 @@ func Templ(data string, scope interface{}) (string, error) {
 	}
 	parsed := bytes.NewBufferString("")
 	if scope == nil {
-		err = templ.Execute(parsed, map[string]interface{}{"Variables": config.Variables})
+		err = templ.Execute(parsed, AnyMap{"Variables": config.Variables})
 	} else {
 		err = templ.Execute(parsed, scope)
 	}
 	return parsed.String(), err
 }
 
-// DecodeAndTempl will decode a map[string]interface{} into a target data structure. Then it will evaluate all the
+// DecodeAndTempl will decode a map[string]any into a target data structure. Then it will evaluate all the
 // templates found in the decoded structure, against a provided scope (see Templ). Evaluation will not trigger for
 // any field listed in the excludeVal array
-func DecodeAndTempl(data map[string]interface{}, target interface{}, scope interface{}, excludeEval []string) error {
+func DecodeAndTempl(data map[string]any, target any, scope any, excludeEval []string) error {
 	err := mapstructure.Decode(data, target)
 	if err != nil {
 		return err
@@ -39,10 +38,16 @@ func DecodeAndTempl(data map[string]interface{}, target interface{}, scope inter
 
 // templFieldSet will recursively evaluate templates for a set of fields, against a provided scope (see Templ).
 // Any field with a name that is present in the excludedVal array will not be evaluated
-func templFieldSet(target interface{}, scope interface{}, excludeEval []string) {
+func templFieldSet(target any, scope any, excludeEval []string) {
 	objectType := reflect.ValueOf(target).Type().String()
 	switch objectType {
 	// If it's a map of strings...
+	case "*main.StringMap":
+		t2 := target.(*StringMap)
+		// ... we iterate on each element and evaluate
+		for k, v := range *t2 {
+			(*t2)[k], _ = Templ(v, scope)
+		}
 	case "*map[string]string":
 		t2 := target.(*map[string]string)
 		// ... we iterate on each element and evaluate
@@ -62,7 +67,7 @@ func templFieldSet(target interface{}, scope interface{}, excludeEval []string) 
 					// Evaluating the template
 					parsed, err := Templ(val.Field(i).String(), scope)
 					if err != nil {
-						log.Warn("Error while compiling template", err, logrus.Fields{"template": val.Field(i).String()})
+						log.Warn("Error while compiling template", err, AnyMap{"template": val.Field(i).String()})
 					}
 					// Setting the value
 					val.Field(i).Set(reflect.ValueOf(parsed))

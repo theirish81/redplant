@@ -6,7 +6,7 @@ upstream:
   expectContinueTimeout: 1s
 downstream:
   port: 9001
-  tls:
-    - host: localhost
-      key: etc/server.key
-      cert: etc/server.crt
+  #tls:
+  #  - host: localhost
+  #    key: etc/server.key
+  #    cert: etc/server.crt

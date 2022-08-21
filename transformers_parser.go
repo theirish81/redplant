@@ -7,13 +7,15 @@ import (
 
 type RequestParserTransformer struct {
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
-func NewRequestParserTransformer(activateOnTags []string) (*RequestParserTransformer, error) {
-	return &RequestParserTransformer{ActivateOnTags: activateOnTags}, nil
+func NewRequestParserTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestParserTransformer, error) {
+	return &RequestParserTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}, nil
 }
 
 func (t *RequestParserTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("triggering parse request", wrapper, t.log.Debug)
 	parsedRequestBody, err := simplejson.NewJson(wrapper.RequestBody)
 	parsedRequestBody.Interface()
 	return wrapper, err

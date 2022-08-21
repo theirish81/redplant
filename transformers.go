@@ -76,31 +76,31 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 	for _, t := range *transformers {
 		switch t.Id {
 		case "url":
-			transformer, err = NewRequestUrlTransformerFromParams(t.ActivateOnTags, t.Params)
+			transformer, err = NewRequestUrlTransformerFromParams(t.ActivateOnTags, t.Logging, t.Params)
 		case "headers":
-			transformer, err = NewRequestHeadersTransformerFromParams(t.ActivateOnTags, t.Params)
+			transformer, err = NewRequestHeadersTransformerFromParams(t.ActivateOnTags, t.Logging, t.Params)
 		case "basicAuth":
-			transformer, err = NewBasicAuthTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewBasicAuthTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "jwtAuth":
-			transformer, err = NewJWTAuthTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewJWTAuthTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "jwtSign":
-			transformer, err = NewJWTSignTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewJWTSignTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "cookieToTokenAuth":
-			transformer, err = NewCookieToTokenTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewCookieToTokenTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "scriptable":
-			transformer, err = NewScriptableTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewScriptableTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "delay":
-			transformer, err = NewDelayTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewDelayTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "barrage":
-			transformer, err = NewBarrageRequestTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewBarrageRequestTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "tag":
-			transformer, err = NewTagTransformer(t.Params)
+			transformer, err = NewTagTransformer(t.Logging, t.Params)
 		case "rate-limiter":
-			transformer, err = NewRequestRateLimiterTransformer(t.ActivateOnTags, t.Params)
+			transformer, err = NewRequestRateLimiterTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "parser":
-			transformer, err = NewRequestParserTransformer(t.ActivateOnTags)
+			transformer, err = NewRequestParserTransformer(t.ActivateOnTags, t.Logging)
 		case "openapi_validator":
-			transformer, err = NewRequestOpenAPIValidatorTransformer(t.ActivateOnTags)
+			transformer, err = NewRequestOpenAPIValidatorTransformer(t.ActivateOnTags, t.Logging)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
@@ -194,22 +194,22 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 	for _, t := range *transformers {
 		switch t.Id {
 		case "headers":
-			transformer, err := NewResponseHeadersTransformerFromParams(t.ActivateOnTags, t.Params)
+			transformer, err := NewResponseHeadersTransformerFromParams(t.ActivateOnTags, t.Logging, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "scriptable":
-			transformer, err := NewScriptableTransformer(t.ActivateOnTags, t.Params)
+			transformer, err := NewScriptableTransformer(t.ActivateOnTags, t.Logging, t.Params)
 			if err != nil {
 				return nil, err
 			}
 			res.Push(transformer)
 		case "delay":
-			transformer, _ := NewDelayTransformer(t.ActivateOnTags, t.Params)
+			transformer, _ := NewDelayTransformer(t.ActivateOnTags, t.Logging, t.Params)
 			res.Push(transformer)
 		case "barrage":
-			transformer, err := NewBarrageResponseTransformer(t.ActivateOnTags, t.Params)
+			transformer, err := NewBarrageResponseTransformer(t.ActivateOnTags, t.Logging, t.Params)
 			if err != nil {
 				return nil, err
 			}

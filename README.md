@@ -44,6 +44,20 @@ path: "my_logs.log"
 
 To select a configuration file pass the `-l path_to_logging.yaml` option to the launch command.
 
+All defined sidecars and transformers will inherit the default logger. You can, however, specify different behaviours
+for each component. For example:
+
+```yaml
+- id: basicAuth
+  logging:
+    path: auth.log
+    level: warn
+    format: JSON
+```
+
+Therefore, you can have a very fine grained logging strategy by potentially defining your logging needs in each
+component.
+
 ### config.yaml
 This file is where all the magic happens.
 
