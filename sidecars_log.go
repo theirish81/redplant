@@ -123,7 +123,6 @@ func (s *MetricsLogSidecar) Consume(quantity int) {
 				s.log.PrometheusSummaryObserve("transaction", msg.Metrics.Transaction())
 				s.log.PrometheusSummaryObserve("req_transformation", msg.Metrics.ReqTransformation())
 				s.log.PrometheusSummaryObserve("res_transformation", msg.Metrics.ResTransformation())
-				s.log.PrometheusSummaryObserve("transaction", msg.Metrics.Transaction())
 				s.log.LogWithMeta("metrics", msg, AnyMap{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags}, s.log.Info)
 			}
 		}()
@@ -155,6 +154,5 @@ func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, 
 	sidecar.log.PrometheusRegisterSummary("transaction")
 	sidecar.log.PrometheusRegisterSummary("req_transformation")
 	sidecar.log.PrometheusRegisterSummary("res_transformation")
-	sidecar.log.PrometheusRegisterSummary("transaction")
 	return &sidecar, nil
 }
