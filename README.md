@@ -48,7 +48,7 @@ All defined sidecars and transformers will inherit the default logger. You can, 
 for each component. For example:
 
 ```yaml
-- id: basicAuth
+- id: basic-auth
   logging:
     path: auth.log
     level: warn
@@ -164,7 +164,7 @@ in the specific route `request.transformers` and `response.transformers`. The co
 a global definition that defines the type of transformer and its general behavior, and its specific params.
 Example:
 ```yaml
-id: basicAuth
+id: basic-auth
 activateOnTags:
   - db
   - fs

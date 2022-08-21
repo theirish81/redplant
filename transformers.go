@@ -79,13 +79,13 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 			transformer, err = NewRequestUrlTransformerFromParams(t.ActivateOnTags, t.Logging, t.Params)
 		case "headers":
 			transformer, err = NewRequestHeadersTransformerFromParams(t.ActivateOnTags, t.Logging, t.Params)
-		case "basicAuth":
+		case "basic-auth":
 			transformer, err = NewBasicAuthTransformer(t.ActivateOnTags, t.Logging, t.Params)
-		case "jwtAuth":
+		case "jwt-auth":
 			transformer, err = NewJWTAuthTransformer(t.ActivateOnTags, t.Logging, t.Params)
-		case "jwtSign":
+		case "jwt-sign":
 			transformer, err = NewJWTSignTransformer(t.ActivateOnTags, t.Logging, t.Params)
-		case "cookieToTokenAuth":
+		case "cookie-to-token-auth":
 			transformer, err = NewCookieToTokenTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "scriptable":
 			transformer, err = NewScriptableTransformer(t.ActivateOnTags, t.Logging, t.Params)
@@ -99,7 +99,7 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 			transformer, err = NewRequestRateLimiterTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		case "parser":
 			transformer, err = NewRequestParserTransformer(t.ActivateOnTags, t.Logging)
-		case "openapi_validator":
+		case "openapi-validator":
 			transformer, err = NewRequestOpenAPIValidatorTransformer(t.ActivateOnTags, t.Logging)
 		}
 		if transformer != nil && err == nil {

@@ -26,7 +26,7 @@ Alternatively, you can use the `htpasswd` param with the path to a htpasswd file
 Example:
 ```yaml
 transformers:
-- id: basicAuth 
+- id: basic-auth 
 params:
   username: "username"
   password: "password"
@@ -39,7 +39,7 @@ it will store claims in the scope of the request, as the `Claims` variable.
 Example:
 ```yaml
 transformers:
-- id: jwtAuth 
+- id: jwt-auth 
 params:
   key: "some_bytes_here"
 ```
@@ -53,7 +53,7 @@ Will add a JWT token to the request in the `Authorization` header.
 Example:
 ```yaml
 transformers:
-- id: jwtSign
+- id: jwt-sign
   params:
     pem: /etc/secrets/jwt-public-key/privateKey
 ```
@@ -62,7 +62,7 @@ params:
 * `pem` (string,optional): path to a private key file
 * `claims` (map[string,any],optional): a map of key values representing the claims
 * `existingClaims` (bool,optional): if set to true, it will expect claims will be present in the request scope
-  (set by jwtAuth) and will produce a token with those claims. This is useful to **re-sign** a token
+  (set by jwt-auth) and will produce a token with those claims. This is useful to **re-sign** a token
 
 ## Barrage Transformer
 Will immediately drop the inbound request in case certain conditions are met.

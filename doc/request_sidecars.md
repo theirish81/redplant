@@ -7,7 +7,7 @@ Logs the inbound requests.
 Example:
 ```yaml
 sidecars:
-- id: accessLog
+- id: access-log
   workers: 1
   queue: 2
   block: true
