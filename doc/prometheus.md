@@ -19,13 +19,13 @@ start publishing metrics on their activity.
 In a sidecar or transformer configuration, add or extend the logging section, as in:
 
 ```yaml
-- id: metricsLog
+- id: metrics-log
   logging:
    prometheus:
     enabled: true
     prefix: test
 ```
-This will enable Prometheus in `metricsLog` which will start publishing its own metrics.
+This will enable Prometheus in `metrics-log` which will start publishing its own metrics.
 The `prefix` field will prepend a string to the name of the `summary` so that you can better distinguish your series,
 but it's totally optional.
 
@@ -34,31 +34,31 @@ Not all components will publish Prometheus metrics. Here's an incomplete list of
 if you enable the integration.
 More will be added in the future.
 
-### metricsLog
+### metrics-log
 * `transaction` : summary
 * `req_transformation` : summary
 * `res_transformation` : summary
 * `res_transformation` : summary
 
-### accessLog (request)
+### access-log (request)
 * `request_access` : counter
 
-### accessLog (response)
+### access-log (response)
 * `upstream_access` : counter
 
-### basicAuth
+### basic-auth
 * `basic_auth_denied`: counter
 
-### cookieToTokenAuth
+### cookie-to-token-auth
 * `cookie_to_token_auth_denied`: counter
 
-### jwtAuth
+### jwt-auth
 * `jwt_auth_denied`: counter
 
 ### barrage
 * `barraged`: counter
 
-### openapi_validator
+### openapi-validator
 * `openapi_validation_failed`: counter
 
 ### rate-limiter

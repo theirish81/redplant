@@ -13,7 +13,7 @@ network: "$ref:file://network.yaml"
 before:
   request:                                 # Request transformers
     transformers:
-      - id: basicAuth                      # Very basic auth, using global variable for credentials
+      - id: basic-auth                      # Very basic auth, using global variable for credentials
         params:
           username: "{{.Variables.UN}}"
           password: "{{.Variables.PW}}"
@@ -25,7 +25,7 @@ before:
           set:
             X-Server: "{{.Variables.SERVER_NAME}}"
     sidecars:
-      - id: accessLog                     # Access logs the request as it reaches the reverse proxy. blocking
+      - id: access-log                     # Access logs the request as it reaches the reverse proxy. blocking
         workers: 1                        # 1 worker, queue=2
         queue: 2
         block: true
@@ -37,11 +37,11 @@ before:
           set:
             X-Proxied: "true"
     sidecars:                             # Response sidecars
-      - id: accessLog                     # Access logs the response
+      - id: access-log                     # Access logs the response
         workers: 1
         queue: 2
         block: true
-      - id: metricsLog                    # Logs the metrics
+      - id: metrics-log                    # Logs the metrics
         workers: 1
         queue: 2
         block: true

@@ -7,7 +7,7 @@ Logs the requested origin URL and the returned response status.
 Example:
 ```yaml
 sidecars:
-- id: accessLog
+- id: access-log
   workers: 1
   block: true
 ```
@@ -20,7 +20,7 @@ Logs a recording of all the metrics involved in the request/response cycle.
 Example:
 ```yaml
 sidecars:
-- id: metricsLog
+- id: metrics-log
   workers: 1
   block: true
 ```
