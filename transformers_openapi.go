@@ -29,6 +29,7 @@ func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWr
 		Request:    wrapper.Request.Request,
 		PathParams: params,
 		Route:      route,
+		Options:    &openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc},
 	}
 	err = openapi3filter.ValidateRequest(wrapper.Request.Context(), requestValidationInput)
 	if err != nil {
