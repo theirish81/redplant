@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bitly/go-simplejson"
+	"encoding/json"
 	"net/http"
 )
 
@@ -16,8 +16,9 @@ func NewRequestParserTransformer(activateOnTags []string, logCfg *STLogConfig) (
 
 func (t *RequestParserTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering parse request", wrapper, t.log.Debug)
-	parsedRequestBody, err := simplejson.NewJson(wrapper.Request.ExpandedBody)
-	wrapper.Request.ParsedBody = parsedRequestBody.Interface()
+	var parsedRequestBody interface{}
+	err := json.Unmarshal(wrapper.Response.ExpandedBody, &parsedRequestBody)
+	wrapper.Request.ParsedBody = parsedRequestBody
 	return wrapper, err
 }
 
@@ -50,8 +51,9 @@ func NewResponseParserTransformer(activateOnTags []string, logCfg *STLogConfig) 
 
 func (t *ResponseParserTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering parse response", wrapper, t.log.Debug)
-	parsedResponseBody, err := simplejson.NewJson(wrapper.Response.ExpandedBody)
-	wrapper.Response.ParsedBody = parsedResponseBody.Interface()
+	var parsedResponseBody interface{}
+	err := json.Unmarshal(wrapper.Response.ExpandedBody, &parsedResponseBody)
+	wrapper.Response.ParsedBody = parsedResponseBody
 	return wrapper, err
 }
 
