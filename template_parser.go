@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"github.com/theirish81/gowalker"
-	"net/http"
 	"reflect"
 )
 
@@ -17,9 +16,9 @@ func NewRPTemplate() RPTemplate {
 	t := RPTemplate{functions: gowalker.NewFunctions()}
 	t.functions.Add("GetHeader", func(context context.Context, data any, params ...string) (any, error) {
 		switch d := data.(type) {
-		case http.Request:
+		case APIRequest:
 			return d.Header.Get(params[0]), nil
-		case http.Response:
+		case APIResponse:
 			return d.Header.Get(params[0]), nil
 		default:
 			return "", errors.New("cannot invoke GetHeader function against this type")
