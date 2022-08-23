@@ -84,10 +84,10 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// So here we collect headers and body from the right source
 	if t.response {
 		headers = &wrapper.Response.Header
-		body = &wrapper.Response.InflatedBody
+		body = &wrapper.Response.ExpandedBody
 	} else {
 		headers = &wrapper.Request.Header
-		body = &wrapper.Request.InflatedBody
+		body = &wrapper.Request.ExpandedBody
 	}
 	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {

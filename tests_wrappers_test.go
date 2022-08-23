@@ -11,12 +11,12 @@ import (
 func TestAPIWrapper_Clone(t *testing.T) {
 	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
 		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
-	wrapper.Request.InflatedBody = []byte("foo")
-	wrapper.Response.InflatedBody = []byte("foo")
+	wrapper.Request.ExpandedBody = []byte("foo")
+	wrapper.Response.ExpandedBody = []byte("foo")
 	w2 := wrapper.Clone()
 	if wrapper.Request == w2.Request ||
-		&wrapper.Request.InflatedBody == &w2.Request.InflatedBody ||
-		&wrapper.Response.InflatedBody == &w2.Response.InflatedBody {
+		&wrapper.Request.ExpandedBody == &w2.Request.ExpandedBody ||
+		&wrapper.Response.ExpandedBody == &w2.Response.ExpandedBody {
 		t.Error("Clone unsuccessful")
 	}
 }
@@ -25,12 +25,12 @@ func TestAPIWrapper_ExpandRequest(t *testing.T) {
 	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
 		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
 	wrapper.ExpandRequest()
-	if len(wrapper.Request.InflatedBody) > 0 {
+	if len(wrapper.Request.ExpandedBody) > 0 {
 		t.Error("No body expansion failed")
 	}
 	wrapper.Request.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandRequest()
-	if string(wrapper.Request.InflatedBody) != "foo" {
+	if string(wrapper.Request.ExpandedBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }
@@ -39,12 +39,12 @@ func TestAPIWrapper_ExpandResponse(t *testing.T) {
 	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
 		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
 	wrapper.ExpandResponse()
-	if len(wrapper.Response.InflatedBody) > 0 {
+	if len(wrapper.Response.ExpandedBody) > 0 {
 		t.Error("No body expansion failed")
 	}
 	wrapper.Response.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandResponse()
-	if string(wrapper.Response.InflatedBody) != "foo" {
+	if string(wrapper.Response.ExpandedBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 type APIRequest struct {
 	*http.Request
-	InflatedBody []byte
+	ExpandedBody []byte
 	ParsedBody   any
 }
 
@@ -22,7 +22,7 @@ func NewAPIRequest(req *http.Request) *APIRequest {
 
 type APIResponse struct {
 	*http.Response
-	InflatedBody []byte
+	ExpandedBody []byte
 	ParsedBody   any
 }
 
@@ -34,14 +34,14 @@ func (r *APIResponse) Clone() *APIResponse {
 	if r == nil {
 		return nil
 	}
-	return &APIResponse{r.Response, r.InflatedBody, r.ParsedBody}
+	return &APIResponse{r.Response, r.ExpandedBody, r.ParsedBody}
 }
 
 func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
 	if r == nil {
 		return nil
 	}
-	return &APIRequest{r.Request.Clone(ctx), r.InflatedBody, r.ParsedBody}
+	return &APIRequest{r.Request.Clone(ctx), r.ExpandedBody, r.ParsedBody}
 }
 
 // APIWrapper wraps a Request and a response
@@ -93,17 +93,17 @@ func (w *APIWrapper) ExpandResponseIfNeeded() {
 
 // ExpandRequest will turn the Request body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandRequest() {
-	if len(w.Request.InflatedBody) == 0 && w.Request.Body != nil {
-		w.Request.InflatedBody, _ = io.ReadAll(w.Request.Body)
-		w.Request.Body = io.NopCloser(bytes.NewReader(w.Request.InflatedBody))
+	if len(w.Request.ExpandedBody) == 0 && w.Request.Body != nil {
+		w.Request.ExpandedBody, _ = io.ReadAll(w.Request.Body)
+		w.Request.Body = io.NopCloser(bytes.NewReader(w.Request.ExpandedBody))
 	}
 }
 
 // ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
-	if len(w.Response.InflatedBody) == 0 && w.Response.Body != nil {
-		w.Response.InflatedBody, _ = io.ReadAll(w.Response.Body)
-		w.Response.Body = io.NopCloser(bytes.NewReader(w.Response.InflatedBody))
+	if len(w.Response.ExpandedBody) == 0 && w.Response.Body != nil {
+		w.Response.ExpandedBody, _ = io.ReadAll(w.Response.Body)
+		w.Response.Body = io.NopCloser(bytes.NewReader(w.Response.ExpandedBody))
 	}
 }
 
