@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/tg123/go-htpasswd"
 	"net/http"
@@ -98,7 +99,7 @@ func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
 func NewBasicAuthTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BasicAuthTransformer, error) {
 	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true, log: NewSTLogHelper(logCfg)}
-	err := template.DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it
 	if t.Htpasswd != "" {
 		t._htpasswd, err = htpasswd.New(t.Htpasswd, htpasswd.DefaultSystems, nil)

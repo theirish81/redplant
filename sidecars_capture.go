@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"regexp"
@@ -207,7 +208,7 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 // NewCaptureSidecarFromParams is the constructor
 func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, params AnyMap) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := template.DecodeAndTempl(params, &sidecar, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

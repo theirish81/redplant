@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -24,7 +25,7 @@ type DelayTransformer struct {
 // NewDelayTransformer is the constructor for DelayTransformer
 func NewDelayTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*DelayTransformer, error) {
 	t := DelayTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := template.DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

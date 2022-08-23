@@ -53,6 +53,7 @@ func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
 	ID             string
+	Context        context.Context
 	Request        *APIRequest
 	Response       *APIResponse
 	ResponseWriter http.ResponseWriter
@@ -73,7 +74,7 @@ type APIWrapper struct {
 // Clone will do sort of a somewhat shallow clone of the wrapper. This is useful when sending the wrapper is being
 // sent to a sidecar but also transformers apply. If we didn't clone, results may vary on timing
 func (w *APIWrapper) Clone() *APIWrapper {
-	return &APIWrapper{ID: w.ID, Request: w.Request.Clone(w.Request.Context()), Response: w.Response.Clone(),
+	return &APIWrapper{ID: w.ID, Context: w.Context, Request: w.Request.Clone(w.Request.Context()), Response: w.Response.Clone(),
 		Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
 		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
@@ -129,8 +130,8 @@ func (w *APIWrapper) HasTag(tags []string) bool {
 }
 
 // Templ will compile the provided template using APIWrapper as scope
-func (w *APIWrapper) Templ(data string) (string, error) {
-	return template.Templ(data, w)
+func (w *APIWrapper) Templ(ctx context.Context, data string) (string, error) {
+	return template.Templ(ctx, data, w)
 }
 
 // APIMetrics is a collector of metrics for the transaction
@@ -163,6 +164,7 @@ func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule 
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
 		ID:             uuid.New().String(),
+		Context:        ctx,
 		Tags:           []string{},
 		Variables:      &config.Variables,
 		RealIP:         addresser.RealIP(req),

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"testing"
@@ -52,7 +53,7 @@ func TestAPIWrapper_ExpandResponse(t *testing.T) {
 func TestAPIWrapper_Templ(t *testing.T) {
 	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
 		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
-	res, _ := wrapper.Templ("${Request.Method}")
+	res, _ := wrapper.Templ(context.Background(), "${Request.Method}")
 	if res != "GET" {
 		t.Error("wrapper templ not working")
 	}

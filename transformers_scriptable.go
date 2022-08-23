@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/dop251/goja"
 	"net/http"
@@ -72,7 +73,7 @@ func (t *ScriptableTransformer) IsActive(wrapper *APIWrapper) bool {
 // NewScriptableTransformer is the constructor for ScriptableTransformer
 func NewScriptableTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ScriptableTransformer, error) {
 	t := ScriptableTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := template.DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

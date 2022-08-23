@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"regexp"
@@ -33,7 +34,7 @@ type BarrageTransformer struct {
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
 func NewBarrageRequestTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
 	t := BarrageTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := template.DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

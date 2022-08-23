@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // TagTransformer will apply a tag to the request envelope
 type TagTransformer struct {
@@ -30,7 +33,7 @@ func (t *TagTransformer) IsActive(_ *APIWrapper) bool {
 func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering tag transformer", wrapper, t.log.Debug)
 	for _, tag := range t.Tags {
-		val, err := template.Templ(tag, wrapper)
+		val, err := template.Templ(wrapper.Context, tag, wrapper)
 		if err != nil {
 			return nil, err
 		}
@@ -46,6 +49,6 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 // NewTagTransformer is the constructor for TagTransformer
 func NewTagTransformer(logCfg *STLogConfig, params map[string]any) (*TagTransformer, error) {
 	t := TagTransformer{log: NewSTLogHelper(logCfg)}
-	err := template.DecodeAndTempl(params, &t, nil, []string{"Tags"})
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{"Tags"})
 	return &t, err
 }

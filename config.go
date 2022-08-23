@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers"
 	_ "github.com/go-sql-driver/mysql"
@@ -221,7 +222,7 @@ func LoadConfig(file string) Config {
 	envs := getEnvs()
 	// For each configuration variable, evaluate templates against environment variables
 	for k, v := range config.Variables {
-		parsed, _ := template.Templ(v, envs)
+		parsed, _ := template.Templ(context.Background(), v, envs)
 		config.Variables[k] = parsed
 	}
 	return config
@@ -245,7 +246,7 @@ func (c *Config) Init() {
 				log.Fatal("Pattern is not a valid regex", err, nil)
 			}
 			// The origin may be a template, so we evaluate it
-			rule.Origin, err = template.Templ(rule.Origin, nil)
+			rule.Origin, err = template.Templ(context.Background(), rule.Origin, nil)
 			if err != nil {
 				log.Fatal("Could not parse origin", err, AnyMap{"origin": rule.Origin})
 			}

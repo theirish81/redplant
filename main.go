@@ -22,7 +22,6 @@ var prom *Prometheus
 var template RPTemplate
 
 func main() {
-
 	configFilePath := flag.String("c", "", "Path of the main configuration file")
 	logFilePath := flag.String("l", "", "Path to the logging configuration file")
 	flag.Parse()
