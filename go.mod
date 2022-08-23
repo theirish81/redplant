@@ -19,6 +19,7 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tg123/go-htpasswd v1.2.0
+	github.com/theirish81/gowalker v0.4.0
 	github.com/theirish81/yamlRef v0.2.0
 	github.com/xo/dburl v0.9.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -30,7 +31,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
+	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect

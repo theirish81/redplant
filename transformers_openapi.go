@@ -20,13 +20,13 @@ func NewRequestOpenAPIValidatorTransformer(activateOnTags []string, logCfg *STLo
 
 func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering request OpenAPI schema transformer", wrapper, t.log.Debug)
-	route, params, err := (*wrapper.Rule.oaRouter).FindRoute(wrapper.Request)
+	route, params, err := (*wrapper.Rule.oaRouter).FindRoute(wrapper.Request.Request)
 	if err != nil {
 		t.log.LogErr("problem finding route in OpenAPI", err, wrapper, t.log.Warn)
 		return wrapper, err
 	}
 	requestValidationInput := &openapi3filter.RequestValidationInput{
-		Request:    wrapper.Request,
+		Request:    wrapper.Request.Request,
 		PathParams: params,
 		Route:      route,
 	}

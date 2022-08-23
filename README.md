@@ -74,12 +74,12 @@ key: "$ref:file://another_file.yaml?comp=network"
 
 #### variables
 In this section you can declare global variables which can be referenced anywhere in the system. Values in this section
-can also evaluate Go templates to include environment variables. Example:
+can also evaluate templates to include environment variables. Example:
 
 ```yaml
 UN: foo
 PW: bar
-SERVER_NAME: "{{.SERVER_NAME}}"
+SERVER_NAME: "${SERVER_NAME}"
 CAPTURE_URI: file://etc/capture.log
 ```
 
@@ -197,7 +197,7 @@ workers: 2
 queue: 5
 block: true
 params:
-  uri: "{{.Variables.CAPTURE_URI}}"
+  uri: "${Variables.CAPTURE_URI}"
   responseContentTypeRegexp: '.*json.*'
   requestContentTypeRegexp: '(^$|.*json.*)'
   format: JSON

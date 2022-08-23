@@ -10,24 +10,55 @@ import (
 	"time"
 )
 
+type APIRequest struct {
+	*http.Request
+	InflatedBody []byte
+	ParsedBody   any
+}
+
+func NewAPIRequest(req *http.Request) *APIRequest {
+	return &APIRequest{Request: req}
+}
+
+type APIResponse struct {
+	*http.Response
+	InflatedBody []byte
+	ParsedBody   any
+}
+
+func NewAPIResponse(res *http.Response) *APIResponse {
+	return &APIResponse{Response: res}
+}
+
+func (r *APIResponse) Clone() *APIResponse {
+	if r == nil {
+		return nil
+	}
+	return &APIResponse{r.Response, r.InflatedBody, r.ParsedBody}
+}
+
+func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
+	if r == nil {
+		return nil
+	}
+	return &APIRequest{r.Request.Clone(ctx), r.InflatedBody, r.ParsedBody}
+}
+
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
-	ID                string
-	Request           *http.Request
-	Response          *http.Response
-	ResponseWriter    http.ResponseWriter
-	RequestBody       []byte
-	ParsedRequestBody any
-	ResponseBody      []byte
-	Claims            *jwt.MapClaims
-	Rule              *Rule
-	Metrics           *APIMetrics
-	Err               error
-	Username          string
-	Variables         *StringMap
-	RealIP            string
-	Tags              []string
-	ApplyHeaders      http.Header
+	ID             string
+	Request        *APIRequest
+	Response       *APIResponse
+	ResponseWriter http.ResponseWriter
+	Claims         *jwt.MapClaims
+	Rule           *Rule
+	Metrics        *APIMetrics
+	Err            error
+	Username       string
+	Variables      *StringMap
+	RealIP         string
+	Tags           []string
+	ApplyHeaders   http.Header
 	// When set to true, it means that the connection has been hijacked. This is the case when websockets
 	// are involved
 	Hijacked bool
@@ -36,8 +67,8 @@ type APIWrapper struct {
 // Clone will do sort of a somewhat shallow clone of the wrapper. This is useful when sending the wrapper is being
 // sent to a sidecar but also transformers apply. If we didn't clone, results may vary on timing
 func (w *APIWrapper) Clone() *APIWrapper {
-	return &APIWrapper{ID: w.ID, Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
-		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
+	return &APIWrapper{ID: w.ID, Request: w.Request.Clone(w.Request.Context()), Response: w.Response.Clone(),
+		Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
 		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
 
@@ -62,17 +93,17 @@ func (w *APIWrapper) ExpandResponseIfNeeded() {
 
 // ExpandRequest will turn the Request body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandRequest() {
-	if len(w.RequestBody) == 0 && w.Request.Body != nil {
-		w.RequestBody, _ = io.ReadAll(w.Request.Body)
-		w.Request.Body = io.NopCloser(bytes.NewReader(w.RequestBody))
+	if len(w.Request.InflatedBody) == 0 && w.Request.Body != nil {
+		w.Request.InflatedBody, _ = io.ReadAll(w.Request.Body)
+		w.Request.Body = io.NopCloser(bytes.NewReader(w.Request.InflatedBody))
 	}
 }
 
 // ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
-	if len(w.ResponseBody) == 0 && w.Response.Body != nil {
-		w.ResponseBody, _ = io.ReadAll(w.Response.Body)
-		w.Response.Body = io.NopCloser(bytes.NewReader(w.ResponseBody))
+	if len(w.Response.InflatedBody) == 0 && w.Response.Body != nil {
+		w.Response.InflatedBody, _ = io.ReadAll(w.Response.Body)
+		w.Response.Body = io.NopCloser(bytes.NewReader(w.Response.InflatedBody))
 	}
 }
 
@@ -93,7 +124,7 @@ func (w *APIWrapper) HasTag(tags []string) bool {
 
 // Templ will compile the provided template using APIWrapper as scope
 func (w *APIWrapper) Templ(data string) (string, error) {
-	return Templ(data, w)
+	return template.Templ(data, w)
 }
 
 // APIMetrics is a collector of metrics for the transaction

@@ -13,11 +13,12 @@ type RequestHeaderTransformer struct {
 func (t *RequestHeaderTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering request header transformation", wrapper, t.log.Debug)
 	for hk, hv := range t.Set {
-		hv, err := wrapper.Templ(hv)
-		if err != nil {
-			return wrapper, err
+		if handled, err := template.Templ(hv, wrapper); err == nil {
+			wrapper.Request.Header.Set(hk, handled)
+		} else {
+			wrapper.Request.Header.Set(hk, hv)
+			t.log.LogWithErrorMeta("unable to parse template for header Set", err, wrapper, AnyMap{"template": hv}, t.log.Warn)
 		}
-		wrapper.Request.Header.Set(hk, hv)
 	}
 	for _, rem := range t.Remove {
 		wrapper.Request.Header.Del(rem)
@@ -42,7 +43,7 @@ func (t *RequestHeaderTransformer) IsActive(wrapper *APIWrapper) bool {
 // NewRequestHeadersTransformerFromParams is the constructor for RequestHeaderTransformer
 func NewRequestHeadersTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestHeaderTransformer, error) {
 	t := RequestHeaderTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
+	err := template.DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
 
@@ -57,14 +58,20 @@ type ResponseHeaderTransformer struct {
 // NewResponseHeadersTransformerFromParams is the constructor for ResponseHeaderTransformer
 func NewResponseHeadersTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ResponseHeaderTransformer, error) {
 	t := ResponseHeaderTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &t, nil, []string{"Set"})
+	err := template.DecodeAndTempl(params, &t, nil, []string{"Set"})
 	return &t, err
 }
 
 func (t *ResponseHeaderTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering response header transformation", wrapper, t.log.Debug)
 	for hk, hv := range t.Set {
-		wrapper.Response.Header.Set(hk, hv)
+		if handled, err := template.Templ(hv, wrapper); err == nil {
+			wrapper.Response.Header.Set(hk, handled)
+		} else {
+			wrapper.Response.Header.Set(hk, hv)
+			t.log.LogWithErrorMeta("unable to parse template for header Set", err, wrapper, AnyMap{"template": hv}, t.log.Warn)
+		}
+
 	}
 	for _, rem := range t.Remove {
 		wrapper.Request.Header.Del(rem)

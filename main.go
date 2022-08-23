@@ -19,6 +19,7 @@ var log *LogHelper
 var config Config
 var addresser = NewIPAddresser()
 var prom *Prometheus
+var template RPTemplate
 
 func main() {
 
@@ -41,6 +42,7 @@ func main() {
 	config = LoadConfig(*configFilePath)
 	startPrometheus()
 	config.Init()
+	template = NewRPTemplate()
 	router := SetupRouter()
 
 	log.Info("Starting Server", AnyMap{"port": config.Network.Downstream.Port})

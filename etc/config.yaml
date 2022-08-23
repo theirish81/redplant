@@ -15,15 +15,15 @@ before:
     transformers:
       - id: basic-auth                      # Very basic auth, using global variable for credentials
         params:
-          username: "{{.Variables.UN}}"
-          password: "{{.Variables.PW}}"
+          username: "${Variables.UN}"
+          password: "${Variables.PW}"
       - id: barrage                       # Dumb barrage, will block any request with a header value containing "log4j"
         params:
           headerValueRegexp: ".*log4j.*"
       - id: headers                       # Will send an X-Server header with the value provided by the global variables
         params:
           set:
-            X-Server: "{{.Variables.SERVER_NAME}}"
+            X-Server: "${Variables.SERVER_NAME}"
     sidecars:
       - id: access-log                     # Access logs the request as it reaches the reverse proxy. blocking
         workers: 1                        # 1 worker, queue=2
@@ -63,8 +63,8 @@ rules: # THE RULES. They represent how an inbound request should be matched, and
           - id: headers                                   # Headers transformer
             params:
               set:
-                username: "{{.Username}}"                 # Setting dynamic headers
-                "user-agent": "{{.Variables.userAgent}}"
+                username: "${Username}"                 # Setting dynamic headers
+                "user-agent": "${Variables.userAgent}"
               remove:
                 - authorization
       response:                                           # Response configuration
@@ -79,7 +79,7 @@ rules: # THE RULES. They represent how an inbound request should be matched, and
             block: true
             queue: 2
             params:
-              uri: "{{.Variables.CAPTURE_URI}}"
+              uri: "${Variables.CAPTURE_URI}"
               responseContentTypeRegexp: '.*json.*'
               requestContentTypeRegexp: '(^$|.*json.*)'
               format: JSON

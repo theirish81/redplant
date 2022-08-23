@@ -9,50 +9,50 @@ import (
 )
 
 func TestAPIWrapper_Clone(t *testing.T) {
-	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
-		Response:     &http.Response{StatusCode: 200},
-		RequestBody:  []byte("foo"),
-		ResponseBody: []byte("foo")}
+	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
+		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
+	wrapper.Request.InflatedBody = []byte("foo")
+	wrapper.Response.InflatedBody = []byte("foo")
 	w2 := wrapper.Clone()
 	if wrapper.Request == w2.Request ||
-		&wrapper.RequestBody == &w2.RequestBody ||
-		&wrapper.ResponseBody == &w2.ResponseBody {
+		&wrapper.Request.InflatedBody == &w2.Request.InflatedBody ||
+		&wrapper.Response.InflatedBody == &w2.Response.InflatedBody {
 		t.Error("Clone unsuccessful")
 	}
 }
 
 func TestAPIWrapper_ExpandRequest(t *testing.T) {
-	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
-		Response: &http.Response{StatusCode: 200}}
+	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
+		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
 	wrapper.ExpandRequest()
-	if len(wrapper.RequestBody) > 0 {
+	if len(wrapper.Request.InflatedBody) > 0 {
 		t.Error("No body expansion failed")
 	}
 	wrapper.Request.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandRequest()
-	if string(wrapper.RequestBody) != "foo" {
+	if string(wrapper.Request.InflatedBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }
 
 func TestAPIWrapper_ExpandResponse(t *testing.T) {
-	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
-		Response: &http.Response{StatusCode: 200}}
+	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
+		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
 	wrapper.ExpandResponse()
-	if len(wrapper.ResponseBody) > 0 {
+	if len(wrapper.Response.InflatedBody) > 0 {
 		t.Error("No body expansion failed")
 	}
 	wrapper.Response.Body = io.NopCloser(bytes.NewReader([]byte("foo")))
 	wrapper.ExpandResponse()
-	if string(wrapper.ResponseBody) != "foo" {
+	if string(wrapper.Response.InflatedBody) != "foo" {
 		t.Error("Request expansion failed")
 	}
 }
 
 func TestAPIWrapper_Templ(t *testing.T) {
-	wrapper := APIWrapper{Request: &http.Request{Method: "GET"},
-		Response: &http.Response{StatusCode: 200}}
-	res, _ := wrapper.Templ("{{.Request.Method}}")
+	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
+		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
+	res, _ := wrapper.Templ("${Request.Method}")
 	if res != "GET" {
 		t.Error("wrapper templ not working")
 	}

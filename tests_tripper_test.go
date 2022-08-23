@@ -16,7 +16,7 @@ func TestRoundTripperFilter_RoundTrip(t *testing.T) {
 	request := &http.Request{Header: http.Header{}}
 	request.URL, _ = url.Parse("https://www.google.com")
 	request = ReqWithContext(request, nil, nil)
-	GetWrapper(request).Request = request
+	GetWrapper(request).Request = NewAPIRequest(request)
 	response, _ := transport.RoundTrip(request)
 	if response == nil {
 		t.Error("Could not roundtrip to response")

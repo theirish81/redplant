@@ -15,7 +15,7 @@ func TestBasicAuthTransformer_Transform(t *testing.T) {
 	}
 	ux, _ := url.Parse("http://www.example.com")
 	req := http.Request{Header: http.Header{}, URL: ux}
-	wrapper := APIWrapper{Request: &req}
+	wrapper := APIWrapper{Request: NewAPIRequest(&req)}
 	req.Header.Set("Authorization", "Basic Zm9vOmJhcg==")
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
@@ -47,7 +47,7 @@ func TestJWTAuthTransformerPem_Transform(t *testing.T) {
 	ux, _ := url.Parse("http://www.example.com")
 	req := http.Request{Header: http.Header{}, URL: ux}
 	req.Header.Set("Authorization", "Bearer "+token)
-	wrapper := APIWrapper{Request: &req}
+	wrapper := APIWrapper{Request: NewAPIRequest(&req)}
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
 		t.Error("Auth Failed for no reason")
@@ -80,7 +80,7 @@ func TestJWTAuthTransformerKey_Transform(t *testing.T) {
 	ux, _ := url.Parse("http://www.example.com")
 	req := http.Request{Header: http.Header{}, URL: ux}
 	req.Header.Set("Authorization", "Bearer "+token)
-	wrapper := APIWrapper{Request: &req}
+	wrapper := APIWrapper{Request: NewAPIRequest(&req)}
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
 		t.Error("Auth Failed for no reason")

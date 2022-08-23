@@ -12,7 +12,7 @@ func TestBarrageRequestTransformer_Transform(t *testing.T) {
 	transformer, _ := NewBarrageRequestTransformer([]string{}, nil, map[string]any{"headerValueRegexp": "log4j.*"})
 	ux, _ := url.Parse("http://www.example.com")
 	req := http.Request{Header: http.Header{}, URL: ux}
-	wrapper := APIWrapper{Request: &req}
+	wrapper := APIWrapper{Request: NewAPIRequest(&req)}
 	_, err := transformer.Transform(&wrapper)
 	if err != nil {
 		t.Error("Something went wrong during no-barrage")
