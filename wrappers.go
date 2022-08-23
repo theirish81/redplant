@@ -10,26 +10,31 @@ import (
 	"time"
 )
 
+// APIRequest is a wrapper around http.Request
 type APIRequest struct {
 	*http.Request
 	ExpandedBody []byte
 	ParsedBody   any
 }
 
+// NewAPIRequest is the constructor for APIRequest
 func NewAPIRequest(req *http.Request) *APIRequest {
 	return &APIRequest{Request: req}
 }
 
+// APIResponse is the wrapper around http.Response
 type APIResponse struct {
 	*http.Response
 	ExpandedBody []byte
 	ParsedBody   any
 }
 
+// NewAPIResponse is the constructor for APIResponse
 func NewAPIResponse(res *http.Response) *APIResponse {
 	return &APIResponse{Response: res}
 }
 
+// Clone shallow clones the response
 func (r *APIResponse) Clone() *APIResponse {
 	if r == nil {
 		return nil
@@ -37,6 +42,7 @@ func (r *APIResponse) Clone() *APIResponse {
 	return &APIResponse{r.Response, r.ExpandedBody, r.ParsedBody}
 }
 
+// Clone shallow clones the request
 func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
 	if r == nil {
 		return nil

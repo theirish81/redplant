@@ -7,11 +7,13 @@ import (
 	"strings"
 )
 
+// RequestOpenAPISchemaTransformer will validate an inbound request against the OpenAPI spec
 type RequestOpenAPISchemaTransformer struct {
 	ActivateOnTags []string
 	log            *STLogHelper
 }
 
+// NewRequestOpenAPIValidatorTransformer is the constructor for RequestOpenAPISchemaTransformer
 func NewRequestOpenAPIValidatorTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestOpenAPISchemaTransformer, error) {
 	t := RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	t.log.PrometheusRegisterCounter("openapi_validation_failed")

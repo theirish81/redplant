@@ -44,6 +44,7 @@ func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
+// NewRequestAccessLogSidecarFromParams constructor for RequestAccessLogSidecar from params
 func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*RequestAccessLogSidecar, error) {
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)
@@ -95,6 +96,7 @@ func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
+// NewUpstreamAccessLogSidecarFromParams creates an UpstreamAccessLogSidecar from params
 func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*UpstreamAccessLogSidecar, error) {
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)
@@ -102,6 +104,7 @@ func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow
 	return &sidecar, nil
 }
 
+// MetricsLogSidecar a sidecar to log metrics
 type MetricsLogSidecar struct {
 	channel        chan *APIWrapper
 	log            *STLogHelper
@@ -148,6 +151,7 @@ func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
+// NewMetricsLogSidecarFromParams creates a MetricsLogSidecar from params
 func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*MetricsLogSidecar, error) {
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
 	sidecar.log = NewSTLogHelper(logCfg)

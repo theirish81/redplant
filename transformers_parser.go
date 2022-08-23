@@ -5,11 +5,13 @@ import (
 	"net/http"
 )
 
+// RequestParserTransformer parses the request body, assuming it's a JSON
 type RequestParserTransformer struct {
 	ActivateOnTags []string
 	log            *STLogHelper
 }
 
+// NewRequestParserTransformer is the constructor for RequestParserTransformer
 func NewRequestParserTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestParserTransformer, error) {
 	return &RequestParserTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}, nil
 }
@@ -40,11 +42,13 @@ func (t *RequestParserTransformer) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(t.ActivateOnTags)
 }
 
+// ResponseParserTransformer parses the response body, assuming it's a JSON
 type ResponseParserTransformer struct {
 	ActivateOnTags []string
 	log            *STLogHelper
 }
 
+// NewResponseParserTransformer is the constructor for ResponseParserTransformer
 func NewResponseParserTransformer(activateOnTags []string, logCfg *STLogConfig) (*ResponseParserTransformer, error) {
 	return &ResponseParserTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}, nil
 }

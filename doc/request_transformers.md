@@ -152,3 +152,31 @@ or block a request. Return `true` if the flow should continue.
 
 params:
 * `path` (string,required): path to a JavaScript script
+
+## Request Parser transformer
+You may need your transformation sequence to use data coming from the request body.
+If the request body is in JSON, you can use this transformer to have RedPlant parse it and turn it into a data structure
+you can reference.
+
+Example:
+```yaml
+transformers:
+  - id: parser
+```
+You then can reference the values you need with expressions like:
+```
+${Request.ParsedBody.foo.bar}
+```
+
+## OpenAPI Validator transformer
+If the definition of the route has been defined via an OpenAPI specification file, this transformer allows you
+to validate if the inbound request matches the definition in the spec. If it does not, the request is rejected.
+Given that the route is defined in the OpenAPI, the transformer needs to be defined in the OpenAPI as well.
+
+Example:
+```yaml
+x-redplant:
+  request:
+    transformers:
+      - id: openapi-validator
+```

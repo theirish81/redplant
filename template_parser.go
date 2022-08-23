@@ -8,10 +8,12 @@ import (
 	"reflect"
 )
 
+// RPTemplate handles templates
 type RPTemplate struct {
 	functions *gowalker.Functions
 }
 
+// NewRPTemplate is the constructor for RPTemplate
 func NewRPTemplate() RPTemplate {
 	t := RPTemplate{functions: gowalker.NewFunctions()}
 	t.functions.Add("GetHeader", func(context context.Context, data any, params ...string) (any, error) {
