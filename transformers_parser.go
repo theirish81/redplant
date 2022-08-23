@@ -17,7 +17,7 @@ func NewRequestParserTransformer(activateOnTags []string, logCfg *STLogConfig) (
 func (t *RequestParserTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering parse request", wrapper, t.log.Debug)
 	var parsedRequestBody interface{}
-	err := json.Unmarshal(wrapper.Response.ExpandedBody, &parsedRequestBody)
+	err := json.Unmarshal(wrapper.Request.ExpandedBody, &parsedRequestBody)
 	wrapper.Request.ParsedBody = parsedRequestBody
 	return wrapper, err
 }
