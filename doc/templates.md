@@ -12,6 +12,7 @@ The rule is simple:
 ## The API transaction scope
 This is by far the most complicated scope, so we'll dig into it. Here's the content of the API transaction:
 
+* `ID` (field): the unique ID of the current transaction
 * `Request` (field): the request object
   * `Method` (field): the method used to perform the request
   * `GetHeader(name)` (function): will return the value of a request header
@@ -24,3 +25,21 @@ This is by far the most complicated scope, so we'll dig into it. Here's the cont
   * `ExpandedBody` (field): an array of bytes representing the content of the response body. This field as a value only
     if a transformer or a sidecar had the need to read the response stream
   * `ParsedBody` (field): a data structure that gets populated by the `parser` transformer if the body is a JSON
+* `Username`: when a username of some sort is identified via an authentication transformer, you can reference it here
+* `RealIP`: the IP address of the requesting agent
+* `Tags`: an array of tags which have been applied to the current API transaction
+* `Variables`: the configuration variables loaded at bootstrap
+
+## The syntax
+It's very easy, actually. Use the dot as segment separator to navigate the data, as in:
+```
+${Request.Method}
+```
+Characters that are normally forbidden in programming languages are not a problem here, so no need of square bracket
+notation.
+
+If you need to call a function that requires a parameter, you don't need quotation. As the functions are highly
+specialised, the type will be determined and converted by the function itself, as in:
+```
+${Response.GetHeader(content-type)}
+```

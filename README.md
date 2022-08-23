@@ -74,7 +74,7 @@ key: "$ref:file://another_file.yaml?comp=network"
 
 #### variables
 In this section you can declare global variables which can be referenced anywhere in the system. Values in this section
-can also evaluate templates to include environment variables. Example:
+can also evaluate [templates](doc/templates.md) to include environment variables. Example:
 
 ```yaml
 UN: foo
@@ -219,6 +219,12 @@ usage for sidecars, while not limiting the performance of API transactions
 
 **Check the [response sidecars documentation](./doc/response_sidecars.md)**
 
+
+## Templates
+It is very useful to reference variables throughout the configuration. Some variables may be evaluated at bootstrap
+some others may depend on the API transaction being processed.
+
+Check out [Templates documentation](./doc/templates.md)
 
 ## Exotic origins
 RedPlant can accept (more or less) exotic origins. See:
