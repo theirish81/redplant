@@ -1,4 +1,5 @@
 UN: foo
 PW: bar
-SERVER_NAME: "{{.SERVER_NAME}}"               # picking SERVER_NAME from an environment variable
+SERVER_NAME: "${SERVER_NAME}"               # picking SERVER_NAME from an environment variable
 CAPTURE_URI: file://etc/capture.log
+userAgent: RedPlant-UA

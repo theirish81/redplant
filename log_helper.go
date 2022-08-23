@@ -64,6 +64,10 @@ func (h *LogHelper) LogWithMeta(message string, wrapper *APIWrapper, meta map[st
 	fn(message, h.addMeta(h.wrapperToMap(wrapper), meta))
 }
 
+func (h *LogHelper) LogWithErrorMeta(message string, err error, wrapper *APIWrapper, meta map[string]any, fn func(message string, err error, meta map[string]any)) {
+	fn(message, err, h.addMeta(h.wrapperToMap(wrapper), meta))
+}
+
 func (h *LogHelper) LogErr(message string, err error, wrapper *APIWrapper, fn func(message string, err error, meta map[string]any)) {
 	fn(message, err, h.wrapperToMap(wrapper))
 }

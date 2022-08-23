@@ -26,7 +26,7 @@ type RequestRateLimiterTransformer struct {
 // NewRequestRateLimiterTransformer is the constructor for RequestRateLimiterTransformer
 func NewRequestRateLimiterTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestRateLimiterTransformer, error) {
 	transformer := RequestRateLimiterTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &transformer, nil, []string{"Vary"})
+	err := template.DecodeAndTempl(params, &transformer, nil, []string{"Vary"})
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func NewRequestRateLimiterTransformer(activateOnTags []string, logCfg *STLogConf
 func (t *RequestRateLimiterTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 	t.log.Log("triggering rate limiter", wrapper, t.log.Debug)
 	// compiling the `vary` template in real time
-	vary, _ := Templ(t.Vary, wrapper)
+	vary, _ := template.Templ(t.Vary, wrapper)
 	// getting the length of the item retrieved with the value of `vary` as key
 	cmd := t.redisClient.LLen(context.Background(), vary)
 	// setting response header displaying the rate limit

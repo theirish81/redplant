@@ -72,6 +72,6 @@ func (t *RequestUrlTransformer) IsActive(wrapper *APIWrapper) bool {
 // NewRequestUrlTransformerFromParams is the constructor for RequestUrlTransformer
 func NewRequestUrlTransformerFromParams(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestUrlTransformer, error) {
 	transformer := RequestUrlTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &transformer, nil, []string{"Query"})
+	err := template.DecodeAndTempl(params, &transformer, nil, []string{"Query"})
 	return &transformer, err
 }

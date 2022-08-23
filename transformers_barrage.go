@@ -33,7 +33,7 @@ type BarrageTransformer struct {
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
 func NewBarrageRequestTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
 	t := BarrageTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -84,10 +84,10 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// So here we collect headers and body from the right source
 	if t.response {
 		headers = &wrapper.Response.Header
-		body = &wrapper.ResponseBody
+		body = &wrapper.Response.ExpandedBody
 	} else {
 		headers = &wrapper.Request.Header
-		body = &wrapper.RequestBody
+		body = &wrapper.Request.ExpandedBody
 	}
 	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {

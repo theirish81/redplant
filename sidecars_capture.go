@@ -52,17 +52,17 @@ type ResponseCapture struct {
 func CaptureResponse(wrapper *APIWrapper) *CaptureMessage {
 	captureMessage := CaptureMessage{
 		Request: RequestCapture{
-			IP:      addresser.RealIP(wrapper.Request),
+			IP:      addresser.RealIP(wrapper.Request.Request),
 			Url:     wrapper.Request.URL.String(),
 			Method:  wrapper.Request.Method,
 			Headers: wrapper.Request.Header,
-			Body:    string(wrapper.RequestBody),
+			Body:    string(wrapper.Request.ExpandedBody),
 		},
 		Response: ResponseCapture{
-			Size:    len(wrapper.ResponseBody),
+			Size:    len(wrapper.Response.ExpandedBody),
 			Status:  wrapper.Response.StatusCode,
 			Headers: wrapper.Response.Header,
-			Body:    string(wrapper.ResponseBody),
+			Body:    string(wrapper.Response.ExpandedBody),
 		},
 		Definition: AnyMap{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
 		Meta:       make(AnyMap),
@@ -207,7 +207,7 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 // NewCaptureSidecarFromParams is the constructor
 func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, params AnyMap) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
+	err := template.DecodeAndTempl(params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}

@@ -34,4 +34,8 @@ func TestReverseProxy(t *testing.T) {
 	if !strings.Contains(res.Header.Get("Content-Type"), "application/json") {
 		t.Error("Something went wrong with dry run")
 	}
+	res, _ = http.Get("http://localhost:9001/todo/1")
+	if res.StatusCode != 401 {
+		t.Error("Something went wrong with dry run")
+	}
 }

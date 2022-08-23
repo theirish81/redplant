@@ -23,7 +23,7 @@ func SetupRouter() *mux.Router {
 			if wrapper == nil {
 				return
 			}
-			wrapper.Request = req
+			wrapper.Request = NewAPIRequest(req)
 
 			if !hasMethod(wrapper) {
 				wrapper.Err = errors.New("method_not_allowed")
@@ -79,7 +79,7 @@ func SetupRouter() *mux.Router {
 					return errors.New("connection_hijacked")
 				}
 				wrapper := GetWrapper(response.Request)
-				wrapper.Response = response
+				wrapper.Response = NewAPIResponse(response)
 				for k, v := range wrapper.ApplyHeaders {
 					wrapper.Response.Header.Set(k, v[0])
 				}

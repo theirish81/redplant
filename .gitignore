@@ -2,3 +2,4 @@ apifrp
 config/
 cover.out
 go.sum
+.idea

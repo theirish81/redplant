@@ -10,7 +10,7 @@ func TestRequestUrlTransformer_Transform(t *testing.T) {
 	transformer, _ := NewRequestUrlTransformerFromParams([]string{}, nil, map[string]any{"oldPrefix": "/foo", "newPrefix": "/bar"})
 	req := http.Request{}
 	req.URL, _ = url.Parse("https://example.com/foo")
-	wrapper := APIWrapper{Request: &req}
+	wrapper := APIWrapper{Request: NewAPIRequest(&req)}
 	_, _ = transformer.Transform(&wrapper)
 	if wrapper.Request.URL.String() != "https://example.com/bar" {
 		t.Error("Prefix transformation failed")

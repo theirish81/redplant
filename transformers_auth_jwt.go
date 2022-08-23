@@ -82,7 +82,7 @@ func (t *JWTAuthTransformer) HandleError(writer *http.ResponseWriter) {
 // NewJWTAuthTransformer creates a new JWTAuthTransformer from params
 func NewJWTAuthTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*JWTAuthTransformer, error) {
 	t := JWTAuthTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &t, nil, []string{})
+	err := template.DecodeAndTempl(params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 		claims := jwt.MapClaims{}
 		for k, v := range t.Claims {
 			if isString(v) {
-				parsedClaim, err := Templ(v.(string), wrapper)
+				parsedClaim, err := template.Templ(v.(string), wrapper)
 				if err != nil {
 					t.log.LogErr("unable to parse claims", err, wrapper, t.log.Error)
 					return nil, err
@@ -197,7 +197,7 @@ func (t *JWTSignTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 func NewJWTSignTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*JWTSignTransformer, error) {
 	t := JWTSignTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 
-	err := DecodeAndTempl(params, &t, nil, []string{"Claims"})
+	err := template.DecodeAndTempl(params, &t, nil, []string{"Claims"})
 	t.Claims = convertMaps(t.Claims).(map[string]any)
 	if err != nil {
 		return nil, err

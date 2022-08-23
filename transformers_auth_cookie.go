@@ -23,7 +23,7 @@ type RequestCookieToTokenTransformer struct {
 // NewCookieToTokenTransformer is the constructor for the RequestCookieToTokenTransformer
 func NewCookieToTokenTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestCookieToTokenTransformer, error) {
 	transformer := RequestCookieToTokenTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	err := DecodeAndTempl(params, &transformer, nil, []string{})
+	err := template.DecodeAndTempl(params, &transformer, nil, []string{})
 	redisOptions, err := redis.ParseURL(transformer.RedisUri)
 	if err != nil {
 		return nil, err
