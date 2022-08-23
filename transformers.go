@@ -214,6 +214,12 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 				return nil, err
 			}
 			res.Push(transformer)
+		case "parse":
+			transformer, err := NewResponseParserTransformer(t.ActivateOnTags, t.Logging)
+			if err != nil {
+				return nil, err
+			}
+			res.Push(transformer)
 		}
 	}
 	return &res, nil
