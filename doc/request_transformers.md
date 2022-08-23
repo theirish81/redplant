@@ -61,8 +61,25 @@ params:
 * `key` (string,optional): you can pass the private key to sign the token in the form of a string
 * `pem` (string,optional): path to a private key file
 * `claims` (map[string,any],optional): a map of key values representing the claims
-* `existingClaims` (bool,optional): if set to true, it will expect claims will be present in the request scope
+* `existingClaims` (bool,optional): if set to true, it will expect claims to be present in the request scope
   (set by jwt-auth) and will produce a token with those claims. This is useful to **re-sign** a token
+
+## Cookie-To-JWT Auth transformer
+Will convert a cookie into a JWT token, retrieved from Redis before forwarding it. If the cookie is not present in
+the request or there's no match in Redis, then the request is rejected.
+
+Example:
+```yaml
+transformers:
+- id: cookie-to-token-auth
+  params:
+    redisUri: "redis://:password123@127.0.0.1:6379/1"
+    cookieName: mySessionCookie
+```
+
+params:
+* `redisUri` (string,required): the URI to the Redis server
+* `cookieName` (string,required): the name of the cookie we're looking for
 
 ## Barrage Transformer
 Will immediately drop the inbound request in case certain conditions are met.
