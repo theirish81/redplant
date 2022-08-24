@@ -7,26 +7,36 @@ import (
 	"strings"
 )
 
+// RequestOpenAPISchemaTransformer will validate an inbound request against the OpenAPI spec
 type RequestOpenAPISchemaTransformer struct {
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
-func NewRequestOpenAPIValidatorTransformer(activateOnTags []string) (*RequestOpenAPISchemaTransformer, error) {
-	return &RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags}, nil
+// NewRequestOpenAPIValidatorTransformer is the constructor for RequestOpenAPISchemaTransformer
+func NewRequestOpenAPIValidatorTransformer(activateOnTags []string, logCfg *STLogConfig) (*RequestOpenAPISchemaTransformer, error) {
+	t := RequestOpenAPISchemaTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
+	t.log.PrometheusRegisterCounter("openapi_validation_failed")
+	return &t, nil
 }
 
 func (t *RequestOpenAPISchemaTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
-	route, params, err := (*wrapper.Rule.oaRouter).FindRoute(wrapper.Request)
+	t.log.Log("triggering request OpenAPI schema transformer", wrapper, t.log.Debug)
+	route, params, err := (*wrapper.Rule.oaRouter).FindRoute(wrapper.Request.Request)
 	if err != nil {
+		t.log.LogErr("problem finding route in OpenAPI", err, wrapper, t.log.Warn)
 		return wrapper, err
 	}
 	requestValidationInput := &openapi3filter.RequestValidationInput{
-		Request:    wrapper.Request,
+		Request:    wrapper.Request.Request,
 		PathParams: params,
 		Route:      route,
+		Options:    &openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc},
 	}
 	err = openapi3filter.ValidateRequest(wrapper.Request.Context(), requestValidationInput)
 	if err != nil {
+		t.log.PrometheusCounterInc("openapi_validation_failed")
+		t.log.LogErr("validation error in OpenAPI", err, wrapper, t.log.Warn)
 		err = errors.New("validation_error: " + err.Error())
 	}
 	return wrapper, err

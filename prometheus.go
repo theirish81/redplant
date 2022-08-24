@@ -1,38 +1,27 @@
 package main
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"sync"
+)
 
 // Prometheus is the RedPlant configuration for Prometheus
-// GlobalInboundRequestsCounter is the counter for all inbound requests
-// GlobalOriginRequestsCounter is the counter for all the origin hits
+// InternalErrorsCounter is a global Prometheus counter for errors
 // CustomCounters is a map of counters transformers and sidecars can use
 // CustomSummaries is a map of summaries transformers and sidecars can use
+// customCounterCreationMutex will make sure that no duplicate counters will be created
+// customSummaryCreationMutex will make sure that no duplicate summaries will be created
 type Prometheus struct {
-	GlobalInboundRequestsCounter prometheus.Counter
-	GlobalOriginRequestsCounter  prometheus.Counter
-	InternalErrorsCounter        prometheus.Counter
-	CustomCounters               map[string]prometheus.Counter
-	CustomSummaries              map[string]prometheus.Summary
+	InternalErrorsCounter      prometheus.Counter
+	CustomCounters             map[string]prometheus.Counter
+	CustomSummaries            map[string]prometheus.Summary
+	customCounterCreationMutex sync.Mutex
+	customSummaryCreationMutex sync.Mutex
 }
 
 // NewPrometheus is the Prometheus constructor
 func NewPrometheus() *Prometheus {
 	prom := Prometheus{}
-	grc := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "redplant",
-		Name:      "global_inbound_requests",
-		Help:      "global inbound request counter",
-	})
-	prom.GlobalInboundRequestsCounter = grc
-	_ = prometheus.Register(grc)
-	gorc := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "redplant",
-		Name:      "global_origin_requests",
-		Help:      "global requests to the origin counter",
-	})
-	prom.GlobalOriginRequestsCounter = gorc
-	_ = prometheus.Register(gorc)
-
 	iec := prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "redplant",
 		Name:      "internal_errors",
@@ -50,6 +39,8 @@ func NewPrometheus() *Prometheus {
 // CustomCounter will return a prometheus.Counter instance for the given name. If the counter does not already exist
 // it will create one
 func (p *Prometheus) CustomCounter(name string) prometheus.Counter {
+	p.customCounterCreationMutex.Lock()
+	defer p.customCounterCreationMutex.Unlock()
 	if counter, ok := p.CustomCounters[name]; ok {
 		return counter
 	}
@@ -64,6 +55,8 @@ func (p *Prometheus) CustomCounter(name string) prometheus.Counter {
 // CustomSummary will return a prometheus.Summary instance for the given name. If the counter does not already exist
 // it will create one
 func (p *Prometheus) CustomSummary(name string) prometheus.Summary {
+	p.customSummaryCreationMutex.Lock()
+	defer p.customSummaryCreationMutex.Unlock()
 	if summary, ok := p.CustomSummaries[name]; ok {
 		return summary
 	}

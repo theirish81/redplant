@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
-	"github.com/sirupsen/logrus"
 	"net/url"
 	"regexp"
 )
@@ -24,21 +23,21 @@ var paramWildcard = ".*"
 
 // OpenAPI2Rules will load a number of OpenAPI files and convert it to a set of RedPlant Rules
 // `openAPIConfigs` is a set of OpenAPIConfig, the RedPlant configuration for them
-func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) map[string]map[string]*Rule {
-	res := make(map[string]map[string]*Rule)
+func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) RulesMap {
+	res := make(RulesMap)
 	// for each RedPlant host, one openAPI can be mapped. So for each host, we obtain an OpenAPI config
 	for host, cfg := range openAPIConfigs {
 		// first we load and parse the OpenAPI spec
 		oa, err := loadOpenAPI(*cfg)
 		if err != nil {
-			log.Error("could not load the OpenAPI spec", err, logrus.Fields{"file": cfg.File})
+			log.Error("could not load the OpenAPI spec", err, AnyMap{"file": cfg.File})
 			continue
 		}
 		// Servers can contain multiple items. We will pick one based on the configuration. We pare it into a URL
 		// for ease of use. Partial URLs are not acceptable because they defeat the purpose
 		serverURL, err := url.Parse(oa.Servers[cfg.ServerIndex].URL)
 		if err != nil {
-			log.Error("could not parse server URL in OpenAPI spec", err, logrus.Fields{"url": oa.Servers[cfg.ServerIndex].URL})
+			log.Error("could not parse server URL in OpenAPI spec", err, AnyMap{"url": oa.Servers[cfg.ServerIndex].URL})
 			continue
 		}
 		// As the `Servers` definition may include not only a protocol and a host, but also a partial path, we extract it
@@ -110,9 +109,9 @@ func loadOpenAPI(cfg OpenAPIConfig) (*openapi3.T, error) {
 // and regular RedPlant specs can coexist
 // `existing` is the existing set of rules
 // `new` is the new set of rules
-func MergeRules(existing map[string]map[string]*Rule, new map[string]map[string]*Rule) map[string]map[string]*Rule {
+func MergeRules(existing RulesMap, new RulesMap) RulesMap {
 	if existing == nil {
-		existing = make(map[string]map[string]*Rule)
+		existing = make(RulesMap)
 	}
 	for domain, routes := range new {
 		route, ok := existing[domain]

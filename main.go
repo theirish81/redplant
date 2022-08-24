@@ -19,9 +19,9 @@ var log *LogHelper
 var config Config
 var addresser = NewIPAddresser()
 var prom *Prometheus
+var template RPTemplate
 
 func main() {
-
 	configFilePath := flag.String("c", "", "Path of the main configuration file")
 	logFilePath := flag.String("l", "", "Path to the logging configuration file")
 	flag.Parse()
@@ -38,13 +38,13 @@ func main() {
 		return
 	}
 	log = NewLogHelperFromConfig(loggingConfig)
-
 	config = LoadConfig(*configFilePath)
-	config.Init()
 	startPrometheus()
+	config.Init()
+	template = NewRPTemplate()
 	router := SetupRouter()
 
-	log.Info("Starting Server", map[string]interface{}{"port": config.Network.Downstream.Port})
+	log.Info("Starting Server", AnyMap{"port": config.Network.Downstream.Port})
 
 	server := &http.Server{Addr: ":" + strconv.Itoa(config.Network.Downstream.Port), Handler: router, TLSConfig: setupTLSConfig()}
 	if config.Network.Downstream.Tls != nil {

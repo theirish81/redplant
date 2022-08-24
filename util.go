@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+type StringMap map[string]string
+type AnyMap map[string]any
+type RulesMap map[string]map[string]*Rule
+
 // stringInArray will search a string in an array of strings and return true if the string is found
 func stringInArray(search string, array []string) bool {
 	for _, sx := range array {
@@ -26,13 +30,13 @@ func getFieldName(val reflect.Value, index int) string {
 }
 
 // getEnvs converts environment variables to a map
-func getEnvs() *map[string]string {
-	envs := make(map[string]string)
+func getEnvs() StringMap {
+	envs := make(StringMap)
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
 		envs[pair[0]] = pair[1]
 	}
-	return &envs
+	return envs
 }
 
 // hasPrefixes will check whether an input string has one of the provided prefixes
@@ -46,7 +50,7 @@ func hasPrefixes(data string, prefixes []string) bool {
 }
 
 // isString given an interface, it will return true if the data type is a string
-func isString(data interface{}) bool {
+func isString(data any) bool {
 	if data == nil {
 		return false
 	}
@@ -71,21 +75,21 @@ func parseBasicAuth(auth string) (username, password string, ok bool) {
 	return cs[:s], cs[s+1:], true
 }
 
-// convertMaps will recursively go through a nested structure and converting map[interface{}]interface{} to
-// map[string]interface{}
-func convertMaps(intf interface{}) interface{} {
+// convertMaps will recursively go through a nested structure and converting map[any]any to
+// map[string]any
+func convertMaps(intf any) any {
 	switch obj := intf.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k, v := range obj {
 			obj[k] = convertMaps(v)
 		}
-	case map[interface{}]interface{}:
-		nuMap := map[string]interface{}{}
+	case map[any]any:
+		nuMap := map[string]any{}
 		for k, v := range obj {
 			nuMap[k.(string)] = convertMaps(v)
 		}
 		return nuMap
-	case []interface{}:
+	case []any:
 		for index, object := range obj {
 			obj[index] = convertMaps(object)
 		}

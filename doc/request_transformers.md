@@ -26,7 +26,7 @@ Alternatively, you can use the `htpasswd` param with the path to a htpasswd file
 Example:
 ```yaml
 transformers:
-- id: basicAuth 
+- id: basic-auth 
 params:
   username: "username"
   password: "password"
@@ -39,7 +39,7 @@ it will store claims in the scope of the request, as the `Claims` variable.
 Example:
 ```yaml
 transformers:
-- id: jwtAuth 
+- id: jwt-auth 
 params:
   key: "some_bytes_here"
 ```
@@ -53,7 +53,7 @@ Will add a JWT token to the request in the `Authorization` header.
 Example:
 ```yaml
 transformers:
-- id: jwtSign
+- id: jwt-sign
   params:
     pem: /etc/secrets/jwt-public-key/privateKey
 ```
@@ -61,8 +61,25 @@ params:
 * `key` (string,optional): you can pass the private key to sign the token in the form of a string
 * `pem` (string,optional): path to a private key file
 * `claims` (map[string,any],optional): a map of key values representing the claims
-* `existingClaims` (bool,optional): if set to true, it will expect claims will be present in the request scope
-  (set by jwtAuth) and will produce a token with those claims. This is useful to **re-sign** a token
+* `existingClaims` (bool,optional): if set to true, it will expect claims to be present in the request scope
+  (set by jwt-auth) and will produce a token with those claims. This is useful to **re-sign** a token
+
+## Cookie-To-JWT Auth transformer
+Will convert a cookie into a JWT token, retrieved from Redis before forwarding it. If the cookie is not present in
+the request or there's no match in Redis, then the request is rejected.
+
+Example:
+```yaml
+transformers:
+- id: cookie-to-token-auth
+  params:
+    redisUri: "redis://:password123@127.0.0.1:6379/1"
+    cookieName: mySessionCookie
+```
+
+params:
+* `redisUri` (string,required): the URI to the Redis server
+* `cookieName` (string,required): the name of the cookie we're looking for
 
 ## Barrage Transformer
 Will immediately drop the inbound request in case certain conditions are met.
@@ -90,7 +107,7 @@ transformers:
 - id: rate-limiter
   params:
     redisUri: "redis://:password123@127.0.0.1:6379/1"
-    vary: "{{.Request.Header.Get \"Username\"}}"
+    vary: "${Request.GetHeader(Username)"
     limit: 5
     range: 1m
 ```
@@ -152,3 +169,31 @@ or block a request. Return `true` if the flow should continue.
 
 params:
 * `path` (string,required): path to a JavaScript script
+
+## Request Parser transformer
+You may need your transformation sequence to use data coming from the request body.
+If the request body is in JSON, you can use this transformer to have RedPlant parse it and turn it into a data structure
+you can reference.
+
+Example:
+```yaml
+transformers:
+  - id: parser
+```
+You then can reference the values you need with expressions like:
+```
+${Request.ParsedBody.foo.bar}
+```
+
+## OpenAPI Validator transformer
+If the definition of the route has been defined via an OpenAPI specification file, this transformer allows you
+to validate if the inbound request matches the definition in the spec. If it does not, the request is rejected.
+Given that the route is defined in the OpenAPI, the transformer needs to be defined in the OpenAPI as well.
+
+Example:
+```yaml
+x-redplant:
+  request:
+    transformers:
+      - id: openapi-validator
+```

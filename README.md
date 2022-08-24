@@ -6,7 +6,8 @@ RedPlant is a **reverse proxy** dedicated to **APIs**. I know what you're thinki
 RedPlant different?
 
 ### Dedicated to developers
-The project is meant to become a swiss-army knife for API development and debugging. 
+The project is meant to become a swiss-army knife for API development and debugging, both in a test and production
+environment.
 The modular system of the tool allows developers to build sophisticated transformation pipelines and sidecar tasks,
 with a simple yet effective definition system.
 
@@ -15,7 +16,7 @@ RedPlant into a trusted testing / CI companion.
 
 ### Capable of production traffic
 Contrary to most dev-oriented RPs, RedPlant is fully capable of sustaining production-sized traffic. True, not as fast
-as NGINX, yet given the complexity of the pipelines you can build, the tradeoff may be worth the tiny extra lag
+as NGINX, yet given the complexity of the pipelines you can build, the tradeoff may be worth the tiny extra lag.
 
 ### Designed to democratise gateways
 In large scale microservices architectures, isolation and black-boxing between areas of the software is crucial to
@@ -44,6 +45,20 @@ path: "my_logs.log"
 
 To select a configuration file pass the `-l path_to_logging.yaml` option to the launch command.
 
+All defined sidecars and transformers will inherit the default logger. You can, however, specify different behaviours
+for each component. For example:
+
+```yaml
+- id: basic-auth
+  logging:
+    path: auth.log
+    level: warn
+    format: JSON
+```
+
+Therefore, you can have a very fine grained logging strategy by potentially defining your logging needs in each
+component.
+
 ### config.yaml
 This file is where all the magic happens.
 
@@ -60,12 +75,12 @@ key: "$ref:file://another_file.yaml?comp=network"
 
 #### variables
 In this section you can declare global variables which can be referenced anywhere in the system. Values in this section
-can also evaluate Go templates to include environment variables. Example:
+can also evaluate [templates](doc/templates.md) to include environment variables. Example:
 
 ```yaml
 UN: foo
 PW: bar
-SERVER_NAME: "{{.SERVER_NAME}}"
+SERVER_NAME: "${SERVER_NAME}"
 CAPTURE_URI: file://etc/capture.log
 ```
 
@@ -150,7 +165,7 @@ in the specific route `request.transformers` and `response.transformers`. The co
 a global definition that defines the type of transformer and its general behavior, and its specific params.
 Example:
 ```yaml
-id: basicAuth
+id: basic-auth
 activateOnTags:
   - db
   - fs
@@ -183,7 +198,7 @@ workers: 2
 queue: 5
 block: true
 params:
-  uri: "{{.Variables.CAPTURE_URI}}"
+  uri: "${Variables.CAPTURE_URI}"
   responseContentTypeRegexp: '.*json.*'
   requestContentTypeRegexp: '(^$|.*json.*)'
   format: JSON
@@ -205,6 +220,12 @@ usage for sidecars, while not limiting the performance of API transactions
 
 **Check the [response sidecars documentation](./doc/response_sidecars.md)**
 
+
+## Templates
+It is very useful to reference variables throughout the configuration. Some variables may be evaluated at bootstrap
+some others may depend on the API transaction being processed.
+
+Check out [Templates documentation](./doc/templates.md)
 
 ## Exotic origins
 RedPlant can accept (more or less) exotic origins. See:

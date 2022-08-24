@@ -73,9 +73,9 @@ func (s *RequestSidecars) runFunc(sidecar ISidecar, wrapper *APIWrapper) {
 }
 
 // NewRequestSidecars is the constructor of RequestSidecars
-func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
+func NewRequestSidecars(sidecars []SidecarConfig) *RequestSidecars {
 	res := RequestSidecars{}
-	for _, s := range *sidecars {
+	for _, s := range sidecars {
 		if s.Workers == 0 {
 			s.Workers = 1
 		}
@@ -83,10 +83,10 @@ func NewRequestSidecars(sidecars *[]SidecarConfig) *RequestSidecars {
 			s.Queue = 1
 		}
 		switch s.Id {
-		case "accessLog":
-			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
+		case "access-log":
+			sidecar, err := NewRequestAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Logging, s.Params)
 			if err != nil {
-				log.Error("Could not initialise accessLog", err, nil)
+				log.Error("Could not initialise access-log", err, nil)
 			} else {
 				sidecar.Consume(s.Workers)
 				res.Push(sidecar)
@@ -170,8 +170,8 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			s.Queue = 1
 		}
 		switch s.Id {
-		case "accessLog":
-			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
+		case "access-log":
+			sidecar, err := NewUpstreamAccessLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Logging, s.Params)
 			if err != nil {
 				log.Error("Could not initialize upstream access log", err, nil)
 			} else {
@@ -179,8 +179,8 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 				res.Push(sidecar)
 			}
 
-		case "metricsLog":
-			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
+		case "metrics-log":
+			sidecar, err := NewMetricsLogSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Logging, s.Params)
 			if err != nil {
 				log.Error("Could not initialize metrics log", err, nil)
 			} else {
@@ -189,7 +189,7 @@ func NewResponseSidecars(sidecars *[]SidecarConfig) *ResponseSidecars {
 			}
 
 		case "capture":
-			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Params)
+			sidecar, err := NewCaptureSidecarFromParams(s.Block, s.Queue, s.DropOnOverflow, s.ActivateOnTags, s.Logging, s.Params)
 			if err != nil {
 				log.Error("Could not initialize capture sidecar. Bypassing. ", err, nil)
 			} else {

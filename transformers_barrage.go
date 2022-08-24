@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"regexp"
@@ -27,12 +28,13 @@ type BarrageTransformer struct {
 	_bodyRegexp        *regexp.Regexp
 	response           bool
 	ActivateOnTags     []string
+	log                *STLogHelper
 }
 
 // NewBarrageRequestTransformer is the constructor for BarrageTransformer
-func NewBarrageRequestTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
-	t := BarrageTransformer{ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &t, nil, []string{})
+func NewBarrageRequestTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
+	t := BarrageTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -61,18 +63,21 @@ func NewBarrageRequestTransformer(activateOnTags []string, params map[string]int
 		}
 	}
 	t.response = false
+	t.log.PrometheusRegisterCounter("barraged")
 	return &t, err
 }
 
 // NewBarrageResponseTransformer is the constructor for the BarrageTransformer dedicated to the request
-func NewBarrageResponseTransformer(activateOnTags []string, params map[string]interface{}) (*BarrageTransformer, error) {
-	transformer, err := NewBarrageRequestTransformer(activateOnTags, params)
+func NewBarrageResponseTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BarrageTransformer, error) {
+	transformer, err := NewBarrageRequestTransformer(activateOnTags, logCfg, params)
 	transformer.response = true
+	transformer.log.PrometheusRegisterCounter("barraged")
 	return transformer, err
 }
 
 // Transform will block the request if the preconditions are not met
 func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("barrage triggered", wrapper, t.log.Debug)
 	var headers *http.Header
 	var body *[]byte
 	// As the implementation of this transformer is identical for the request and the response, we determine
@@ -80,23 +85,30 @@ func (t *BarrageTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error)
 	// So here we collect headers and body from the right source
 	if t.response {
 		headers = &wrapper.Response.Header
-		body = &wrapper.ResponseBody
+		body = &wrapper.Response.ExpandedBody
 	} else {
 		headers = &wrapper.Request.Header
-		body = &wrapper.RequestBody
+		body = &wrapper.Request.ExpandedBody
 	}
 	// For each header, we determine whether one of the regexp matches. If one does, we barrage.
 	for k, v := range *headers {
 		if t._headerRegexp != nil && t._headerRegexp.MatchString(k+":"+v[0]) {
+			t.log.PrometheusCounterInc("barraged")
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerNameRegexp != nil && t._headerNameRegexp.MatchString(k) {
+			t.log.PrometheusCounterInc("barraged")
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 		if t._headerValueRegexp != nil && t._headerValueRegexp.MatchString(v[0]) {
+			t.log.PrometheusCounterInc("barraged")
+			t.log.LogErr("barraged", nil, wrapper, t.log.Warn)
 			return wrapper, errors.New("barraged")
 		}
 	}
+	t.log.Log("barrage agrees with this request", wrapper, t.log.Debug)
 	// Similarly, we determine whether the body matches the regexp. If it does, we barrage
 	if t._bodyRegexp != nil && t._bodyRegexp.Match(*body) {
 		return wrapper, errors.New("barraged")

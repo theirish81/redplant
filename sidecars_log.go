@@ -1,11 +1,9 @@
 package main
 
-import "github.com/sirupsen/logrus"
-
 // RequestAccessLogSidecar logs the inbound access requests
 type RequestAccessLogSidecar struct {
 	channel        chan *APIWrapper
-	log            *LogHelper
+	log            *STLogHelper
 	block          bool
 	dropOnOverflow bool
 	Path           string
@@ -20,8 +18,8 @@ func (s *RequestAccessLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				req := msg.Request
-				s.log.Info("request access", logrus.Fields{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.Host + req.URL.String(), "tags": msg.Tags})
+				s.log.Log("request access", msg, s.log.Info)
+				s.log.PrometheusCounterInc("request_access")
 			}
 		}()
 	}
@@ -46,24 +44,18 @@ func (s *RequestAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*RequestAccessLogSidecar, error) {
-	logger := log
+// NewRequestAccessLogSidecarFromParams constructor for RequestAccessLogSidecar from params
+func NewRequestAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*RequestAccessLogSidecar, error) {
 	sidecar := RequestAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
+	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusCounterInc("request_access")
 	return &sidecar, nil
 }
 
 // UpstreamAccessLogSidecar logs the accesses to the upstream server, once the conversation has happened
 type UpstreamAccessLogSidecar struct {
 	channel        chan *APIWrapper
-	log            *LogHelper
+	log            *STLogHelper
 	block          bool
 	dropOnOverflow bool
 	Path           string
@@ -78,9 +70,8 @@ func (s *UpstreamAccessLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				res := msg.Response
-				req := res.Request
-				log.Info("upstream access", logrus.Fields{"remote_addr": req.RemoteAddr, "method": req.Method, "url": req.URL.String(), "status": res.StatusCode, "tags": msg.Tags})
+				s.log.Log("upstream access", msg, s.log.Info)
+				s.log.PrometheusCounterInc("upstream_access")
 			}
 		}()
 	}
@@ -105,65 +96,40 @@ func (s *UpstreamAccessLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*UpstreamAccessLogSidecar, error) {
-	logger := log
+// NewUpstreamAccessLogSidecarFromParams creates an UpstreamAccessLogSidecar from params
+func NewUpstreamAccessLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*UpstreamAccessLogSidecar, error) {
 	sidecar := UpstreamAccessLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
-	return &sidecar, err
+	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusRegisterCounter("upstream_access")
+	return &sidecar, nil
 }
 
+// MetricsLogSidecar a sidecar to log metrics
 type MetricsLogSidecar struct {
-	channel          chan *APIWrapper
-	log              *LogHelper
-	block            bool
-	dropOnOverflow   bool
-	Path             string
-	PrometheusPrefix string
-	Mode             string
-	ActivateOnTags   []string
+	channel        chan *APIWrapper
+	log            *STLogHelper
+	block          bool
+	dropOnOverflow bool
+	Path           string
+	Mode           string
+	ActivateOnTags []string
 }
 
 func (s *MetricsLogSidecar) GetChannel() chan *APIWrapper {
 	return s.channel
 }
 
-func (s *MetricsLogSidecar) getPrometheusPrefix() string {
-	if s.PrometheusPrefix == "" {
-		return "metrics"
-	}
-	return "metrics_" + s.PrometheusPrefix
-}
-
 func (s *MetricsLogSidecar) Consume(quantity int) {
 	for i := 0; i < quantity; i++ {
 		go func() {
 			for msg := range s.GetChannel() {
-				if s.isPrometheusEnabled() {
-					prom.CustomSummary(s.getPrometheusPrefix() + "_transaction").Observe(float64(msg.Metrics.Transaction()))
-					prom.CustomSummary(s.getPrometheusPrefix() + "_req_transformation").Observe(float64(msg.Metrics.ReqTransformation()))
-					prom.CustomSummary(s.getPrometheusPrefix() + "_res_transformation").Observe(float64(msg.Metrics.ResTransformation()))
-				}
-				if s.isTextEnabled() {
-					log.Info("metrics", logrus.Fields{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags})
-				}
+				s.log.PrometheusSummaryObserve("transaction", msg.Metrics.Transaction())
+				s.log.PrometheusSummaryObserve("req_transformation", msg.Metrics.ReqTransformation())
+				s.log.PrometheusSummaryObserve("res_transformation", msg.Metrics.ResTransformation())
+				s.log.LogWithMeta("metrics", msg, AnyMap{"transaction": msg.Metrics.Transaction(), "req_transformation": msg.Metrics.ReqTransformation(), "res_transformation": msg.Metrics.ResTransformation(), "tags": msg.Tags}, s.log.Info)
 			}
 		}()
 	}
-}
-
-func (s *MetricsLogSidecar) isPrometheusEnabled() bool {
-	return prom != nil && (s.Mode == "prometheus" || s.Mode == "")
-}
-
-func (s *MetricsLogSidecar) isTextEnabled() bool {
-	return s.Mode == "text" || s.Mode == ""
 }
 
 func (s *MetricsLogSidecar) ShouldBlock() bool {
@@ -185,16 +151,12 @@ func (s *MetricsLogSidecar) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(s.ActivateOnTags)
 }
 
-func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*MetricsLogSidecar, error) {
-	logger := log
+// NewMetricsLogSidecarFromParams creates a MetricsLogSidecar from params
+func NewMetricsLogSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, _ AnyMap) (*MetricsLogSidecar, error) {
 	sidecar := MetricsLogSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
-	if err != nil {
-		return nil, err
-	}
-	if sidecar.Path != "" {
-		logger = NewLogHelper(sidecar.Path, logrus.InfoLevel)
-	}
-	sidecar.log = logger
+	sidecar.log = NewSTLogHelper(logCfg)
+	sidecar.log.PrometheusRegisterSummary("transaction")
+	sidecar.log.PrometheusRegisterSummary("req_transformation")
+	sidecar.log.PrometheusRegisterSummary("res_transformation")
 	return &sidecar, nil
 }

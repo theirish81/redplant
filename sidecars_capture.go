@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"regexp"
 	"time"
@@ -15,10 +15,10 @@ import (
 // Definition represent meta information of what rules where applied
 // Meta is free-hand meta information
 type CaptureMessage struct {
-	Request    RequestCapture         `json:"request"`
-	Response   ResponseCapture        `json:"response"`
-	Definition map[string]interface{} `json:"definition"`
-	Meta       map[string]interface{} `json:"meta"`
+	Request    RequestCapture  `json:"request"`
+	Response   ResponseCapture `json:"response"`
+	Definition AnyMap          `json:"definition"`
+	Meta       AnyMap          `json:"meta"`
 }
 
 // RequestCapture represents the serialization of an API Request
@@ -53,20 +53,20 @@ type ResponseCapture struct {
 func CaptureResponse(wrapper *APIWrapper) *CaptureMessage {
 	captureMessage := CaptureMessage{
 		Request: RequestCapture{
-			IP:      addresser.RealIP(wrapper.Request),
+			IP:      addresser.RealIP(wrapper.Request.Request),
 			Url:     wrapper.Request.URL.String(),
 			Method:  wrapper.Request.Method,
 			Headers: wrapper.Request.Header,
-			Body:    string(wrapper.RequestBody),
+			Body:    string(wrapper.Request.ExpandedBody),
 		},
 		Response: ResponseCapture{
-			Size:    len(wrapper.ResponseBody),
+			Size:    len(wrapper.Response.ExpandedBody),
 			Status:  wrapper.Response.StatusCode,
 			Headers: wrapper.Response.Header,
-			Body:    string(wrapper.ResponseBody),
+			Body:    string(wrapper.Response.ExpandedBody),
 		},
-		Definition: map[string]interface{}{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
-		Meta:       make(map[string]interface{}),
+		Definition: AnyMap{"origin": wrapper.Rule.Origin, "pattern": wrapper.Rule.Pattern},
+		Meta:       make(AnyMap),
 	}
 	return &captureMessage
 }
@@ -94,9 +94,9 @@ type CaptureSidecar struct {
 	block                      bool
 	dropOnOverflow             bool
 	httpClient                 *http.Client
-	Headers                    map[string]string
+	Headers                    StringMap
 	Timeout                    string
-	logger                     *LogHelper
+	logger                     *STLogHelper
 	Format                     string
 	ActivateOnTags             []string
 }
@@ -118,18 +118,8 @@ func (s *CaptureSidecar) Consume(quantity int) {
 		}
 		s.httpClient = &http.Client{Timeout: to}
 		captureFunc = s.CaptureHttp
-	} else {
-		// Otherwise, it's a local file. However, we want to check whether it's a path or a file URI
-		var err error
-		s.Uri, err = FileNameFormat(s.Uri)
-		if err != nil {
-			log.Error("Could not parse capture URI. Disabling sidecar", err, nil)
-			return
-		}
-		// Creating logger and assigning local logging function
-		s.logger = NewLogHelperFromConfig(LoggerConfig{Path: s.Uri, Format: s.Format, Level: "info"})
-		captureFunc = s.CaptureLogger
 	}
+	captureFunc = s.CaptureLogger
 
 	// For each worker...
 	for i := 0; i < quantity; i++ {
@@ -167,7 +157,7 @@ func (s *CaptureSidecar) CaptureHttp(data []byte) {
 	reader := bytes.NewReader(data)
 	outboundRequest, err := http.NewRequest("POST", s.Uri, reader)
 	if err != nil {
-		log.Error("Error creating the request during capture", err, logrus.Fields{"uri": s.Uri})
+		log.Error("Error creating the request during capture", err, AnyMap{"uri": s.Uri})
 		return
 	}
 	outboundRequest.Header.Set("content-type", "application/json")
@@ -216,9 +206,9 @@ func (s *CaptureSidecar) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewCaptureSidecarFromParams is the constructor
-func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, params map[string]interface{}) (*CaptureSidecar, error) {
+func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, activateOnTags []string, logCfg *STLogConfig, params AnyMap) (*CaptureSidecar, error) {
 	sidecar := CaptureSidecar{channel: make(chan *APIWrapper, queue), block: block, dropOnOverflow: dropOnOverflow, ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &sidecar, nil, []string{})
+	err := template.DecodeAndTempl(context.Background(), params, &sidecar, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -234,5 +224,6 @@ func NewCaptureSidecarFromParams(block bool, queue int, dropOnOverflow bool, act
 			return nil, err
 		}
 	}
+	sidecar.logger = NewSTLogHelper(logCfg)
 	return &sidecar, nil
 }

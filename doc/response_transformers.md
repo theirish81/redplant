@@ -72,3 +72,17 @@ or block a response. Return `true` if the flow should continue.
 
 params:
 * `path` (string,required): path to a JavaScript script
+
+## Tag Transformer
+Will add a tag to the response envelope. Following transformers and sidecars can then be activated if a tag is present.
+
+Example:
+```yaml
+transformers:
+- id: tag
+  params:
+    tags:
+      - db
+```
+params:
+* `tags` (array[string],required): a list of tags to apply to the request.

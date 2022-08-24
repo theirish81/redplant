@@ -4,28 +4,68 @@ import (
 	"bytes"
 	"context"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"time"
 )
 
+// APIRequest is a wrapper around http.Request
+type APIRequest struct {
+	*http.Request
+	ExpandedBody []byte
+	ParsedBody   any
+}
+
+// NewAPIRequest is the constructor for APIRequest
+func NewAPIRequest(req *http.Request) *APIRequest {
+	return &APIRequest{Request: req}
+}
+
+// APIResponse is the wrapper around http.Response
+type APIResponse struct {
+	*http.Response
+	ExpandedBody []byte
+	ParsedBody   any
+}
+
+// NewAPIResponse is the constructor for APIResponse
+func NewAPIResponse(res *http.Response) *APIResponse {
+	return &APIResponse{Response: res}
+}
+
+// Clone shallow clones the response
+func (r *APIResponse) Clone() *APIResponse {
+	if r == nil {
+		return nil
+	}
+	return &APIResponse{r.Response, r.ExpandedBody, r.ParsedBody}
+}
+
+// Clone shallow clones the request
+func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
+	if r == nil {
+		return nil
+	}
+	return &APIRequest{r.Request.Clone(ctx), r.ExpandedBody, r.ParsedBody}
+}
+
 // APIWrapper wraps a Request and a response
 type APIWrapper struct {
-	Request           *http.Request
-	Response          *http.Response
-	ResponseWriter    http.ResponseWriter
-	RequestBody       []byte
-	ParsedRequestBody interface{}
-	ResponseBody      []byte
-	Claims            *jwt.MapClaims
-	Rule              *Rule
-	Metrics           *APIMetrics
-	Err               error
-	Username          string
-	Variables         *map[string]string
-	RealIP            string
-	Tags              []string
-	ApplyHeaders      http.Header
+	ID             string
+	Context        context.Context
+	Request        *APIRequest
+	Response       *APIResponse
+	ResponseWriter http.ResponseWriter
+	Claims         *jwt.MapClaims
+	Rule           *Rule
+	Metrics        *APIMetrics
+	Err            error
+	Username       string
+	Variables      *StringMap
+	RealIP         string
+	Tags           []string
+	ApplyHeaders   http.Header
 	// When set to true, it means that the connection has been hijacked. This is the case when websockets
 	// are involved
 	Hijacked bool
@@ -34,8 +74,8 @@ type APIWrapper struct {
 // Clone will do sort of a somewhat shallow clone of the wrapper. This is useful when sending the wrapper is being
 // sent to a sidecar but also transformers apply. If we didn't clone, results may vary on timing
 func (w *APIWrapper) Clone() *APIWrapper {
-	return &APIWrapper{Request: w.Request.Clone(w.Request.Context()), Response: w.Response, RequestBody: w.RequestBody,
-		ResponseBody: w.ResponseBody, Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
+	return &APIWrapper{ID: w.ID, Context: w.Context, Request: w.Request.Clone(w.Request.Context()), Response: w.Response.Clone(),
+		Claims: w.Claims, Rule: w.Rule, Metrics: w.Metrics, Err: w.Err, RealIP: w.RealIP,
 		Tags: w.Tags, ApplyHeaders: w.ApplyHeaders, Hijacked: w.Hijacked}
 }
 
@@ -60,17 +100,17 @@ func (w *APIWrapper) ExpandResponseIfNeeded() {
 
 // ExpandRequest will turn the Request body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandRequest() {
-	if len(w.RequestBody) == 0 && w.Request.Body != nil {
-		w.RequestBody, _ = io.ReadAll(w.Request.Body)
-		w.Request.Body = io.NopCloser(bytes.NewReader(w.RequestBody))
+	if len(w.Request.ExpandedBody) == 0 && w.Request.Body != nil {
+		w.Request.ExpandedBody, _ = io.ReadAll(w.Request.Body)
+		w.Request.Body = io.NopCloser(bytes.NewReader(w.Request.ExpandedBody))
 	}
 }
 
 // ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
-	if len(w.ResponseBody) == 0 && w.Response.Body != nil {
-		w.ResponseBody, _ = io.ReadAll(w.Response.Body)
-		w.Response.Body = io.NopCloser(bytes.NewReader(w.ResponseBody))
+	if len(w.Response.ExpandedBody) == 0 && w.Response.Body != nil {
+		w.Response.ExpandedBody, _ = io.ReadAll(w.Response.Body)
+		w.Response.Body = io.NopCloser(bytes.NewReader(w.Response.ExpandedBody))
 	}
 }
 
@@ -90,8 +130,8 @@ func (w *APIWrapper) HasTag(tags []string) bool {
 }
 
 // Templ will compile the provided template using APIWrapper as scope
-func (w *APIWrapper) Templ(data string) (string, error) {
-	return Templ(data, w)
+func (w *APIWrapper) Templ(ctx context.Context, data string) (string, error) {
+	return template.Templ(ctx, data, w)
 }
 
 // APIMetrics is a collector of metrics for the transaction
@@ -123,6 +163,8 @@ func (m *APIMetrics) ResTransformation() int64 {
 func ReqWithContext(req *http.Request, responseWriter http.ResponseWriter, rule *Rule) *http.Request {
 	ctx := req.Context()
 	wrapper := &APIWrapper{Rule: rule, Metrics: &APIMetrics{TransactionStart: time.Now()},
+		ID:             uuid.New().String(),
+		Context:        ctx,
 		Tags:           []string{},
 		Variables:      &config.Variables,
 		RealIP:         addresser.RealIP(req),

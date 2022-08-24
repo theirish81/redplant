@@ -54,9 +54,6 @@ func (rtf *RoundTripperFilter) RoundTrip(r *http.Request) (*http.Response, error
 	if wrapper.Err != nil {
 		return nil, wrapper.Err
 	}
-	if prom != nil {
-		prom.GlobalOriginRequestsCounter.Inc()
-	}
 	scheme := wrapper.Request.URL.Scheme
 	switch scheme {
 	case "file":

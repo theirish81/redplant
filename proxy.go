@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -24,7 +23,7 @@ func SetupRouter() *mux.Router {
 			if wrapper == nil {
 				return
 			}
-			wrapper.Request = req
+			wrapper.Request = NewAPIRequest(req)
 
 			if !hasMethod(wrapper) {
 				wrapper.Err = errors.New("method_not_allowed")
@@ -63,7 +62,7 @@ func SetupRouter() *mux.Router {
 				if prom != nil {
 					prom.InternalErrorsCounter.Inc()
 				}
-				log.Error("Error while serving resource", err, logrus.Fields{"url": request.URL.String()})
+				log.Error("Error while serving resource", err, AnyMap{"url": request.URL.String()})
 				writer.WriteHeader(500)
 			}
 		},
@@ -80,7 +79,7 @@ func SetupRouter() *mux.Router {
 					return errors.New("connection_hijacked")
 				}
 				wrapper := GetWrapper(response.Request)
-				wrapper.Response = response
+				wrapper.Response = NewAPIResponse(response)
 				for k, v := range wrapper.ApplyHeaders {
 					wrapper.Response.Header.Set(k, v[0])
 				}
@@ -102,9 +101,6 @@ func SetupRouter() *mux.Router {
 		func(rules map[string]*Rule) {
 			// Handler for one hostname
 			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				if prom != nil {
-					prom.GlobalInboundRequestsCounter.Inc()
-				}
 				// For each rule for a given hostname...
 				for _, rule := range rules {
 					// ... if there's match, then we can enrich with a context

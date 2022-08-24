@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/tg123/go-htpasswd"
 	"net/http"
@@ -23,23 +24,29 @@ type BasicAuthTransformer struct {
 	Retain         bool
 	ActivateOnTags []string
 	_htpasswd      *htpasswd.File
+	log            *STLogHelper
 }
 
 // Transform will throw an error if the request doesn't match the basic auth expectations
 func (t *BasicAuthTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
+	t.log.Log("basic auth triggered", wrapper, t.log.Debug)
 	// We first detect whether basic credentials are passed over, and we collect them
 	username, password, ok := wrapper.Request.BasicAuth()
 	// If we have a htpasswd file loaded, then we use that
 	if ok && t._htpasswd != nil && t._htpasswd.Match(username, password) {
+		t.log.Log("basic auth accepted", wrapper, t.log.Debug)
 		wrapper.Username = username
 		t.postAuthOperations(wrapper)
 		return wrapper, nil
 		// If we don't have the file, then we rely on provided username and password
 	} else if ok && t.Username == username && t.Password == password {
+		t.log.Log("basic auth accepted", wrapper, t.log.Debug)
 		wrapper.Username = username
 		t.postAuthOperations(wrapper)
 		return wrapper, nil
 	} else {
+		t.log.Log("basic auth denied", wrapper, t.log.Debug)
+		t.log.PrometheusCounterInc("basic_auth_denied")
 		// If nothing works, then no_auth
 		return nil, errors.New("no_auth")
 	}
@@ -90,9 +97,9 @@ func (t *BasicAuthTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewBasicAuthTransformer creates a BasicAuthTransformer from params
-func NewBasicAuthTransformer(activateOnTags []string, params map[string]interface{}) (*BasicAuthTransformer, error) {
-	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true}
-	err := DecodeAndTempl(params, &t, nil, []string{})
+func NewBasicAuthTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*BasicAuthTransformer, error) {
+	t := BasicAuthTransformer{ActivateOnTags: activateOnTags, Proxy: false, Retain: true, log: NewSTLogHelper(logCfg)}
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	// if the path to a Htpasswd file is provided, then we parse it
 	if t.Htpasswd != "" {
 		t._htpasswd, err = htpasswd.New(t.Htpasswd, htpasswd.DefaultSystems, nil)
@@ -100,5 +107,6 @@ func NewBasicAuthTransformer(activateOnTags []string, params map[string]interfac
 			return nil, err
 		}
 	}
+	t.log.PrometheusRegisterCounter("basic_auth_denied")
 	return &t, err
 }

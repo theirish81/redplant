@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/dop251/goja"
 	"net/http"
@@ -15,6 +16,7 @@ type ScriptableTransformer struct {
 	ExpandRequest  bool
 	ExpandResponse bool
 	ActivateOnTags []string
+	log            *STLogHelper
 }
 
 // Transform will perform the transformation. The script must return true if the scripts wants the request to move
@@ -23,21 +25,24 @@ func (t *ScriptableTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, err
 	runtime := goja.New()
 	err := runtime.Set("wrapper", wrapper)
 	if err != nil {
+		t.log.LogErr("error while creating setting wrapper in runtime", err, wrapper, t.log.Error)
 		return wrapper, err
 	}
 	// run the script
 	val, err := runtime.RunString(t._script)
 	// if the script failed at running, we return the error
 	if err != nil {
+		t.log.LogErr("error while running script", err, wrapper, t.log.Error)
 		return wrapper, err
 	}
 	// export the result to a boolean
 	res, ok := val.Export().(bool)
 	// if the boolean conversion failed, then we return the error
 	if !ok {
-		return wrapper, errors.New("scriptable transformer: wrong return type in script")
+		t.log.LogErr("script did not return a boolean", nil, wrapper, t.log.Error)
+		return wrapper, errors.New("script did not return a boolean")
 	}
-	// if the script executed fine, and we got a boolean back, and the boolean is true, then we return positvely
+	// if the script executed fine, and we got a boolean back, and the boolean is true, then we return positively
 	if res {
 		return wrapper, nil
 	}
@@ -66,9 +71,9 @@ func (t *ScriptableTransformer) IsActive(wrapper *APIWrapper) bool {
 }
 
 // NewScriptableTransformer is the constructor for ScriptableTransformer
-func NewScriptableTransformer(activateOnTags []string, params map[string]interface{}) (*ScriptableTransformer, error) {
-	t := ScriptableTransformer{ActivateOnTags: activateOnTags}
-	err := DecodeAndTempl(params, &t, nil, []string{})
+func NewScriptableTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ScriptableTransformer, error) {
+	t := ScriptableTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
+	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return nil, err
 	}
