@@ -6,7 +6,8 @@ RedPlant is a **reverse proxy** dedicated to **APIs**. I know what you're thinki
 RedPlant different?
 
 ### Dedicated to developers
-The project is meant to become a swiss-army knife for API development and debugging. 
+The project is meant to become a swiss-army knife for API development and debugging, both in a test and production
+environment.
 The modular system of the tool allows developers to build sophisticated transformation pipelines and sidecar tasks,
 with a simple yet effective definition system.
 
@@ -15,7 +16,7 @@ RedPlant into a trusted testing / CI companion.
 
 ### Capable of production traffic
 Contrary to most dev-oriented RPs, RedPlant is fully capable of sustaining production-sized traffic. True, not as fast
-as NGINX, yet given the complexity of the pipelines you can build, the tradeoff may be worth the tiny extra lag
+as NGINX, yet given the complexity of the pipelines you can build, the tradeoff may be worth the tiny extra lag.
 
 ### Designed to democratise gateways
 In large scale microservices architectures, isolation and black-boxing between areas of the software is crucial to
