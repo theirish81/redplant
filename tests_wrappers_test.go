@@ -38,7 +38,7 @@ func TestAPIWrapper_ExpandRequest(t *testing.T) {
 
 func TestAPIWrapper_ExpandResponse(t *testing.T) {
 	wrapper := APIWrapper{Request: NewAPIRequest(&http.Request{Method: "GET"}),
-		Response: NewAPIResponse(&http.Response{StatusCode: 200})}
+		Response: NewAPIResponse(&http.Response{StatusCode: 200, Uncompressed: true})}
 	wrapper.ExpandResponse()
 	if len(wrapper.Response.ExpandedBody) > 0 {
 		t.Error("No body expansion failed")
