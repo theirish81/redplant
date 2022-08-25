@@ -107,7 +107,7 @@ transformers:
 - id: rate-limiter
   params:
     redisUri: "redis://:password123@127.0.0.1:6379/1"
-    vary: "${Request.GetHeader(Username)"
+    vary: "${Request.GetHeader(Username)}"
     limit: 5
     range: 1m
 ```
