@@ -118,8 +118,9 @@ func (s *CaptureSidecar) Consume(quantity int) {
 		}
 		s.httpClient = &http.Client{Timeout: to}
 		captureFunc = s.CaptureHttp
+	} else {
+		captureFunc = s.CaptureLogger
 	}
-	captureFunc = s.CaptureLogger
 
 	// For each worker...
 	for i := 0; i < quantity; i++ {
