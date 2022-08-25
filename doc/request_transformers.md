@@ -32,6 +32,11 @@ params:
   password: "password"
 ```
 
+params:
+* `username` (string,alternative): the static username the system will accept
+* `password` (string,alternative): the static password the system will accept
+* `htpasswd` (string,alternative): in alternative to static username/password, you can provide an `htpasswd` file
+
 ## JWT Auth Transformer
 Will block any request without a Bearer token or a token whose signature cannot be verified. In addition,
 it will store claims in the scope of the request, as the `Claims` variable.
