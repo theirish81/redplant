@@ -25,7 +25,9 @@ sidecars:
   block: true
 ```
 
-This sidecar has no specific parameter.
+This sidecar has no specific parameter. However, logging configuration will apply to determine where and how the metrics
+will be logged.
+
 
 
 ## Capture Sidecar
