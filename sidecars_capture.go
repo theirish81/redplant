@@ -108,7 +108,7 @@ func (s *CaptureSidecar) GetChannel() chan *APIWrapper {
 
 // Consume starts the consumption workers
 func (s *CaptureSidecar) Consume(quantity int) {
-	var captureFunc func([]byte)
+	var captureFunc func([]byte, *APIWrapper)
 	// If it's a web URL, then we'll use the HTTP capture function
 	if IsHTTP(s.Uri) {
 		to, err := time.ParseDuration(s.Timeout)
@@ -145,7 +145,7 @@ func (s *CaptureSidecar) Consume(quantity int) {
 						// Then we capture
 						capture := CaptureResponse(msg)
 						data, _ := json.Marshal(capture)
-						captureFunc(data)
+						captureFunc(data, msg)
 					}
 				}()
 			}
@@ -154,7 +154,7 @@ func (s *CaptureSidecar) Consume(quantity int) {
 }
 
 // CaptureHttp is the implementation of the HTTP capture
-func (s *CaptureSidecar) CaptureHttp(data []byte) {
+func (s *CaptureSidecar) CaptureHttp(data []byte, _ *APIWrapper) {
 	reader := bytes.NewReader(data)
 	outboundRequest, err := http.NewRequest("POST", s.Uri, reader)
 	if err != nil {
@@ -181,8 +181,8 @@ func (s *CaptureSidecar) CaptureHttp(data []byte) {
 }
 
 // CaptureLogger is the implementation of the Logger capture
-func (s *CaptureSidecar) CaptureLogger(data []byte) {
-	s.logger.Info(string(data), nil)
+func (s *CaptureSidecar) CaptureLogger(data []byte, wrapper *APIWrapper) {
+	s.logger.Log(string(data), wrapper, s.logger.Info)
 }
 
 // ShouldBlock should return true if the sidecar should block
