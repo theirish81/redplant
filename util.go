@@ -113,3 +113,12 @@ func FileNameFormat(file string) (string, error) {
 func IsHTTP(file string) bool {
 	return hasPrefixes(file, []string{"http://", "https://"})
 }
+
+func IsGZIP(transferEncoding []string) bool {
+	for _, tx := range transferEncoding {
+		if strings.Contains(tx, "gzip") {
+			return true
+		}
+	}
+	return false
+}

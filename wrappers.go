@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -101,16 +102,30 @@ func (w *APIWrapper) ExpandResponseIfNeeded() {
 // ExpandRequest will turn the Request body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandRequest() {
 	if len(w.Request.ExpandedBody) == 0 && w.Request.Body != nil {
-		w.Request.ExpandedBody, _ = io.ReadAll(w.Request.Body)
-		w.Request.Body = io.NopCloser(bytes.NewReader(w.Request.ExpandedBody))
+		rawBody, _ := io.ReadAll(w.Request.Body)
+		rawReader := bytes.NewReader(rawBody)
+		if IsGZIP(w.Request.TransferEncoding) {
+			gzipReader, _ := gzip.NewReader(rawReader)
+			w.Request.ExpandedBody, _ = io.ReadAll(gzipReader)
+		} else {
+			w.Request.ExpandedBody, _ = io.ReadAll(rawReader)
+		}
+		w.Request.Body = io.NopCloser(bytes.NewReader(rawBody))
 	}
 }
 
 // ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
 	if len(w.Response.ExpandedBody) == 0 && w.Response.Body != nil {
-		w.Response.ExpandedBody, _ = io.ReadAll(w.Response.Body)
-		w.Response.Body = io.NopCloser(bytes.NewReader(w.Response.ExpandedBody))
+		rawBody, _ := io.ReadAll(w.Response.Body)
+		rawReader := bytes.NewReader(rawBody)
+		if w.Response.Uncompressed {
+			w.Response.ExpandedBody, _ = io.ReadAll(rawReader)
+		} else {
+			gzipReader, _ := gzip.NewReader(rawReader)
+			w.Response.ExpandedBody, _ = io.ReadAll(gzipReader)
+		}
+		w.Response.Body = io.NopCloser(bytes.NewReader(rawBody))
 	}
 }
 
