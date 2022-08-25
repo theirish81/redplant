@@ -23,4 +23,4 @@ RUN addgroup -g 1000 redplant && \
 USER redplant
 WORKDIR /usr/local/redplant
 ENTRYPOINT [ "/usr/local/redplant/redplant" ]
-CMD ["-c", "etc/config.yaml", "-l", "etc/logging.yaml"]
+CMD ["-c", "/usr/local/redplant/etc/config.yaml", "-l", "/usr/local/redplant/etc/logging.yaml"]
