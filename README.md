@@ -95,7 +95,7 @@ sidecars.
 
 #### rules
 Rules describe the routes this system will take care of, and how.
-**Check the [rules documentation](./doc/rules.md)
+**Check the [rules documentation](./doc/rules.md)**
 
 ### Templates
 It is very useful to reference variables throughout the configuration. Some variables may be evaluated at bootstrap
