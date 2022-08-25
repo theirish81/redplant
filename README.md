@@ -76,6 +76,11 @@ downstream:
       cert: etc/server.crt
 ```
 
+#### rules
+Rules describe the routes this system will take care of, and how.
+**Check the [rules documentation](./doc/rules.md)**
+
+
 #### before
 Each route can declare **transformers** and **sidecars** for both requests and responses. However, global transformers
 and sidecars can be applied at a global level. The `before` section describes transformers and sidecars to be applied
@@ -92,10 +97,6 @@ sidecars.
 **Check the [transformers section in "rules"](./doc/rules.md#transformers)**
 
 **Check the [sidecars section in "rules"](./doc/rules.md#sidecars)**
-
-#### rules
-Rules describe the routes this system will take care of, and how.
-**Check the [rules documentation](./doc/rules.md)**
 
 ### Templates
 It is very useful to reference variables throughout the configuration. Some variables may be evaluated at bootstrap
