@@ -118,11 +118,18 @@ func (w *APIWrapper) ExpandRequest() {
 func (w *APIWrapper) ExpandResponse() {
 	if len(w.Response.ExpandedBody) == 0 && w.Response.Body != nil {
 		rawBody, _ := io.ReadAll(w.Response.Body)
+		if len(rawBody) == 0 {
+			return
+		}
 		rawReader := bytes.NewReader(rawBody)
 		if w.Response.Uncompressed {
 			w.Response.ExpandedBody, _ = io.ReadAll(rawReader)
 		} else {
-			gzipReader, _ := gzip.NewReader(rawReader)
+			gzipReader, err := gzip.NewReader(rawReader)
+			if err != nil {
+				log.LogErr("could not decompress response body", err, w, log.Warn)
+				return
+			}
 			w.Response.ExpandedBody, _ = io.ReadAll(gzipReader)
 		}
 		w.Response.Body = io.NopCloser(bytes.NewReader(rawBody))
