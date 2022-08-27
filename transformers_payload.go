@@ -89,6 +89,9 @@ func (t *ResponsePayloadTransformer) Transform(wrapper *APIWrapper) (*APIWrapper
 		return wrapper, err
 	}
 	wrapper.Response.Header.Del("content-length")
+	wrapper.Response.Header.Del("transfer-encoding")
+	wrapper.Response.TransferEncoding = make([]string, 0)
+
 	wrapper.Response.Body = io.NopCloser(bytes.NewReader([]byte(data)))
 	return wrapper, nil
 }
