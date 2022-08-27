@@ -26,6 +26,24 @@ func NewRPTemplate() RPTemplate {
 			return "", errors.New("cannot invoke GetHeader function against this type")
 		}
 	})
+	t.functions.Add("Keys", func(ctx context.Context, data any, params ...string) (any, error) {
+		if reflect.TypeOf(data).Kind() == reflect.Map {
+			keys := reflect.ValueOf(data).MapKeys()
+			res := make([]any, len(keys))
+			for i, k := range keys {
+				if k.Kind() == reflect.Ptr && k.IsNil() {
+					res[i] = nil
+				} else {
+					if k.IsValid() && !k.IsZero() && k.CanInterface() {
+						res[i] = k.Interface()
+					}
+				}
+
+			}
+			return res, nil
+		}
+		return nil, errors.New("cannot obtain keys from a data type that is not a map")
+	})
 	return t
 }
 
@@ -36,6 +54,14 @@ func (t *RPTemplate) Templ(ctx context.Context, data string, scope any) (string,
 		return gowalker.Render(ctx, data, AnyMap{"Variables": config.Variables}, t.functions)
 	} else {
 		return gowalker.Render(context.TODO(), data, scope, t.functions)
+	}
+}
+
+func (t *RPTemplate) TemplWithSub(ctx context.Context, data string, subTemplates map[string]string, scope any) (string, error) {
+	if scope == nil {
+		return gowalker.RenderAll(ctx, data, subTemplates, AnyMap{"Variables": config.Variables}, t.functions)
+	} else {
+		return gowalker.RenderAll(ctx, data, subTemplates, scope, t.functions)
 	}
 }
 
