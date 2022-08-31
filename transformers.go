@@ -211,6 +211,8 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 			transformer, err = NewTagTransformer(t.Logging, t.Params)
 		case "payload":
 			transformer, err = NewResponsePayloadTransformer(t.ActivateOnTags, t.Logging, t.Params)
+		case "status":
+			transformer, err = NewResponseStatusTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
