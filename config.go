@@ -319,13 +319,13 @@ func LoadLoggerConfig(path *string) (LoggerConfig, error) {
 }
 
 // methodFinderRegexp will find the explicit method at the beginning of the path, if defined
-var methodFinderRegexp, _ = regexp.Compile("^\\[(get|post|put|patch|delete)\\]")
+var methodFinderRegexp, _ = regexp.Compile("^\\[(get|post|put|patch|delete|options)\\]")
 
 // extractPattern will separate the explicit method from the path, if that's how the path definition was composed, and
 // return the two components. If the path does not contain an explicit method, then it will return an empty string
 // for the method, and the path as second return value
 func extractPattern(path string) (string, string) {
-	if hasPrefixes(path, []string{"[get]", "[post]", "[put]", "[patch]", "[delete]"}) {
+	if hasPrefixes(path, []string{"[get]", "[post]", "[put]", "[patch]", "[delete]", "[options]"}) {
 		method := strings.Replace(strings.Replace(string(methodFinderRegexp.Find([]byte(path))), "[", "", 1), "]", "", 1)
 		cleanPath := strings.TrimSpace(strings.SplitN(path, "]", 2)[1])
 		return method, cleanPath

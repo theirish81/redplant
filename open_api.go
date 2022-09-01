@@ -146,5 +146,8 @@ func listMethods(path *openapi3.PathItem) []string {
 	if path.Get != nil {
 		methods = append(methods, "get")
 	}
+	if path.Options != nil {
+		methods = append(methods, "options")
+	}
 	return methods
 }
