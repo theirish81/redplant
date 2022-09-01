@@ -7,22 +7,22 @@ import (
 
 type ResponseStatusTransformer struct {
 	ActivateOnTags []string
-	Status         int
+	Code           int
 	log            *STLogHelper
 }
 
 func NewResponseStatusTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ResponseStatusTransformer, error) {
 	t := ResponseStatusTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
-	if s, ok := params["status"].(int); !ok {
+	if s, ok := params["code"].(int); !ok {
 		return &t, errors.New("status should be an integer")
 	} else {
-		t.Status = s
+		t.Code = s
 		return &t, nil
 	}
 }
 
 func (t *ResponseStatusTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
-	wrapper.Response.StatusCode = t.Status
+	wrapper.Response.StatusCode = t.Code
 	return wrapper, nil
 }
 
