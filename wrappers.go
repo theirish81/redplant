@@ -117,13 +117,29 @@ func (w *APIWrapper) ExpandRequest() {
 // ExpandResponse will turn the Response body into a byte array, stored in the APIWrapper itself
 func (w *APIWrapper) ExpandResponse() {
 	if len(w.Response.ExpandedBody) == 0 && w.Response.Body != nil {
-		rawBody, _ := io.ReadAll(w.Response.Body)
-		rawReader := bytes.NewReader(rawBody)
-		if w.Response.Uncompressed {
-			w.Response.ExpandedBody, _ = io.ReadAll(rawReader)
-		} else {
-			gzipReader, _ := gzip.NewReader(rawReader)
-			w.Response.ExpandedBody, _ = io.ReadAll(gzipReader)
+		rawBody, err := io.ReadAll(w.Response.Body)
+		if err != nil {
+			log.LogErr("could not read from response body stream", err, w, log.Warn)
+		}
+		if rawBody != nil && len(rawBody) > 0 {
+			rawReader := bytes.NewReader(rawBody)
+			if w.Response.Uncompressed {
+				w.Response.ExpandedBody, err = io.ReadAll(rawReader)
+				if err != nil {
+					log.LogErr("could not read uncompressed response raw body", err, w, log.Warn)
+				}
+			} else {
+				gzipReader, err := gzip.NewReader(rawReader)
+				if err == nil {
+					w.Response.ExpandedBody, _ = io.ReadAll(gzipReader)
+				} else {
+					log.LogErr("could not decompress response body. Falling back to uncompressed", err, w, log.Warn)
+					w.Response.Uncompressed = true
+					w.Response.Body = io.NopCloser(bytes.NewReader(rawBody))
+					w.ExpandResponse()
+					return
+				}
+			}
 		}
 		w.Response.Body = io.NopCloser(bytes.NewReader(rawBody))
 	}

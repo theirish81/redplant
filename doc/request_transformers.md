@@ -202,3 +202,34 @@ x-redplant:
     transformers:
       - id: openapi-validator
 ```
+
+## Parser transformer
+You may need your transformation sequence to use data coming from the request body.
+If the request body is in JSON, you can use this transformer to have RedPlant parse it and turn it into a data structure
+you can reference.
+
+Example:
+```yaml
+transformers:
+  - id: parser
+```
+You then can reference the values you need with expressions like:
+```
+${Request.ParsedBody.foo.bar}
+```
+
+## Payload transformer
+The payload transformer allows you to replace the request body with a template of your choice. The templates, which rely
+on the default [templating engine](./templates.md), can access the whole API conversation and use the data.
+Clearly, if you need to access the request payload as structured data, you will need the `parser` request transformer
+to trigger **before** this plugin.
+
+Example:
+```yaml
+- id: payload
+  params:
+    template: etc/templates/main.templ
+```
+params:
+* `template` (string,mandatory): the path to the main template. The other templates present in the directory will also
+  be made available to the main template in case you want to invoke them, as described in the [template library documentation](https://github.com/theirish81/gowalker#sub-templates)

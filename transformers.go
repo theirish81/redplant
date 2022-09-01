@@ -101,6 +101,8 @@ func NewRequestTransformers(transformers *[]TransformerConfig) (*RequestTransfor
 			transformer, err = NewRequestParserTransformer(t.ActivateOnTags, t.Logging)
 		case "openapi-validator":
 			transformer, err = NewRequestOpenAPIValidatorTransformer(t.ActivateOnTags, t.Logging)
+		case "payload":
+			transformer, err = NewRequestPayloadTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
@@ -207,6 +209,10 @@ func NewResponseTransformers(transformers *[]TransformerConfig) (*ResponseTransf
 			transformer, err = NewResponseParserTransformer(t.ActivateOnTags, t.Logging)
 		case "tag":
 			transformer, err = NewTagTransformer(t.Logging, t.Params)
+		case "payload":
+			transformer, err = NewResponsePayloadTransformer(t.ActivateOnTags, t.Logging, t.Params)
+		case "status":
+			transformer, err = NewResponseStatusTransformer(t.ActivateOnTags, t.Logging, t.Params)
 		}
 		if transformer != nil && err == nil {
 			res.Push(transformer)
