@@ -1,5 +1,7 @@
 # RedPlant
 
+![RedPlant](./doc/redplant_small.png "RedPlant")
+
 ## What is RedPlant?
 
 RedPlant is a **reverse proxy** dedicated to **APIs**. I know what you're thinking, there already are so many, so how is
