@@ -45,7 +45,9 @@ type OpenAPIConfig struct {
 // Request is the request transformation pipeline
 // Response is the response transformation pipeline
 // Pattern is the pattern that matches the path of the URL, in the form of a regexp string
-// _pattern is the compiled Pattern
+// _pattern is the path component of the pattern. This is derived from the path pattern, key of the rule
+// _patternMethod is the method component of the pattern, assuming it's there. This is derived from the path pattern
+// key of the rule
 // db is the database connection, assuming this rule is using a DBTripper
 type Rule struct {
 	Origin         string         `yaml:"origin"`
@@ -238,7 +240,7 @@ func (c *Config) Init() {
 		// For every rule within the domain definition
 		for pattern, rule := range topRule {
 			var err error
-			// Compile the pattern regexp and store it
+			// separate the method and the actual pattern
 			rule._patternMethod, rule._pattern = extractPattern(pattern)
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = template.Templ(context.Background(), rule.Origin, nil)

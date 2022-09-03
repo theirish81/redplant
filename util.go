@@ -12,8 +12,10 @@ type AnyMap map[string]any
 type RulesMap map[string]RoutesMap
 type RoutesMap map[string]*Rule
 
-func (m *RoutesMap) GroupByPattern() map[string][]*Rule {
-	groups := make(map[string][]*Rule)
+type PathGroupedRoutes map[string][]*Rule
+
+func (m *RoutesMap) GroupByPattern() PathGroupedRoutes {
+	groups := PathGroupedRoutes{}
 	for _, rule := range *m {
 		pattern := rule._pattern
 		if _, ok := groups[pattern]; !ok {
