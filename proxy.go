@@ -96,25 +96,36 @@ func SetupRouter() *mux.Router {
 			return nil
 		},
 	}
-	// Routing based on hostname
+	// routing configuration. For every component in Rules
 	for k, rules := range config.Rules {
-		func(rules map[string]*Rule) {
-			// Handler for one hostname
-			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				// For each rule for a given hostname...
-				for _, rule := range rules {
-					// ... if there's match, then we can enrich with a context
-					methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(req.Method)
-					if methodMatch && rule._pattern.MatchString(req.URL.Path) {
-						req = ReqWithContext(req, w, rule)
-						break
-					}
-				}
-				reverseProxy.ServeHTTP(w, req)
-			}).Name(k)
+		func(rules RoutesMap) {
+			// the key here is the hostname
+			hostRoute := router.Host(k).Name(k).Subrouter()
+			// grouping the sub-rules based on the path component of the pattern
+			groups := rules.GroupByPattern()
+			// for each group we perform the necessary bindings
+			for _, routes := range groups {
+				handleRouteGroup(routes, hostRoute, reverseProxy)
+			}
 		}(rules)
 	}
 	return router
+}
+
+// handleRouteGroup will bind the provided group of routes,
+func handleRouteGroup(routes []*Rule, hostRoute *mux.Router, reverseProxy *httputil.ReverseProxy) {
+	// we handle the path
+	hostRoute.HandleFunc(routes[0]._pattern, func(writer http.ResponseWriter, request *http.Request) {
+		// for each rule in the group, we need to find which one has a matching method
+		for _, rule := range routes {
+			methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(request.Method)
+			if methodMatch {
+				request = ReqWithContext(request, writer, rule)
+				break
+			}
+		}
+		reverseProxy.ServeHTTP(writer, request)
+	})
 }
 
 // hasMethod will check if the method set in the request is among the ones listed in the Rule.AllowedMethods setting.

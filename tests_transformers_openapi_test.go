@@ -13,7 +13,7 @@ func TestRequestOpenAPISchemaTransformer_Transform(t *testing.T) {
 	wrapper := APIWrapper{Request: req}
 	wrapper.Rule = &Rule{}
 	rules := OpenAPI2Rules(map[string]*OpenAPIConfig{"localhost:9001": {File: "etc/openapi.yaml"}})
-	rule := rules["localhost:9001"]["[get] ^/api/v3/pet/.*$"]
+	rule := rules["localhost:9001"]["[get] /api/v3/pet/{petId}"]
 	wrapper.Rule = rule
 
 	transformer, _ := NewRequestOpenAPIValidatorTransformer([]string{}, nil)
