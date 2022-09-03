@@ -1,20 +1,47 @@
 # Rules
-At the very top level, we find the "domain" selection,
-which is a regular expression for domains, so: `localhost` is fine as much as `.*.foobar.com` is.
+
+## the host
+At the very top level, we find the "domain" selection. As RedPlant can map different routes to different domains,
+the host key is very important and requires some attention. For example, `127.0.0.1` is not the same as `localhost`.
+You can opt to simply hardcode the domain you want the rules to respond to, as in:
+* `example.com`
+* `example:8080`
+
+Or you can use a URI template, as in:
+* `{domain}`
+* `{domain}{port}`
+* `localhost:{port}`
+* `{sub}.{domain}`
+
+When you use URI templates, the system will try to match the host to the provided pattern, so bear in mind you should
+be careful when describing templates, as overlaps may occur.
+
+Additionally, all the resolved variables will be made available in the transaction variable scope, in the `UrlVars`
+collection.
 
 ## the paths
-Direct descendent of the `rules` object, we find paths. Paths are regular expressions as well and describe the path of
-the inbound request URLs. The instructions within a path are:
-* `origin` (required): a URL representing the origin we should forward the request to
-* `stripPrefix` (optional): inbound paths are generally appended as they are to the origin. For example, if the path is
-  `/foo/abc123` and the origin is `http://example.com/data`, the request will be forwarded to `http://example.com/data/foo/abc123`.
-  However, this may not be the desired behavior. If we wanted to forward to `http://example.com/data/abc123`, then we give
-  the `stripPrefix` parameter the value of `/foo`.
+Direct descendent of the `rules` object, we find paths, matching the possible inbound URL paths.
+Just like the domains, path are URI templates, so you can either use hardcoded paths, or parametrise them, as in:
+* `/foobar`
+* `/foo/{id}`
+* `/foo/{id:[0-9]+}`
+
+All the resolved variables will be made available in the transaction variable scope, in the `UrlVars` collection.
+
+**TIP**: a wildcard can be implemented like this:
+* `/api/{rest:.*}`
+
+The direct properties of a path are:
+* `origin` (string,required): a URL representing the origin we should forward the request to
+* `stripPrefix` (string,optional): inbound paths are generally appended as they are to the origin. For example, if the
+  path is `/foo/abc123` and the origin is `http://example.com/data`, the request will be forwarded to
+  `http://example.com/data/foo/abc123`. However, this may not be the desired behavior. If we wanted to forward to
+  `http://example.com/data/abc123`, then we give the `stripPrefix` parameter the value of `/foo`.
 
 In our example, a set of rules with paths will look like this:
 ```yaml
 localhost:9001:
-  "/todo/.*":
+  "/todo/{id}":
     origin: https://jsonplaceholder.typicode.com/todos
     stripPrefix: /todo
 ```
@@ -23,7 +50,7 @@ localhost:9001:
 In some situations you may want to describe substantially different behaviours for different methods.
 In this case you can explicitly declare the method you're describing in the path pattern as in:
 ```yaml
-"[get] /todo/.*":
+"[get] /todo/{id}":
    origin: https://jsonplaceholder.typicode.com/todos
    stripPrefix: /todo
 ```

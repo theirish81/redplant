@@ -98,20 +98,23 @@ func SetupRouter() *mux.Router {
 	}
 	// Routing based on hostname
 	for k, rules := range config.Rules {
-		func(rules map[string]*Rule) {
-			// Handler for one hostname
-			router.Host(k).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				// For each rule for a given hostname...
-				for _, rule := range rules {
-					// ... if there's match, then we can enrich with a context
-					methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(req.Method)
-					if methodMatch && rule._pattern.MatchString(req.URL.Path) {
-						req = ReqWithContext(req, w, rule)
-						break
-					}
-				}
-				reverseProxy.ServeHTTP(w, req)
-			}).Name(k)
+		func(rules RoutesMap) {
+			hostRoute := router.Host(k).Subrouter()
+			groups := rules.GroupByPattern()
+			for _, routes := range groups {
+				func(routes []*Rule) {
+					hostRoute.HandleFunc(routes[0]._pattern, func(writer http.ResponseWriter, request *http.Request) {
+						for _, rule := range routes {
+							methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(request.Method)
+							if methodMatch {
+								request = ReqWithContext(request, writer, rule)
+								break
+							}
+						}
+						reverseProxy.ServeHTTP(writer, request)
+					})
+				}(routes)
+			}
 		}(rules)
 	}
 	return router

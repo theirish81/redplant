@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"errors"
-	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -11,7 +9,20 @@ import (
 
 type StringMap map[string]string
 type AnyMap map[string]any
-type RulesMap map[string]map[string]*Rule
+type RulesMap map[string]RoutesMap
+type RoutesMap map[string]*Rule
+
+func (m *RoutesMap) GroupByPattern() map[string][]*Rule {
+	groups := make(map[string][]*Rule)
+	for _, rule := range *m {
+		pattern := rule._pattern
+		if _, ok := groups[pattern]; !ok {
+			groups[pattern] = make([]*Rule, 0)
+		}
+		groups[pattern] = append(groups[pattern], rule)
+	}
+	return groups
+}
 
 // stringInArray will search a string in an array of strings and return true if the string is found
 func stringInArray(search string, array []string) bool {
@@ -95,18 +106,6 @@ func convertMaps(intf any) any {
 		}
 	}
 	return intf
-}
-
-// FileNameFormat will convert file URIs to actually paths
-func FileNameFormat(file string) (string, error) {
-	if strings.HasPrefix(file, "file://") {
-		localUrl, err := url.Parse(file)
-		if err != nil {
-			return "", errors.New("wrong file format")
-		}
-		return localUrl.Host + localUrl.Path, nil
-	}
-	return file, nil
 }
 
 // IsHTTP will tell you if the given string is somewhat likely to be an HTTP(s) URL

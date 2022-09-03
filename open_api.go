@@ -5,7 +5,6 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"net/url"
-	"regexp"
 )
 
 // OARule is a data structure used to map Request and Response config items within the OpenAPI document, defined in
@@ -16,10 +15,6 @@ type OARule struct {
 	Request  RequestConfig
 	Response ResponseConfig
 }
-
-// repl is a regular expression matching an URI parameter as defined in OpenAPI
-var repl = regexp.MustCompile(`{.+?}`)
-var paramWildcard = ".*"
 
 // OpenAPI2Rules will load a number of OpenAPI files and convert it to a set of RedPlant Rules
 // `openAPIConfigs` is a set of OpenAPIConfig, the RedPlant configuration for them
@@ -48,7 +43,7 @@ func OpenAPI2Rules(openAPIConfigs map[string]*OpenAPIConfig) RulesMap {
 		router, _ := gorillamux.NewRouter(oa)
 		for path, operations := range oa.Paths {
 			// converting the URI variables into our Regexp format
-			px := "^" + string(repl.ReplaceAll([]byte(partialPath+path), []byte(paramWildcard))) + "$"
+			px := partialPath + path
 			// for each method defined in `operations`
 			for _, m := range listMethods(operations) {
 				op := getOperationByMethod(operations, m)

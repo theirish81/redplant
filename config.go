@@ -54,7 +54,7 @@ type Rule struct {
 	Response       ResponseConfig `yaml:"response"`
 	Pattern        string         `yaml:"pattern"`
 	AllowedMethods []string       `yaml:"allowedMethods"`
-	_pattern       *regexp.Regexp
+	_pattern       string
 	_patternMethod string
 	oa             *openapi3.T
 	oaOperation    *openapi3.Operation
@@ -238,13 +238,8 @@ func (c *Config) Init() {
 		// For every rule within the domain definition
 		for pattern, rule := range topRule {
 			var err error
-			extractedPattern := pattern
 			// Compile the pattern regexp and store it
-			rule._patternMethod, extractedPattern = extractPattern(pattern)
-			rule._pattern, err = regexp.Compile(extractedPattern)
-			if err != nil {
-				log.Fatal("Pattern is not a valid regex", err, nil)
-			}
+			rule._patternMethod, rule._pattern = extractPattern(pattern)
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = template.Templ(context.Background(), rule.Origin, nil)
 			if err != nil {

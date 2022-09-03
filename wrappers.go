@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"time"
@@ -16,11 +17,12 @@ type APIRequest struct {
 	*http.Request
 	ExpandedBody []byte
 	ParsedBody   any
+	UrlVars      map[string]string
 }
 
 // NewAPIRequest is the constructor for APIRequest
 func NewAPIRequest(req *http.Request) *APIRequest {
-	return &APIRequest{Request: req}
+	return &APIRequest{Request: req, UrlVars: mux.Vars(req)}
 }
 
 // APIResponse is the wrapper around http.Response
@@ -48,7 +50,7 @@ func (r *APIRequest) Clone(ctx context.Context) *APIRequest {
 	if r == nil {
 		return nil
 	}
-	return &APIRequest{r.Request.Clone(ctx), r.ExpandedBody, r.ParsedBody}
+	return &APIRequest{r.Request.Clone(ctx), r.ExpandedBody, r.ParsedBody, r.UrlVars}
 }
 
 // APIWrapper wraps a Request and a response
