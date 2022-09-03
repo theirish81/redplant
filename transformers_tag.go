@@ -39,7 +39,7 @@ func (t *TagTransformer) Transform(wrapper *APIWrapper) (*APIWrapper, error) {
 		}
 		// we don't want a <no value> to appear in the tags, so in case that's what's happening, we just don't
 		// append the tag
-		if val != "" && val != "<no value>" {
+		if val != "" {
 			wrapper.Tags = append(wrapper.Tags, val)
 		}
 	}
