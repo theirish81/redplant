@@ -23,7 +23,7 @@ func DBTrip(request *http.Request, rule *Rule) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	response := http.Response{StatusCode: 200, Request: request}
+	response := http.Response{StatusCode: 200, Request: request, Uncompressed: true}
 	response.Header = http.Header{}
 
 	response.Header.Set("content-type", "application/json")

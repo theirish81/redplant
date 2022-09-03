@@ -30,7 +30,7 @@ func getCT(body []byte, fn string) string {
 
 // FileTrip will receive a request, load a local file based on the information and produce a response
 func FileTrip(request *http.Request) (*http.Response, error) {
-	response := http.Response{StatusCode: 200, Request: request}
+	response := http.Response{StatusCode: 200, Request: request, Uncompressed: true}
 	response.Header = http.Header{}
 
 	body, err := loadFile(request.URL)
