@@ -118,3 +118,7 @@ Check our [Prometheus metrics support](./doc/prometheus.md)
 ### OpenAPI support
 OpenAPI specification files can be used to instruct RedPlant about the routes, please refer to the
 [OpenAPI support](./doc/openapi.md) section
+
+
+## Running on Docker
+Please refer to the [Docker documentation](./doc/docker.md).
