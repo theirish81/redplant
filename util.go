@@ -9,8 +9,6 @@ import (
 
 type StringMap map[string]string
 type AnyMap map[string]any
-type RulesMap map[string]RoutesMap
-type RoutesMap map[string]*Rule
 
 // stringInArray will search a string in an array of strings and return true if the string is found
 func stringInArray(search string, array []string) bool {
