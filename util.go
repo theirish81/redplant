@@ -12,20 +12,6 @@ type AnyMap map[string]any
 type RulesMap map[string]RoutesMap
 type RoutesMap map[string]*Rule
 
-type PathGroupedRoutes map[string][]*Rule
-
-func (m *RoutesMap) GroupByPattern() PathGroupedRoutes {
-	groups := PathGroupedRoutes{}
-	for _, rule := range *m {
-		pattern := rule._pattern
-		if _, ok := groups[pattern]; !ok {
-			groups[pattern] = make([]*Rule, 0)
-		}
-		groups[pattern] = append(groups[pattern], rule)
-	}
-	return groups
-}
-
 // stringInArray will search a string in an array of strings and return true if the string is found
 func stringInArray(search string, array []string) bool {
 	for _, sx := range array {
