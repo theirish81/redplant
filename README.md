@@ -112,6 +112,7 @@ Check out [Templates documentation](./doc/templates.md)
 ### Exotic origins
 RedPlant can accept (more or less) exotic origins. See:
 * [DB Origin](./doc/db.md) : access your databases with API calls
+* [File Origin](./doc/file.md) : transform a route into a static file server
 * [Websocket Origin](./doc/websocket.md) : I know, this is not really exotic, but it's currently in the experimental stage
 
 ### Observability

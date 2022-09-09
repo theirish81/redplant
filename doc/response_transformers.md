@@ -87,7 +87,7 @@ transformers:
 params:
 * `tags` (array[string],required): a list of tags to apply to the request.
 
-## Parser transformer
+## Response Parser transformer
 You may need your transformation sequence to use data coming from the response body.
 If the response body is in JSON, you can use this transformer to have RedPlant parse it and turn it into a data structure
 you can reference.

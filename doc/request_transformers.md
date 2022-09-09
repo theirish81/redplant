@@ -203,21 +203,6 @@ x-redplant:
       - id: openapi-validator
 ```
 
-## Parser transformer
-You may need your transformation sequence to use data coming from the request body.
-If the request body is in JSON, you can use this transformer to have RedPlant parse it and turn it into a data structure
-you can reference.
-
-Example:
-```yaml
-transformers:
-  - id: parser
-```
-You then can reference the values you need with expressions like:
-```
-${Request.ParsedBody.foo.bar}
-```
-
 ## Payload transformer
 The payload transformer allows you to replace the request body with a template of your choice. The templates, which rely
 on the default [templating engine](./templates.md), can access the whole API conversation and use the data.
