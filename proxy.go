@@ -98,34 +98,21 @@ func SetupRouter() *mux.Router {
 	}
 	// routing configuration. For every component in Rules
 	for k, rules := range config.Rules {
-		func(rules RoutesMap) {
-			// the key here is the hostname
-			hostRoute := router.Host(k).Name(k).Subrouter()
-			// grouping the sub-rules based on the path component of the pattern
-			groups := rules.GroupByPattern()
-			// for each group we perform the necessary bindings
-			for _, routes := range groups {
-				handleRouteGroup(routes, hostRoute, reverseProxy)
-			}
-		}(rules)
+		hostRoute := router.Host(k).Name(k).Subrouter()
+		for _, rx := range rules {
+			func(rule *Rule) {
+				route := hostRoute.HandleFunc(rule._pattern, func(writer http.ResponseWriter, request *http.Request) {
+					request = ReqWithContext(request, writer, rule)
+					reverseProxy.ServeHTTP(writer, request)
+				})
+				if rule._patternMethod != "" {
+					route.Methods(rule._patternMethod)
+				}
+			}(rx)
+
+		}
 	}
 	return router
-}
-
-// handleRouteGroup will bind the provided group of routes,
-func handleRouteGroup(routes []*Rule, hostRoute *mux.Router, reverseProxy *httputil.ReverseProxy) {
-	// we handle the path
-	hostRoute.HandleFunc(routes[0]._pattern, func(writer http.ResponseWriter, request *http.Request) {
-		// for each rule in the group, we need to find which one has a matching method
-		for _, rule := range routes {
-			methodMatch := rule._patternMethod == "" || rule._patternMethod == strings.ToLower(request.Method)
-			if methodMatch {
-				request = ReqWithContext(request, writer, rule)
-				break
-			}
-		}
-		reverseProxy.ServeHTTP(writer, request)
-	})
 }
 
 // hasMethod will check if the method set in the request is among the ones listed in the Rule.AllowedMethods setting.

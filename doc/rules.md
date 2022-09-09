@@ -31,6 +31,12 @@ All the resolved variables will be made available in the transaction variable sc
 **TIP**: a wildcard can be implemented like this:
 * `/api/{rest:.*}`
 
+**IMPORTANT**: route paths have computed priorities which go beyond the order in which you describe them.
+Typically, the static routes get evaluated first. Subsequently, the routes are evaluated starting from the longest
+paths to the shortest. You can check the routes being registered and in which priority at boostrap, in the logs.
+Most of the time, the decision taken by the priority system are just fine, but in some specific cases you may experience
+unexpected results. Increase the specificity of the path patterns, and you should do just fine.
+
 The direct properties of a path are:
 * `origin` (string,required): a URL representing the origin we should forward the request to
 * `stripPrefix` (string,optional): inbound paths are generally appended as they are to the origin. For example, if the

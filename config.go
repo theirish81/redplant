@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -28,9 +29,63 @@ type Config struct {
 	Network    Network                   `yaml:"network"`
 	Before     BeforeAfterConfig         `yaml:"before"`
 	After      BeforeAfterConfig         `yaml:"after"`
-	Rules      RulesMap                  `yaml:"rules"`
+	Rules      DomainsMap                `yaml:"rules"`
 	OpenAPI    map[string]*OpenAPIConfig `yaml:"openAPI"`
 	Prometheus *PrometheusConfig         `yaml:"prometheus"`
+}
+
+// DomainsMap is a map of domain=path objects
+type DomainsMap map[string]RoutesMap
+
+// RoutesMap is a map of path=rule object
+type RoutesMap map[string]*Rule
+
+// RoutesArray is the rules map converted into an array
+type RoutesArray []*Rule
+
+// NewRoutesArray will create a RoutesArray out of a RoutesMap
+func NewRoutesArray(m RoutesMap) RoutesArray {
+	arr := RoutesArray{}
+	for pattern, route := range m {
+		route.Pattern = pattern
+		arr = append(arr, route)
+	}
+	return arr
+}
+
+func (a RoutesArray) Len() int {
+	return len(a)
+}
+
+func (a RoutesArray) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a RoutesArray) Less(i, j int) bool {
+	firstDynamic := a.isDynamic(a[i].Pattern)
+	secondDynamic := a.isDynamic(a[j].Pattern)
+	if firstDynamic && !secondDynamic {
+		return false
+	}
+	if !firstDynamic && secondDynamic {
+		return true
+	}
+	if len(a[i].Pattern) != len(a[j].Pattern) {
+		return len(a[i].Pattern) > len(a[j].Pattern)
+	}
+	return true
+}
+
+// isDynamic will return true if the provided path contains variable parts
+func (a RoutesArray) isDynamic(path string) bool {
+	return strings.Contains(path, "{") && strings.Contains(path, "}")
+}
+
+// ToOrderedRoutes will convert RoutesMap into an array, ordered by sort of a priority
+func (m *RoutesMap) ToOrderedRoutes() RoutesArray {
+	arr := NewRoutesArray(*m)
+	sort.Sort(&arr)
+	return arr
 }
 
 // OpenAPIConfig is an OpenAPI configuration object
@@ -238,10 +293,10 @@ func (c *Config) Init() {
 	// For every domain definition
 	for domain, topRule := range c.Rules {
 		// For every rule within the domain definition
-		for pattern, rule := range topRule {
+		for _, rule := range topRule.ToOrderedRoutes() {
 			var err error
 			// separate the method and the actual pattern
-			rule._patternMethod, rule._pattern = extractPattern(pattern)
+			rule._patternMethod, rule._pattern = extractPattern(rule.Pattern)
 			// The origin may be a template, so we evaluate it
 			rule.Origin, err = template.Templ(context.Background(), rule.Origin, nil)
 			if err != nil {
@@ -286,7 +341,7 @@ func (c *Config) Init() {
 					log.Fatal("Could not connect to the database", err, nil)
 				}
 			}
-			log.Info("route registered", AnyMap{"pattern": pattern, "domain": domain})
+			log.Info("route registered", AnyMap{"pattern": rule.Pattern, "domain": domain})
 		}
 	}
 }
