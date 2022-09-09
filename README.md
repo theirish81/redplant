@@ -2,6 +2,9 @@
 
 ![RedPlant](./doc/redplant_small.png "RedPlant")
 
+## Status
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/theirish81/redplant/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/theirish81/redplant/tree/main)
+
 ## What is RedPlant?
 
 RedPlant is a **reverse proxy** dedicated to **APIs**. I know what you're thinking, there already are so many, so how is
