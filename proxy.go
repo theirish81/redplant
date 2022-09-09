@@ -112,6 +112,11 @@ func SetupRouter() *mux.Router {
 
 		}
 	}
+	// catch all route
+	router.PathPrefix("/").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		log.Debug("request did not match any route", AnyMap{"url": request.Host + request.RequestURI})
+		writer.WriteHeader(404)
+	})
 	return router
 }
 
