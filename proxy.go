@@ -139,6 +139,10 @@ func handleURL(rule *Rule, req *http.Request) {
 	if len(rule.StripPrefix) > 0 {
 		reqPath = strings.Replace(reqPath, rule.StripPrefix, "", 1)
 	}
+	// we don't like colliding slashes
+	if strings.HasSuffix(newUrl.Path, "/") && strings.HasPrefix(reqPath, "/") {
+		reqPath = reqPath[1:]
+	}
 	newUrl.Path = newUrl.Path + reqPath
 	newUrl.RawQuery = req.URL.RawQuery
 	req.URL = newUrl
