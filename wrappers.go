@@ -106,7 +106,7 @@ func (w *APIWrapper) ExpandRequest() {
 	if len(w.Request.ExpandedBody) == 0 && w.Request.Body != nil {
 		rawBody, _ := io.ReadAll(w.Request.Body)
 		rawReader := bytes.NewReader(rawBody)
-		if IsGZIP(w.Request.TransferEncoding) {
+		if IsGZIPHeader(w.Request.TransferEncoding) {
 			gzipReader, _ := gzip.NewReader(rawReader)
 			w.Request.ExpandedBody, _ = io.ReadAll(gzipReader)
 		} else {
