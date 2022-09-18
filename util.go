@@ -99,7 +99,9 @@ func IsHTTP(file string) bool {
 	return hasPrefixes(file, []string{"http://", "https://"})
 }
 
-func IsGZIP(transferEncoding []string) bool {
+// IsGZIPHeader will return true if the provided slice of "transfer-encoding" header values
+// suggest that the response associated to them has been gzipped
+func IsGZIPHeader(transferEncoding []string) bool {
 	for _, tx := range transferEncoding {
 		if strings.Contains(tx, "gzip") {
 			return true

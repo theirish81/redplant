@@ -112,6 +112,11 @@ func SetupRouter() *mux.Router {
 
 		}
 	}
+	// catch all route
+	router.PathPrefix("/").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		log.Debug("request did not match any route", AnyMap{"url": request.Host + request.RequestURI})
+		writer.WriteHeader(404)
+	})
 	return router
 }
 
@@ -138,6 +143,10 @@ func handleURL(rule *Rule, req *http.Request) {
 	reqPath := req.URL.Path
 	if len(rule.StripPrefix) > 0 {
 		reqPath = strings.Replace(reqPath, rule.StripPrefix, "", 1)
+	}
+	// we don't like colliding slashes
+	if strings.HasSuffix(newUrl.Path, "/") && strings.HasPrefix(reqPath, "/") {
+		reqPath = reqPath[1:]
 	}
 	newUrl.Path = newUrl.Path + reqPath
 	newUrl.RawQuery = req.URL.RawQuery

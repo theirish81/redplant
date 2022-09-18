@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// RequestPayloadTransformer is a transformer that will transform the request payload based on a set of templates
 type RequestPayloadTransformer struct {
 	ActivateOnTags []string
 	log            *STLogHelper
@@ -19,16 +20,19 @@ type RequestPayloadTransformer struct {
 	subTemplates   gowalker.SubTemplates
 }
 
+// NewRequestPayloadTransformer is the constructor of RequestPayloadTransformer
 func NewRequestPayloadTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*RequestPayloadTransformer, error) {
 	t := RequestPayloadTransformer{ActivateOnTags: activateOnTags, log: NewSTLogHelper(logCfg)}
 	err := template.DecodeAndTempl(context.Background(), params, &t, nil, []string{})
 	if err != nil {
 		return &t, err
 	}
+	// reading the master template
 	data, err := os.ReadFile(t.Template)
 	if err != nil {
 		return &t, err
 	}
+	// loading the sub-templates, if any
 	templDir := path.Dir(t.Template)
 	t.subTemplates = gowalker.NewSubTemplates()
 	files, err := os.ReadDir(templDir)
@@ -74,10 +78,12 @@ func (t *RequestPayloadTransformer) IsActive(wrapper *APIWrapper) bool {
 	return wrapper.HasTag(t.ActivateOnTags)
 }
 
+// ResponsePayloadTransformer is a transformer that will transform the response payload based on a set of templates
 type ResponsePayloadTransformer struct {
 	*RequestPayloadTransformer
 }
 
+// NewResponsePayloadTransformer is the constructor for ResponsePayloadTransformer
 func NewResponsePayloadTransformer(activateOnTags []string, logCfg *STLogConfig, params map[string]any) (*ResponsePayloadTransformer, error) {
 	t, err := NewRequestPayloadTransformer(activateOnTags, logCfg, params)
 	return &ResponsePayloadTransformer{t}, err
