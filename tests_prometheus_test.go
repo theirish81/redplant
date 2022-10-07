@@ -3,6 +3,7 @@ package main
 import "testing"
 
 func TestPrometheus(t *testing.T) {
+	config = Config{Prometheus: &PrometheusConfig{Namespace: "redplant"}}
 	p := NewPrometheus()
 	if p.CustomSummaries == nil || p.CustomCounters == nil || p.InternalErrorsCounter == nil {
 		t.Error("prometheus init did not work")
