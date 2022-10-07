@@ -7,8 +7,10 @@ In the main config file, add the following object:
 prometheus:
   port: 9002
   path: "/metrics"
+  namespace: "redplant"
 ```
-This will expose Prometheus metrics on port 9002, path: `/metrics`
+This will expose Prometheus metrics on port 9002, path: `/metrics`. You can use whatever namespace you prefer. If
+omitted, it will default to `redplant`.
 
 
 ## Sidecar / Transformer configuration

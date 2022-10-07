@@ -244,9 +244,11 @@ type Tls struct {
 // PrometheusConfig is the configuration of the Prometheus metrics endpoint
 // Port is the port we're exposing the endpoint to
 // Path is the URL path the metrics will be exposed to
+// Namespace is the namespace used in the metrics. If omitted, "redplant" will be used
 type PrometheusConfig struct {
-	Port int
-	Path string
+	Port      int    `yaml:"port"`
+	Path      string `yaml:"path"`
+	Namespace string `yaml:"namespace"`
 }
 
 // LoadConfig loads the configuration
@@ -289,6 +291,11 @@ func LoadConfig(file string) Config {
 func (c *Config) Init() {
 	if c.OpenAPI != nil {
 		c.Rules = MergeRules(c.Rules, OpenAPI2Rules(c.OpenAPI))
+	}
+	if c.Prometheus != nil {
+		if len(c.Prometheus.Namespace) == 0 {
+			c.Prometheus.Namespace = "redplant"
+		}
 	}
 	// For every domain definition
 	for domain, topRule := range c.Rules {

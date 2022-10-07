@@ -23,7 +23,7 @@ type Prometheus struct {
 func NewPrometheus() *Prometheus {
 	prom := Prometheus{}
 	iec := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "redplant",
+		Namespace: config.Prometheus.Namespace,
 		Name:      "internal_errors",
 		Help:      "counting unhandled, unexpected internal errors",
 	})
@@ -45,7 +45,7 @@ func (p *Prometheus) CustomCounter(name string) prometheus.Counter {
 		return counter
 	}
 	p.CustomCounters[name] = prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "redplant",
+		Namespace: config.Prometheus.Namespace,
 		Name:      name,
 	})
 	_ = prometheus.Register(p.CustomCounters[name])
@@ -61,7 +61,7 @@ func (p *Prometheus) CustomSummary(name string) prometheus.Summary {
 		return summary
 	}
 	p.CustomSummaries[name] = prometheus.NewSummary(prometheus.SummaryOpts{
-		Namespace: "redplant",
+		Namespace: config.Prometheus.Namespace,
 		Name:      name,
 	})
 	_ = prometheus.Register(p.CustomSummaries[name])
